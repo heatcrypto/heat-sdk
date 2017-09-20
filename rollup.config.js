@@ -3,6 +3,10 @@ import commonjs from "rollup-plugin-commonjs"
 import sourceMaps from "rollup-plugin-sourcemaps"
 const pkg = require("./package.json")
 const camelCase = require("lodash.camelcase")
+// npm install rollup-plugin-uglify --save-dev
+//import uglify from 'rollup-plugin-uglify';
+// npm install uglify-es --save-dev
+//import { minify } from 'uglify-es';
 
 const libraryName = "heat-sdk"
 
@@ -27,6 +31,9 @@ export default {
     resolve(),
 
     // Resolve source maps to the original source
-    sourceMaps()
+    sourceMaps(),
+
+    // // Generate minified source bundle for use in browsers
+    //uglify({}, minify)
   ]
 }
