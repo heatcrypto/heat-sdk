@@ -11,6 +11,9 @@ HEAT support libraries for Node.js and the browser
 ```bash
 npm install heat-sdk --save
 ```
+### Extended API documentation
+
+[HEAT-SDK API](https://heat-ledger-ltd.github.io/heat-sdk/)
 
 ### Functionality
 
@@ -22,13 +25,3 @@ This includes but is not limited to:
 - Complete client side support for both constructing and parsing binary transaction data
 - Full client side encryption/descryption support for transaction attachments
 - Support for all other low-level HEAT functionality. But all client side, no server needed! (publickeys, accountids, transaction signatures etc.)
-
-### NPM scripts
-
- - `npm t`: Run test suite
- - `npm start`: Runs `npm run build` in watch mode
- - `npm run test:watch`: Run test suite in [interactive watch mode](http://facebook.github.io/jest/docs/cli.html#watch)
- - `npm run test:prod`: Run linting and generate coverage
- - `npm run build`: Generage bundles and typings, create docs
- - `npm run lint`: Lints code
- - `npm run commit`: Commit using conventional commit style ([husky](https://github.com/typicode/husky) will tell you to use it if you haven't :wink:)
