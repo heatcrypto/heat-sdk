@@ -13,7 +13,7 @@ const libraryName = "heat-sdk"
 export default {
   input: `compiled/${libraryName}.js`,
   output: [
-    { file: pkg.main, name: camelCase(libraryName), format: "umd" },
+    { file: pkg.main, name: 'heatsdk', format: "umd" }, //camelCase(libraryName)
     { file: pkg.module, format: "es" }
   ],
   sourcemap: true,
