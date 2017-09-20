@@ -1,3 +1,4 @@
+/// <reference path='bytebuffer.d.ts' />
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.

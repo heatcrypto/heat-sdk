@@ -1,3 +1,4 @@
+/// <reference path='bytebuffer.d.ts' />
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.
@@ -20,13 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
+import * as ByteBuffer from "./bytebuffer"
 import { TransactionType } from "./transaction_type"
 import { Attachment } from "./attachment"
 import * as appendix from "./appendix"
 import * as utils from "./utils"
 import * as converters from "./converters"
 import * as crypto from "./crypto"
-let ByteBuffer = require("../node_modules/bytebuffer/dist/bytebuffer")
 import Long from "long"
 
 export class Builder {
@@ -298,9 +299,7 @@ export class TransactionImpl {
     let size = this.getSize()
     if (this.isTestnet) size += 8
 
-    let buffer: ByteBuffer = ByteBuffer.allocate(size).order(
-      ByteBuffer.LITTLE_ENDIAN
-    )
+    let buffer = ByteBuffer.allocate(size).order(ByteBuffer.LITTLE_ENDIAN)
     buffer.writeByte(this.type.getType())
     buffer.writeByte((this.version << 4) | this.type.getSubtype())
     buffer.writeInt(this.timestamp)
