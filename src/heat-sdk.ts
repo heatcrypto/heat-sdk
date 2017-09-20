@@ -27,7 +27,7 @@ import { Builder, TransactionImpl } from "./builder"
 
 export class HeatSDKClass {
   public crypto = crypto
-  public builder() {
+  public createTransactionBuilder() {
     return new Builder()
   }
 }
