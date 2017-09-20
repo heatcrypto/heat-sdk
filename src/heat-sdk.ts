@@ -32,4 +32,5 @@ export class HeatSDKClass {
   }
 }
 
-export let heatsdk = new HeatSDKClass()
+let heatsdk = new HeatSDKClass()
+export default heatsdk
