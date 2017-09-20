@@ -72,8 +72,12 @@
     }
   },
   "devDependencies": {
+    "@types/big.js": "0.0.32",
+    "@types/bytebuffer": "^5.0.34",
     "@types/jest": "^20.0.0",
     "@types/node": "^8.0.0",
+    "big.js": "^3.2.0",
+    "bytebuffer": "^5.0.1",
     "colors": "^1.1.2",
     "commitizen": "^2.9.6",
     "coveralls": "^2.13.1",
