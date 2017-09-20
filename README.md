@@ -11,6 +11,18 @@ HEAT support libraries for Node.js and the browser
 ```bash
 npm install heat-sdk --save
 ```
+
+### Functionality
+
+With HEAT-SDK you get full client-side/offline functionality of everything involving HEAT cryptocurrency. 
+This includes but is not limited to:
+
+- Full HEAT API wrapper
+- Support for real-time updates through HEAT websocket API
+- Complete client side support for both constructing and parsing binary transaction data
+- Full client side encryption/descryption support for transaction attachments
+- Support for all other lower-level HEAT functionality, but all client side (publickeys, accountids, transaction signatures etc.)
+
 ### NPM scripts
 
  - `npm t`: Run test suite
