@@ -1,4 +1,4 @@
-import { heatsdk } from "../src/heat-sdk"
+import heatsdk from "../src/heat-sdk"
 
 describe("Export default test", () => {
   it("Is exported", () => {
