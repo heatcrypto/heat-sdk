@@ -1,14 +1,12 @@
-import HeatClass from "../src/heat-sdk"
+import { heatsdk } from "../src/heat-sdk"
 
-/**
- * Dummy test
- */
-describe("Dummy test", () => {
-  it("works if true is truthy", () => {
-    expect(true).toBeTruthy()
+describe("Export default test", () => {
+  it("Is exported", () => {
+    expect(heatsdk).toBeTruthy()
   })
-
-  it("DummyClass is instantiable", () => {
-    expect(new HeatClass()).toBeInstanceOf(HeatClass)
+  it("has a crypto property with exported methods", () => {
+    expect(heatsdk.crypto.getAccountId("secret phrase")).toBe(
+      "7567221445300685906"
+    )
   })
 })
