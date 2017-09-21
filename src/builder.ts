@@ -22,7 +22,7 @@
  * SOFTWARE.
  * */
 import * as ByteBuffer from "./bytebuffer"
-import { TransactionType } from "./transaction_type"
+import { TransactionType } from "./transaction-type"
 import { Attachment } from "./attachment"
 import * as appendix from "./appendix"
 import * as utils from "./utils"

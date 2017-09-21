@@ -22,7 +22,7 @@
  * SOFTWARE.
  * */
 import * as appendix from "./appendix"
-import * as transactionType from "./transaction_type"
+import * as transactionType from "./transaction-type"
 
 export interface Attachment extends appendix.Appendix {
   getTransactionType(): transactionType.TransactionType
