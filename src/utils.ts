@@ -21,6 +21,14 @@
  * SOFTWARE.
  * */
 import Big from "big.js"
+import * as converters from "./converters"
+
+export function isPublicKey(publicKeyHex: string): boolean {
+  if (parseInt(publicKeyHex, 16).toString(16) === publicKeyHex.toLowerCase()) {
+    return converters.hexStringToByteArray(publicKeyHex).length == 32
+  }
+  return false
+}
 
 export function unformat(commaFormatted: string): string {
   return commaFormatted ? commaFormatted.replace(/,/g, "") : "0"
