@@ -23,5 +23,5 @@ This includes but is not limited to:
 - Full HEAT API wrapper
 - Support for real-time updates through HEAT websocket API
 - Complete client side support for both constructing and parsing binary transaction data
-- Full client side encryption/descryption support for transaction attachments
+- Full client side encryption/decryption support for transaction attachments
 - Support for all other low-level HEAT functionality. But all client side, no server needed! (publickeys, accountids, transaction signatures etc.)
