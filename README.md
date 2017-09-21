@@ -8,8 +8,9 @@ HEAT support libraries for Node.js and the browser
 
 ### Links
 
-[HEAT-SDK API](https://heat-ledger-ltd.github.io/heat-sdk/) browse all classes, interfaces, methods includes links to their source code implementation.
-[GITHUB](https://github.com/Heat-Ledger-Ltd/heat-sdk)
+[**HEAT-SDK API**](https://heat-ledger-ltd.github.io/heat-sdk/) browse all classes, interfaces, methods includes links to their source code implementation.
+
+[**GITHUB**](https://github.com/Heat-Ledger-Ltd/heat-sdk) Heat-Ledger-Ltd/heat-sdk
 
 ### Functionality
 
