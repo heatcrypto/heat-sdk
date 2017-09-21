@@ -24,7 +24,8 @@
         "src/converters.ts",
         "src/crypto.ts",
         "src/heat-sdk.ts",
-        "src/transaction_type.ts",
+        "src/transaction-type.ts",
+        "src/transaction.ts",
         "src/utils.ts"
     ]
 }
