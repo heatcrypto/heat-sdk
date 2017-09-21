@@ -37,7 +37,10 @@ Require heat-sdk and use it in your project
 
 ```javascript
 var heatsdk = require('heat-sdk').default
-heatsdk.payment("mike@heatwallet.com","99.95").publicMessage("Happy birthday!").sign("my secret phrase").broadcast()
+heatsdk.payment("mike@heatwallet.com","99.95")
+       .publicMessage("Happy birthday!")
+       .sign("my secret phrase")
+       .broadcast()
 ```
 
 #### Browser
@@ -49,7 +52,10 @@ heat-sdk comes as an UMD module which means you could either `require` or `impor
   <head>
     <script src="heat-sdk.js"></script>
     <script>
-      window.heatsdk.payment("mike@heatwallet.com","99.95").publicMessage("Happy birthday!").sign("my secret phrase").broadcast()
+      window.heatsdk.payment("mike@heatwallet.com","99.95")
+                    .publicMessage("Happy birthday!")
+                    .sign("my secret phrase")
+                    .broadcast()
     </script>
   </head>
 </html>
