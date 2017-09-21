@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "",
   "keywords": [],
-  "main": "dist/heat-sdk.umd.js",
-  "module": "dist/heat-sdk.es5.js",
+  "main": "dist/heat-sdk.js",
+  "module": "dist/heat-sdk.node.js",
   "typings": "dist/types/heat-sdk.d.ts",
   "files": [
     "dist"
