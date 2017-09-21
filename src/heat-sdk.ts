@@ -24,11 +24,19 @@ import * as converters from "./converters"
 import * as crypto from "./crypto"
 import * as utils from "./utils"
 import { Builder, TransactionImpl } from "./builder"
+import * as attachment from "./attachment"
+import { Transaction } from "./transaction"
 
 export class HeatSDKClass {
   public crypto = crypto
-  public createTransactionBuilder() {
-    return new Builder()
+  public payment(recipientOrRecipientPublicKey: string, amount: string) {
+    return new Transaction(
+      recipientOrRecipientPublicKey,
+      new Builder()
+        .attachment(attachment.ORDINARY_PAYMENT)
+        .amountHQT(utils.convertToQNT(amount))
+        .feeHQT(attachment.ORDINARY_PAYMENT.getFee())
+    )
   }
 }
 
