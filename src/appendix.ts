@@ -132,14 +132,32 @@ export class AppendixEncryptToSelfMessage extends AbstractAppendix {
 }
 
 export class AppendixPublicKeyAnnouncement extends AbstractAppendix {
+  private publicKey: Array<number>
+  public create(publicKey: Array<number>) {
+    this.publicKey = publicKey
+  }
+  public parse(buffer: ByteBuffer) {
+    super.parse(buffer)
+    this.publicKey = []
+    for (let i = 0; i < 32; i++) this.publicKey.push(buffer.readByte())
+  }
   public getAppendixName() {
-    return ""
+    return "PublicKeyAnnouncement"
   }
   public getMySize() {
-    return 0
+    return 32
   }
-  public putMyBytes(buffer: ByteBuffer) {}
-  public putMyJSON(json: { [key: string]: any }) {}
+  public putMyBytes(buffer: ByteBuffer) {
+    this.publicKey.forEach(byte => {
+      buffer.writeByte(byte)
+    })
+  }
+  public putMyJSON(json: { [key: string]: any }) {
+    json.put(
+      "recipientPublicKey",
+      converters.byteArrayToHexString(this.publicKey)
+    )
+  }
 }
 
 export class AppendixPrivateNameAnnouncement extends AbstractAppendix {
