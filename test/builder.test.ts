@@ -58,7 +58,8 @@ describe("Transaction builder", () => {
   })
   it("can parse transaction bytes", () => {
     let transaction = heatsdk.default
-      .payment("12345", "100.2") /*.publicMessage("Hello world")*/
+      .payment("12345", "100.2")
+      .publicMessage("Hello world")
       .sign("secret phrase")
       .getTransaction()
     let bytes = transaction.getBytesAsHex()
