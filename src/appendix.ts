@@ -31,7 +31,7 @@ export interface Appendix {
 }
 
 export abstract class AbstractAppendix implements Appendix {
-  private version: number = 0
+  protected version: number = 1
 
   public parse(buffer: ByteBuffer) {
     this.version = buffer.readByte()
@@ -68,7 +68,7 @@ export class AppendixMessage extends AbstractAppendix {
   private isText: boolean
   public create(message: Array<number>, isText: boolean) {
     this.message = message
-    this.isText = false
+    this.isText = isText
   }
   public parse(buffer: ByteBuffer) {
     super.parse(buffer)
@@ -93,13 +93,10 @@ export class AppendixMessage extends AbstractAppendix {
     })
   }
   public putMyJSON(json: { [key: string]: any }) {
-    json.put(
-      "message",
-      this.isText
-        ? converters.byteArrayToString(this.message)
-        : converters.byteArrayToHexString(this.message)
-    )
-    json.put("messageIsText", this.isText)
+    json["message"] = this.isText
+      ? converters.byteArrayToString(this.message)
+      : converters.byteArrayToHexString(this.message)
+    json["messageIsText"] = this.isText
   }
   public getMessage() {
     return this.message
@@ -153,10 +150,7 @@ export class AppendixPublicKeyAnnouncement extends AbstractAppendix {
     })
   }
   public putMyJSON(json: { [key: string]: any }) {
-    json.put(
-      "recipientPublicKey",
-      converters.byteArrayToHexString(this.publicKey)
-    )
+    json["recipientPublicKey"] = converters.byteArrayToHexString(this.publicKey)
   }
 }
 
