@@ -1,15 +1,27 @@
 {
   "name": "heat-sdk",
   "version": "0.0.0-development",
-  "description": "",
-  "keywords": [],
+  "description": "HEAT support libraries for use in Node.js and any (modern) browser",
+  "keywords": [
+    "heat",
+    "heatledger",
+    "heat-sdk",
+    "blockchain",
+    "websocket",
+    "nodejs",
+    "npm-package",
+    "typescript",
+    "javascript",
+    "cryptography",
+    "microservices"
+  ],
   "main": "dist/heat-sdk.js",
   "module": "dist/heat-sdk.node.js",
   "typings": "dist/types/heat-sdk.d.ts",
   "files": [
     "dist"
   ],
-  "author": "Dennis de Klerk <dmdeklerk@gmail.com>",
+  "author": "Dennis de Klerk <dennis@heatledger.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/Heat-Ledger-Ltd/heat-sdk"
