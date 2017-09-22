@@ -53,6 +53,18 @@ export abstract class TransactionType {
   abstract parseAttachment(buffer: ByteBuffer): Attachment
   abstract canHaveRecipient(): boolean
   abstract getFee(): string
+
+  public static findTransactionType(type: number, subtype: number) {
+    if (type == this.TYPE_PAYMENT) {
+      if (subtype == this.SUBTYPE_PAYMENT_ORDINARY_PAYMENT) {
+        return ORDINARY_PAYMENT_TRANSACTION_TYPE
+      }
+    } else if (type == this.TYPE_MESSAGING) {
+      if (subtype == this.SUBTYPE_MESSAGING_ARBITRARY_MESSAGE) {
+        return ARBITRARY_MESSAGE_TRANSACTION_TYPE
+      }
+    }
+  }
 }
 
 export class OrdinaryPayment extends TransactionType {
@@ -66,7 +78,6 @@ export class OrdinaryPayment extends TransactionType {
     return TransactionType.SUBTYPE_PAYMENT_ORDINARY_PAYMENT
   }
   parseAttachment(buffer: ByteBuffer) {
-    buffer.readByte() // advance the buffer position past the version byte
     return ORDINARY_PAYMENT
   }
   canHaveRecipient() {
@@ -85,7 +96,6 @@ export class ArbitraryMessage extends TransactionType {
     return TransactionType.SUBTYPE_MESSAGING_ARBITRARY_MESSAGE
   }
   parseAttachment(buffer: ByteBuffer) {
-    buffer.readByte() // advance the buffer position past the version byte
     return ARBITRARY_MESSAGE
   }
   canHaveRecipient() {
