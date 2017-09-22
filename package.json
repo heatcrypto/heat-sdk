@@ -21,7 +21,7 @@
   "scripts": {
     "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "prebuild": "rimraf dist",
-    "build": "tsc && rollup -c && rimraf compiled && typedoc --sourcefile-url-prefix 'https://github.com/Heat-Ledger-Ltd/heat-sdk/blob/master/' --out dist/docs --target es6 --theme minimal src",
+    "build": "tsc && rollup -c && rimraf compiled && typedoc --sourcefile-url-prefix 'https://github.com/Heat-Ledger-Ltd/heat-sdk/blob/master/src/' --out dist/docs --target es6 --theme minimal src",
     "start": "tsc -w & rollup -c -w",
     "test": "jest",
     "test:watch": "jest --watch",
