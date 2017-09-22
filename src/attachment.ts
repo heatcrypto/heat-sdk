@@ -30,6 +30,18 @@ export interface Attachment extends appendix.Appendix {
 
 export abstract class EmptyAttachment extends appendix.AbstractAppendix
   implements Attachment {
+  protected version: number = 0
+
+  public parse(buffer: ByteBuffer) {}
+
+  public getSize(): number {
+    return this.getMySize()
+  }
+
+  public putBytes(buffer: ByteBuffer) {
+    this.putMyBytes(buffer)
+  }
+
   putMyBytes(buffer: ByteBuffer) {}
   putMyJSON(json: { [key: string]: any }) {}
   getMySize() {
