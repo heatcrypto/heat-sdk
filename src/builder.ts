@@ -29,6 +29,7 @@ import * as utils from "./utils"
 import * as converters from "./converters"
 import * as crypto from "./crypto"
 import Long from "long"
+import * as heatsdk from "./heat-sdk"
 
 export class Builder {
   public _deadline = 1440
@@ -177,7 +178,7 @@ export class TransactionImpl {
   private ecBlockId: string
   private isTestnet: boolean
 
-  constructor(builder: Builder, secretPhrase: string) {
+  constructor(builder: Builder, secretPhrase: string | null) {
     this.appendages = []
     this.isTestnet = builder._isTestnet
     this.timestamp = builder._timestamp
@@ -200,11 +201,13 @@ export class TransactionImpl {
     this.ecBlockHeight = builder._ecBlockHeight
     this.ecBlockId = builder._ecBlockId
     this.isTestnet = builder._isTestnet
-    this.senderPublicKey = utils.isDefined(builder._senderPublicKey)
-      ? builder._senderPublicKey
-      : converters.hexStringToByteArray(
-          crypto.secretPhraseToPublicKey(secretPhrase)
-        )
+    this.senderPublicKey
+    if (utils.isDefined(builder._senderPublicKey))
+      this.senderPublicKey = builder._senderPublicKey
+    else if (secretPhrase)
+      this.senderPublicKey = converters.hexStringToByteArray(
+        crypto.secretPhraseToPublicKey(secretPhrase)
+      )
 
     if (!utils.isDefined(builder._attachment))
       throw new Error("Must provide attachment")
@@ -342,4 +345,133 @@ export class TransactionImpl {
     buffer.flip()
     return buffer.toHex()
   }
+
+  public getJSONObject() {
+    let json: { [key: string]: any } = {}
+    json["type"] = this.type.getType()
+    json["subtype"] = this.type.getSubtype()
+    json["timestamp"] = this.timestamp
+    json["deadline"] = this.deadline
+    json["senderPublicKey"] = converters.byteArrayToHexString(
+      this.senderPublicKey
+    )
+    if (this.type.canHaveRecipient()) {
+      json["recipient"] = this.recipientId
+    }
+    json["amountHQT"] = this.amountHQT
+    json["feeHQT"] = this.feeHQT
+    json["ecBlockHeight"] = this.ecBlockHeight
+    json["ecBlockId"] = this.ecBlockId
+    json["signature"] = converters.byteArrayToHexString(this.signature)
+
+    let attachmentJSON = {}
+    this.appendages.forEach(appendage => {
+      utils.extend(attachmentJSON, appendage.getJSONObject())
+    })
+    if (!utils.isEmpty(attachmentJSON)) {
+      json["attachment"] = attachmentJSON
+    }
+    json["version"] = this.version
+    return json
+  }
+
+  public static parse(transactionBytesHex: string) {
+    let buffer = ByteBuffer.wrap(transactionBytesHex, "hex", true)
+
+    let type = buffer.readByte() // 1
+    let subtype = buffer.readByte() // 1
+    let version = (subtype & 0xf0) >> 4
+    subtype = subtype & 0x0f
+    let timestamp = buffer.readInt() // 4
+    let deadline = buffer.readShort() // 2
+    let senderPublicKey: number[] = [] // 32
+    for (let i = 0; i < 32; i++) senderPublicKey[i] = buffer.readByte()
+
+    let recipientId = buffer.readLong() // 8
+    let amountHQT = buffer.readLong() // 8
+    let feeHQT = buffer.readLong() // 8
+    let signature: number[] = [] // 64
+    for (let i = 0; i < 64; i++) signature[i] = buffer.readByte()
+    signature = <number[]>emptyArrayToNull(signature)
+    let flags = buffer.readInt() // 4
+    let ecBlockHeight = buffer.readInt() // 4
+    let ecBlockId = buffer.readLong() // 8
+
+    let transactionType = TransactionType.findTransactionType(type, subtype)
+    if (!transactionType)
+      throw new Error("Transaction type not implemented or undefined")
+    let builder = new Builder()
+      .version(version)
+      .senderPublicKey(senderPublicKey)
+      .amountHQT(amountHQT.toUnsigned().toString())
+      .feeHQT(feeHQT.toUnsigned().toString())
+      .deadline(deadline)
+      .attachment(transactionType.parseAttachment(buffer))
+      .timestamp(timestamp)
+      .signature(signature)
+      .ecBlockHeight(ecBlockHeight)
+      .ecBlockId(ecBlockId.toUnsigned().toString())
+    if (transactionType.canHaveRecipient())
+      builder.recipientId(recipientId.toUnsigned().toString())
+
+    let position = 1
+    if ((flags & position) != 0) {
+      let a = new appendix.AppendixMessage()
+      a.parse(buffer)
+      builder.message(a)
+    }
+    position <<= 1
+    if ((flags & position) != 0) {
+      let a = new appendix.AppendixEncryptedMessage()
+      a.parse(buffer)
+      builder.encryptedMessage(a)
+    }
+    position <<= 1
+    if ((flags & position) != 0) {
+      let a = new appendix.AppendixPublicKeyAnnouncement()
+      a.parse(buffer)
+      builder.publicKeyAnnouncement(a)
+    }
+    position <<= 1
+    if ((flags & position) != 0) {
+      let a = new appendix.AppendixEncryptToSelfMessage()
+      a.parse(buffer)
+      builder.encryptToSelfMessage(a)
+    }
+    position <<= 1
+    if ((flags & position) != 0) {
+      let a = new appendix.AppendixPrivateNameAnnouncement()
+      a.parse(buffer)
+      builder.privateNameAnnouncement(a)
+    }
+    position <<= 1
+    if ((flags & position) != 0) {
+      let a = new appendix.AppendixPrivateNameAssignment()
+      a.parse(buffer)
+      builder.privateNameAssignment(a)
+    }
+    position <<= 1
+    if ((flags & position) != 0) {
+      let a = new appendix.AppendixPublicNameAnnouncement()
+      a.parse(buffer)
+      builder.publicNameAnnouncement(a)
+    }
+    position <<= 1
+    if ((flags & position) != 0) {
+      let a = new appendix.AppendixPublicNameAssignment()
+      a.parse(buffer)
+      builder.publicNameAssignment(a)
+    }
+    if (heatsdk.default.isTestnet) buffer.readLong()
+
+    return new TransactionImpl(builder, null)
+  }
+}
+
+function emptyArrayToNull(array: number[]) {
+  if (array == null) return null
+  for (let i = 0; i < array.length; i++) {
+    if (array[i] != 0) return array
+  }
+  return null
 }
