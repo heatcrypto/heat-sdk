@@ -291,3 +291,20 @@ export function isObject(input: any): boolean {
 export function isArray(input: any): boolean {
   return Array.isArray(input)
 }
+
+export function extend(
+  destination: { [key: string]: any },
+  source: { [key: string]: any }
+) {
+  for (var key in source) {
+    if (source.hasOwnProperty(key)) destination[key] = source[key]
+  }
+  return destination
+}
+
+export function isEmpty(obj: { [key: string]: any }) {
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) return false
+  }
+  return true
+}
