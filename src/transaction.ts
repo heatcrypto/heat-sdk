@@ -50,16 +50,18 @@ export class Transaction {
       throw new Error("Must call sign() first")
   }
 
-  public getTransactionBytes() {
+  public getTransaction() {
     if (!utils.isDefined(this.transaction_))
       throw new Error("Must call sign() first")
-    return this.transaction_.getBytesAsHex()
+    return this.transaction_
   }
 
   private build() {
-    this.builder.deadline(
-      utils.isDefined(this.deadline_) ? this.deadline_ : 1440
-    )
+    this.builder
+      .deadline(utils.isDefined(this.deadline_) ? this.deadline_ : 1440)
+      .timestamp(utils.epochTime())
+      .ecBlockHeight(1)
+      .ecBlockId("0")
     let recipientPublicKeyHex = utils.isPublicKey(
       this.recipientOrRecipientPublicKey
     )
@@ -79,8 +81,8 @@ export class Transaction {
     if (utils.isDefined(this.publicMessage_)) {
       let a = new appendix.AppendixMessage()
       if (this.messageIsBinary_)
-        a.create(converters.hexStringToByteArray(this.publicMessage_), true)
-      else a.create(converters.stringToByteArray(this.publicMessage_), false)
+        a.create(converters.hexStringToByteArray(this.publicMessage_), false)
+      else a.create(converters.stringToByteArray(this.publicMessage_), true)
       this.builder.message(a)
     }
     // else if (utils.isDefined(this.privateMessage_)) {
