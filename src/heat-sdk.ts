@@ -28,6 +28,7 @@ import * as attachment from "./attachment"
 import { Transaction } from "./transaction"
 
 export class HeatSDKClass {
+  public isTestnet = false
   public crypto = crypto
   public payment(recipientOrRecipientPublicKey: string, amount: string) {
     return new Transaction(
@@ -35,7 +36,6 @@ export class HeatSDKClass {
       new Builder()
         .attachment(attachment.ORDINARY_PAYMENT)
         .amountHQT(utils.convertToQNT(amount))
-        .feeHQT(attachment.ORDINARY_PAYMENT.getFee())
     )
   }
 }
