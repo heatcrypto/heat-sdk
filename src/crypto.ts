@@ -4328,3 +4328,125 @@ code.google.com/p/crypto-js/wiki/License
 // ==================================================================================================
 // END INCLUDE FILE cryptojs/pbkdf2.js
 // ==================================================================================================
+
+// ==================================================================================================
+// START INCLUDE FILE cryptojs/sha256.js
+// ==================================================================================================
+;(function(h) {
+  for (
+    var s = CryptoJS,
+      f = s.lib,
+      t = f.WordArray,
+      g = f.Hasher,
+      f = s.algo,
+      j: any[] = [],
+      q: any[] = [],
+      v = function(a: any) {
+        return (4294967296 * (a - (a | 0))) | 0
+      },
+      u = 2,
+      k = 0;
+    64 > k;
+
+  ) {
+    var l
+    a: {
+      l = u
+      for (var x = h.sqrt(l), w = 2; w <= x; w++)
+        if (!(l % w)) {
+          l = !1
+          break a
+        }
+      l = !0
+    }
+    l && (8 > k && (j[k] = v(h.pow(u, 0.5))), (q[k] = v(h.pow(u, 1 / 3))), k++)
+    u++
+  }
+  var a: any[] = [],
+    f = (f.SHA256 = g.extend({
+      _doReset: function() {
+        this._hash = new t.init(j.slice(0))
+      },
+      _doProcessBlock: function(c: any, d: any) {
+        for (
+          var b = this._hash.words,
+            e = b[0],
+            f = b[1],
+            m = b[2],
+            h = b[3],
+            p = b[4],
+            j = b[5],
+            k = b[6],
+            l = b[7],
+            n = 0;
+          64 > n;
+          n++
+        ) {
+          if (16 > n) a[n] = c[d + n] | 0
+          else {
+            var r = a[n - 15],
+              g = a[n - 2]
+            a[n] =
+              (((r << 25) | (r >>> 7)) ^ ((r << 14) | (r >>> 18)) ^ (r >>> 3)) +
+              a[n - 7] +
+              (((g << 15) | (g >>> 17)) ^
+                ((g << 13) | (g >>> 19)) ^
+                (g >>> 10)) +
+              a[n - 16]
+          }
+          r =
+            l +
+            (((p << 26) | (p >>> 6)) ^
+              ((p << 21) | (p >>> 11)) ^
+              ((p << 7) | (p >>> 25))) +
+            ((p & j) ^ (~p & k)) +
+            q[n] +
+            a[n]
+          g =
+            (((e << 30) | (e >>> 2)) ^
+              ((e << 19) | (e >>> 13)) ^
+              ((e << 10) | (e >>> 22))) +
+            ((e & f) ^ (e & m) ^ (f & m))
+          l = k
+          k = j
+          j = p
+          p = (h + r) | 0
+          h = m
+          m = f
+          f = e
+          e = (r + g) | 0
+        }
+        b[0] = (b[0] + e) | 0
+        b[1] = (b[1] + f) | 0
+        b[2] = (b[2] + m) | 0
+        b[3] = (b[3] + h) | 0
+        b[4] = (b[4] + p) | 0
+        b[5] = (b[5] + j) | 0
+        b[6] = (b[6] + k) | 0
+        b[7] = (b[7] + l) | 0
+      },
+      _doFinalize: function() {
+        var a = this._data,
+          d = a.words,
+          b = 8 * this._nDataBytes,
+          e = 8 * a.sigBytes
+        d[e >>> 5] |= 128 << (24 - e % 32)
+        d[(((e + 64) >>> 9) << 4) + 14] = h.floor(b / 4294967296)
+        d[(((e + 64) >>> 9) << 4) + 15] = b
+        a.sigBytes = 4 * d.length
+        this._process()
+        return this._hash
+      },
+      clone: function() {
+        var a = g.clone.call(this)
+        a._hash = this._hash.clone()
+        return a
+      }
+    }))
+  s.SHA256 = g._createHelper(f)
+  s.HmacSHA256 = g._createHmacHelper(f)
+})(Math)
+
+// ==================================================================================================
+// END INCLUDE FILE cryptojs/sha256.js
+// ==================================================================================================

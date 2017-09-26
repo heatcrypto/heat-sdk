@@ -1,15 +1,27 @@
 {
   "name": "heat-sdk",
-  "version": "0.0.0",
-  "description": "",
-  "keywords": [],
+  "version": "0.0.0-development",
+  "description": "HEAT support libraries for use in Node.js and any (modern) browser",
+  "keywords": [
+    "heat",
+    "heatledger",
+    "heat-sdk",
+    "blockchain",
+    "websocket",
+    "nodejs",
+    "npm-package",
+    "typescript",
+    "javascript",
+    "cryptography",
+    "microservices"
+  ],
   "main": "dist/heat-sdk.js",
   "module": "dist/heat-sdk.node.js",
   "typings": "dist/types/heat-sdk.d.ts",
   "files": [
     "dist"
   ],
-  "author": "Dennis de Klerk <dmdeklerk@gmail.com>",
+  "author": "Dennis de Klerk <dennis@heatledger.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/Heat-Ledger-Ltd/heat-sdk"
@@ -31,7 +43,9 @@
     "commit": "git-cz",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "prepush": "npm run test && npm run build",
+    "commitmsg": "validate-commit-msg"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
@@ -98,7 +112,7 @@
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
-    "semantic-release": "^8.0.0",
+    "semantic-release": "^8.0.3",
     "ts-jest": "^21.0.0",
     "ts-node": "^3.0.6",
     "tslint": "^5.4.3",
