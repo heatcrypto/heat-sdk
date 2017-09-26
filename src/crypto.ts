@@ -21,16 +21,16 @@
  * SOFTWARE.
  * */
 import {
-  stringToHexString,
-  hexStringToByteArray,
   byteArrayToHexString,
-  stringToByteArray,
-  shortArrayToHexString,
   byteArrayToShortArray,
-  shortArrayToByteArray,
+  byteArrayToString,
   byteArrayToWordArray,
-  wordArrayToByteArray,
-  byteArrayToString
+  hexStringToByteArray,
+  shortArrayToByteArray,
+  shortArrayToHexString,
+  stringToByteArray,
+  stringToHexString,
+  wordArrayToByteArray
 } from "./converters"
 import Big from "big.js"
 import pako from "pako"
@@ -42,6 +42,47 @@ var _hash = {
 }
 
 export var SHA256 = _hash
+
+let nodeCrypto
+try {
+  nodeCrypto = require("crypto")
+} catch (err) {
+  console.log("node crypto is disabled")
+}
+
+function getRandomValues(buf) {
+  if (window.crypto && window.crypto.getRandomValues) {
+    return window.crypto.getRandomValues(buf)
+  }
+  if (
+    typeof window.msCrypto === "object" &&
+    typeof window.msCrypto.getRandomValues === "function"
+  ) {
+    return window.msCrypto.getRandomValues(buf)
+  }
+  if (nodeCrypto && nodeCrypto.randomBytes) {
+    if (!(buf instanceof Uint8Array)) {
+      throw new TypeError("expected Uint8Array")
+    }
+    if (buf.length > 65536) {
+      var e = new Error()
+      e.code = 22
+      e.message =
+        "Failed to execute 'getRandomValues' on 'Crypto': The " +
+        "ArrayBufferView's byte length (" +
+        buf.length +
+        ") exceeds the " +
+        "number of bytes of entropy available via this API (65536)."
+      e.name = "QuotaExceededError"
+      throw e
+    }
+    var bytes = nodeCrypto.randomBytes(buf.length)
+    buf.set(bytes)
+    return buf
+  } else {
+    throw new Error("No secure random number generator available.")
+  }
+}
 
 function simpleHash(message: any) {
   _hash.init()
@@ -339,18 +380,12 @@ function encryptData(
   options: IEncryptOptions,
   uncompressed?: boolean
 ) {
-  var crypto: any =
-    window.crypto || (<any>window)["msCrypto"] || require("crypto")
-  if (!crypto) {
-    throw new Error("Browser not supported")
-  }
-
   if (!options.sharedKey) {
     options.sharedKey = getSharedKey(options.privateKey, options.publicKey)
   }
 
   options.nonce = new Uint8Array(32)
-  crypto.getRandomValues(options.nonce)
+  getRandomValues(options.nonce)
 
   var compressedPlaintext = uncompressed
     ? new Uint8Array(plaintext)
@@ -363,8 +398,6 @@ function encryptData(
 }
 
 function aesEncrypt(plaintext: Array<number>, options: IEncryptOptions) {
-  var crypto: any =
-    window.crypto || (<any>window)["msCrypto"] || require("crypto")
   var text = byteArrayToWordArray(plaintext)
   var sharedKey = options.sharedKey
     ? options.sharedKey.slice(0)
@@ -375,7 +408,7 @@ function aesEncrypt(plaintext: Array<number>, options: IEncryptOptions) {
   }
 
   var tmp: any = new Uint8Array(16)
-  crypto.getRandomValues(tmp)
+  getRandomValues(tmp)
 
   var key = CryptoJS.SHA256(byteArrayToWordArray(sharedKey))
   var iv = byteArrayToWordArray(tmp)
@@ -1952,38 +1985,38 @@ var curve25519 = (function() {
     for (i = 1; i < 5; i++) {
       sqr(t1, t3)
       sqr(t3, t1)
-    } /* 2^20  - 2^10	*/ /* t3 */
+    } /* t3 */ /* 2^20  - 2^10	*/
     mul(t1, t3, t2) /* 2^20  - 2^0	*/
     sqr(t3, t1) /* 2^21  - 2^1	*/
     sqr(t4, t3) /* 2^22  - 2^2	*/
     for (i = 1; i < 10; i++) {
       sqr(t3, t4)
       sqr(t4, t3)
-    } /* 2^40  - 2^20	*/ /* t4 */
+    } /* t4 */ /* 2^40  - 2^20	*/
     mul(t3, t4, t1) /* 2^40  - 2^0	*/
     for (i = 0; i < 5; i++) {
       sqr(t1, t3)
       sqr(t3, t1)
-    } /* 2^50  - 2^10	*/ /* t3 */
+    } /* t3 */ /* 2^50  - 2^10	*/
     mul(t1, t3, t2) /* 2^50  - 2^0	*/
     sqr(t2, t1) /* 2^51  - 2^1	*/
     sqr(t3, t2) /* 2^52  - 2^2	*/
     for (i = 1; i < 25; i++) {
       sqr(t2, t3)
       sqr(t3, t2)
-    } /* 2^100 - 2^50 */ /* t3 */
+    } /* t3 */ /* 2^100 - 2^50 */
     mul(t2, t3, t1) /* 2^100 - 2^0	*/
     sqr(t3, t2) /* 2^101 - 2^1	*/
     sqr(t4, t3) /* 2^102 - 2^2	*/
     for (i = 1; i < 50; i++) {
       sqr(t3, t4)
       sqr(t4, t3)
-    } /* 2^200 - 2^100 */ /* t4 */
+    } /* t4 */ /* 2^200 - 2^100 */
     mul(t3, t4, t2) /* 2^200 - 2^0	*/
     for (i = 0; i < 25; i++) {
       sqr(t4, t3)
       sqr(t3, t4)
-    } /* 2^250 - 2^50	*/ /* t3 */
+    } /* t3 */ /* 2^250 - 2^50	*/
     mul(t2, t3, t1) /* 2^250 - 2^0	*/
     sqr(t1, t2) /* 2^251 - 2^1	*/
     sqr(t2, t1) /* 2^252 - 2^2	*/
