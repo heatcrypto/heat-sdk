@@ -4306,9 +4306,9 @@ code.google.com/p/crypto-js/wiki/License
       t = f.WordArray,
       g = f.Hasher,
       f = s.algo,
-      j = [],
-      q = [],
-      v = function(a) {
+      j: any[] = [],
+      q: any[] = [],
+      v = function(a: any) {
         return (4294967296 * (a - (a | 0))) | 0
       },
       u = 2,
@@ -4329,12 +4329,12 @@ code.google.com/p/crypto-js/wiki/License
     l && (8 > k && (j[k] = v(h.pow(u, 0.5))), (q[k] = v(h.pow(u, 1 / 3))), k++)
     u++
   }
-  var a = [],
+  var a: any[] = [],
     f = (f.SHA256 = g.extend({
       _doReset: function() {
         this._hash = new t.init(j.slice(0))
       },
-      _doProcessBlock: function(c, d) {
+      _doProcessBlock: function(c: any, d: any) {
         for (
           var b = this._hash.words,
             e = b[0],
