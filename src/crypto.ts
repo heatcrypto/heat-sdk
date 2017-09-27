@@ -43,18 +43,19 @@ var _hash = {
 
 export var SHA256 = _hash
 
-let nodeCrypto
+let nodeCrypto: any
 try {
   nodeCrypto = require("crypto")
 } catch (err) {
   console.log("node crypto is disabled")
 }
 
-function getRandomValues(buf) {
+function getRandomValues(buf: any) {
   if (window.crypto && window.crypto.getRandomValues) {
     return window.crypto.getRandomValues(buf)
   }
   if (
+    window.msCrypto &&
     typeof window.msCrypto === "object" &&
     typeof window.msCrypto.getRandomValues === "function"
   ) {
@@ -65,7 +66,7 @@ function getRandomValues(buf) {
       throw new TypeError("expected Uint8Array")
     }
     if (buf.length > 65536) {
-      var e = new Error()
+      let e: Error = new Error()
       e.code = 22
       e.message =
         "Failed to execute 'getRandomValues' on 'Crypto': The " +
@@ -317,9 +318,7 @@ export function encryptNote(
 ) {
   if (!options.sharedKey) {
     if (!options.privateKey) {
-      options.privateKey = hexStringToByteArray(
-        this.getPrivateKey(secretPhrase)
-      )
+      options.privateKey = hexStringToByteArray(getPrivateKey(secretPhrase))
     }
     if (!options.publicKey) {
       throw new Error("Missing publicKey argument")
@@ -349,9 +348,7 @@ export function encryptBinaryNote(
 ) {
   if (!options.sharedKey) {
     if (!options.privateKey) {
-      options.privateKey = hexStringToByteArray(
-        this.getPrivateKey(secretPhrase)
-      )
+      options.privateKey = hexStringToByteArray(getPrivateKey(secretPhrase))
     }
     if (!options.publicKey) {
       throw new Error("Missing publicKey argument")
@@ -452,7 +449,7 @@ export function decryptMessage(
   secretPhrase: string,
   uncompressed?: boolean
 ): string {
-  var privateKey = hexStringToByteArray(this.getPrivateKey(secretPhrase))
+  var privateKey = hexStringToByteArray(getPrivateKey(secretPhrase))
   var publicKeyBytes = hexStringToByteArray(publicKey)
   var sharedKey = getSharedKey(privateKey, publicKeyBytes)
   var dataBytes = hexStringToByteArray(data)
@@ -1446,9 +1443,9 @@ var curve25519_prep = function(r: any, s: any, a: any, b: any) {
 /****
 * BloodyRookie: Doubling a point on a Montgomery curve:
 * Point is given in projective coordinates p=x/z
-* 2*P = r/s, 
+* 2*P = r/s,
 * r = (x+z)^2 * (x-z)^2
-* s = ((((x+z)^2 - (x-z)^2) * 121665) + (x+z)^2) * ((x+z)^2 - (x-z)^2) 
+* s = ((((x+z)^2 - (x-z)^2) * 121665) + (x+z)^2) * ((x+z)^2 - (x-z)^2)
 *   = 4*x*z * (x^2 + 486662*x*z + z^2)
 *   = 4*x*z * ((x-z)^2 + ((486662+2)/4)(4*x*z))
 */
@@ -1516,13 +1513,13 @@ function curve25519_(f: any, c: any, s: any) {
 
   /**********************************************************************
   * BloodyRookie:                                                      *
-  * Given f = f0*2^0 + f1*2^1 + ... + f255*2^255 and Basepoint a=9/1   * 
+  * Given f = f0*2^0 + f1*2^1 + ... + f255*2^255 and Basepoint a=9/1   *
   * calculate f*a by applying the Montgomery ladder (const time algo): *
   * r0 := 0 (point at infinity)                                        *
   * r1 := a                                                            *
   * for i from 255 to 0 do                                             *
   *   if fi = 0 then                                                   *
-  *      r1 := r0 + r1                                                 *          
+  *      r1 := r0 + r1                                                 *
   *      r0 := 2r0                                                     *
   *   else                                                             *
   *      r0 := r0 + r1                                                 *
@@ -1985,38 +1982,38 @@ var curve25519 = (function() {
     for (i = 1; i < 5; i++) {
       sqr(t1, t3)
       sqr(t3, t1)
-    } /* t3 */ /* 2^20  - 2^10	*/
+    } /* 2^20  - 2^10	*/ /* t3 */
     mul(t1, t3, t2) /* 2^20  - 2^0	*/
     sqr(t3, t1) /* 2^21  - 2^1	*/
     sqr(t4, t3) /* 2^22  - 2^2	*/
     for (i = 1; i < 10; i++) {
       sqr(t3, t4)
       sqr(t4, t3)
-    } /* t4 */ /* 2^40  - 2^20	*/
+    } /* 2^40  - 2^20	*/ /* t4 */
     mul(t3, t4, t1) /* 2^40  - 2^0	*/
     for (i = 0; i < 5; i++) {
       sqr(t1, t3)
       sqr(t3, t1)
-    } /* t3 */ /* 2^50  - 2^10	*/
+    } /* 2^50  - 2^10	*/ /* t3 */
     mul(t1, t3, t2) /* 2^50  - 2^0	*/
     sqr(t2, t1) /* 2^51  - 2^1	*/
     sqr(t3, t2) /* 2^52  - 2^2	*/
     for (i = 1; i < 25; i++) {
       sqr(t2, t3)
       sqr(t3, t2)
-    } /* t3 */ /* 2^100 - 2^50 */
+    } /* 2^100 - 2^50 */ /* t3 */
     mul(t2, t3, t1) /* 2^100 - 2^0	*/
     sqr(t3, t2) /* 2^101 - 2^1	*/
     sqr(t4, t3) /* 2^102 - 2^2	*/
     for (i = 1; i < 50; i++) {
       sqr(t3, t4)
       sqr(t4, t3)
-    } /* t4 */ /* 2^200 - 2^100 */
+    } /* 2^200 - 2^100 */ /* t4 */
     mul(t3, t4, t2) /* 2^200 - 2^0	*/
     for (i = 0; i < 25; i++) {
       sqr(t4, t3)
       sqr(t3, t4)
-    } /* t3 */ /* 2^250 - 2^50	*/
+    } /* 2^250 - 2^50	*/ /* t3 */
     mul(t2, t3, t1) /* 2^250 - 2^0	*/
     sqr(t1, t2) /* 2^251 - 2^1	*/
     sqr(t2, t1) /* 2^252 - 2^2	*/
@@ -2967,35 +2964,35 @@ var curve25519 = (function() {
 * This is a JavaScript implementation of the SHA256 secure hash function
 * and the HMAC-SHA256 message authentication code (MAC).
 *
-* The routines' well-functioning has been verified with the test vectors 
-* given in FIPS-180-2, Appendix B and IETF RFC 4231. The HMAC algorithm 
-* conforms to IETF RFC 2104. 
+* The routines' well-functioning has been verified with the test vectors
+* given in FIPS-180-2, Appendix B and IETF RFC 4231. The HMAC algorithm
+* conforms to IETF RFC 2104.
 *
 * The following code example computes the hash value of the string "abc".
 *
 *    SHA256_init();
 *    SHA256_write("abc");
-*    digest = SHA256_finalize();  
+*    digest = SHA256_finalize();
 *    digest_hex = array_to_hex_string(digest);
-* 
+*
 * Get the same result by calling the shortcut function SHA256_hash:
-* 
+*
 *    digest_hex = SHA256_hash("abc");
-* 
-* In the following example the calculation of the HMAC of the string "abc" 
+*
+* In the following example the calculation of the HMAC of the string "abc"
 * using the key "secret key" is shown:
-* 
+*
 *    HMAC_SHA256_init("secret key");
 *    HMAC_SHA256_write("abc");
 *    mac = HMAC_SHA256_finalize();
 *    mac_hex = array_to_hex_string(mac);
 *
 * Again, the same can be done more conveniently:
-* 
+*
 *    mac_hex = HMAC_SHA256_MAC("secret key", "abc");
 *
 * Note that the internal state of the hash function is held in global
-* variables. Therefore one hash value calculation has to be completed 
+* variables. Therefore one hash value calculation has to be completed
 * before the next is begun. The same applies the the HMAC routines.
 *
 * Report bugs to: jssha256 AT point-at-infinity.org
@@ -3019,7 +3016,7 @@ function string_to_array(str: any) {
 
 /* The following are the SHA256 routines */
 
-/* 
+/*
 SHA256_init: initialize the internal state of the hash function. Call this
 function before calling the SHA256_write function.
 */
@@ -3045,7 +3042,7 @@ function SHA256_init() {
 }
 
 /*
-SHA256_write: add a message fragment to the hash function's internal state. 
+SHA256_write: add a message fragment to the hash function's internal state.
 'msg' may be given as string or as byte array and may have arbitrary length.
 
 */
@@ -3065,7 +3062,7 @@ function SHA256_write(msg: any) {
 
 /*
 SHA256_finalize: finalize the hash value calculation. Call this function
-after the last call to SHA256_write. An array of 32 bytes (= 256 bits) 
+after the last call to SHA256_write. An array of 32 bytes (= 256 bits)
 is returned.
 */
 
@@ -3129,7 +3126,7 @@ function HMAC_SHA256_init(key: any) {
 }
 
 /*
-HMAC_SHA256_write: process a message fragment. 'msg' may be given as 
+HMAC_SHA256_write: process a message fragment. 'msg' may be given as
 string or as byte array and may have arbitrary length.
 */
 
@@ -4187,6 +4184,139 @@ CryptoJS.lib.Cipher ||
 
 // ==================================================================================================
 // END INCLUDE FILE cryptojs/aes.js
+// ==================================================================================================
+
+// ==================================================================================================
+// START INCLUDE FILE cryptojs/hmac.js
+// ==================================================================================================
+;(function() {
+  // Shortcuts
+  var C = CryptoJS
+  var C_lib = C.lib
+  var Base = C_lib.Base
+  var C_enc = C.enc
+  var Utf8 = C_enc.Utf8
+  var C_algo = C.algo
+
+  /**
+   * HMAC algorithm.
+   */
+  var HMAC = (C_algo.HMAC = Base.extend({
+    /**
+     * Initializes a newly created HMAC.
+     *
+     * @param {Hasher} hasher The hash algorithm to use.
+     * @param {WordArray|string} key The secret key.
+     *
+     * @example
+     *
+     *     var hmacHasher = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, key)
+     */
+    init: function(hasher: any, key: any) {
+      // Init hasher
+      hasher = this._hasher = new hasher.init()
+
+      // Convert string to WordArray, else assume WordArray already
+      if (typeof key == "string") {
+        key = Utf8.parse(key)
+      }
+
+      // Shortcuts
+      var hasherBlockSize = hasher.blockSize
+      var hasherBlockSizeBytes = hasherBlockSize * 4
+
+      // Allow arbitrary length keys
+      if (key.sigBytes > hasherBlockSizeBytes) {
+        key = hasher.finalize(key)
+      }
+
+      // Clamp excess bits
+      key.clamp()
+
+      // Clone key for inner and outer pads
+      var oKey = (this._oKey = key.clone())
+      var iKey = (this._iKey = key.clone())
+
+      // Shortcuts
+      var oKeyWords = oKey.words
+      var iKeyWords = iKey.words
+
+      // XOR keys with pad constants
+      for (var i = 0; i < hasherBlockSize; i++) {
+        oKeyWords[i] ^= 0x5c5c5c5c
+        iKeyWords[i] ^= 0x36363636
+      }
+      oKey.sigBytes = iKey.sigBytes = hasherBlockSizeBytes
+
+      // Set initial values
+      this.reset()
+    },
+
+    /**
+     * Resets this HMAC to its initial state.
+     *
+     * @example
+     *
+     *     hmacHasher.reset()
+     */
+    reset: function() {
+      // Shortcut
+      var hasher = this._hasher
+
+      // Reset
+      hasher.reset()
+      hasher.update(this._iKey)
+    },
+
+    /**
+     * Updates this HMAC with a message.
+     *
+     * @param {WordArray|string} messageUpdate The message to append.
+     *
+     * @return {HMAC} This HMAC instance.
+     *
+     * @example
+     *
+     *     hmacHasher.update('message')
+     *     hmacHasher.update(wordArray)
+     */
+    update: function(messageUpdate: any) {
+      this._hasher.update(messageUpdate)
+
+      // Chainable
+      return this
+    },
+
+    /**
+     * Finalizes the HMAC computation.
+     * Note that the finalize operation is effectively a destructive, read-once operation.
+     *
+     * @param {WordArray|string} messageUpdate (Optional) A final message update.
+     *
+     * @return {WordArray} The HMAC.
+     *
+     * @example
+     *
+     *     var hmac = hmacHasher.finalize()
+     *     var hmac = hmacHasher.finalize('message')
+     *     var hmac = hmacHasher.finalize(wordArray)
+     */
+    finalize: function(messageUpdate: any) {
+      // Shortcut
+      var hasher = this._hasher
+
+      // Compute HMAC
+      var innerHash = hasher.finalize(messageUpdate)
+      hasher.reset()
+      var hmac = hasher.finalize(this._oKey.clone().concat(innerHash))
+
+      return hmac
+    }
+  }))
+})()
+
+// ==================================================================================================
+// END INCLUDE FILE cryptojs/hmac.js
 // ==================================================================================================
 
 // ==================================================================================================
