@@ -1,4 +1,25 @@
 import * as crypto from "../src/crypto"
+import { IEncryptOptions } from "../src/crypto"
+import { hexStringToByteArray, stringToByteArray } from "../src/converters"
+
+let bob = {
+  secretPhrase:
+    "floor battle paper consider stranger blind alter blur bless wrote prove cloud",
+  publicKeyStr:
+    "ef9baf978860b56d6a0d15638c9af11be687f90230ec839fad762d085fc5651a",
+  privateKeyStr:
+    "d0b857ee906717f40917f3a2c2c7e3fa0ffb3bc46edd1606b83f80bccf89065e",
+  account: "2068178321230336428"
+}
+
+let alice = {
+  secretPhrase: "user3",
+  publicKeyStr:
+    "4376219788e7d1946ad377196fd7103958d3d6d6618dc93d2d0d6b4f717b641d", //???
+  privateKeyStr:
+    "5860faf02b6bc6222ba5aca523560f0e364ccd8b67bee486fe8bf7c01d492c4b",
+  account: "1522541402758811473"
+}
 
 describe("crypto.calculateStringHash test", () => {
   it("is a function", () => {
@@ -55,11 +76,12 @@ describe("crypto.secretPhraseToPublicKey test", () => {
     expect(crypto.secretPhraseToPublicKey).toBeInstanceOf(Function)
   })
   it("returns public key of secret phrase", () => {
-    expect(
-      crypto.secretPhraseToPublicKey(
-        "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
-      )
-    ).toBe("ef9baf978860b56d6a0d15638c9af11be687f90230ec839fad762d085fc5651a")
+    expect(crypto.secretPhraseToPublicKey(bob.secretPhrase)).toBe(
+      bob.publicKeyStr
+    )
+    expect(crypto.secretPhraseToPublicKey(alice.secretPhrase)).toBe(
+      alice.publicKeyStr
+    )
   })
 })
 
@@ -68,11 +90,8 @@ describe("crypto.getPrivateKey test", () => {
     expect(crypto.getPrivateKey).toBeInstanceOf(Function)
   })
   it("returns private key", () => {
-    expect(
-      crypto.getPrivateKey(
-        "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
-      )
-    ).toBe("d0b857ee906717f40917f3a2c2c7e3fa0ffb3bc46edd1606b83f80bccf89065e")
+    expect(crypto.getPrivateKey(bob.secretPhrase)).toBe(bob.privateKeyStr)
+    expect(crypto.getPrivateKey(alice.secretPhrase)).toBe(alice.privateKeyStr)
   })
 })
 
@@ -81,11 +100,8 @@ describe("crypto.getAccountId test", () => {
     expect(crypto.getAccountId).toBeInstanceOf(Function)
   })
   it("returns account id", () => {
-    expect(
-      crypto.getAccountId(
-        "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
-      )
-    ).toBe("2068178321230336428")
+    expect(crypto.getAccountId(bob.secretPhrase)).toBe(bob.account)
+    expect(crypto.getAccountId(alice.secretPhrase)).toBe(alice.account)
   })
 })
 
@@ -94,11 +110,10 @@ describe("crypto.getAccountIdFromPublicKey test", () => {
     expect(crypto.getAccountIdFromPublicKey).toBeInstanceOf(Function)
   })
   it("returns account id", () => {
-    expect(
-      crypto.getAccountIdFromPublicKey(
-        "b27b12f1982c6c57da981a4dcefe2ae75b00f0665b813e1b634c0b716e48524d"
-      )
-    ).toBe("4644748344150906433")
+    expect(crypto.getAccountIdFromPublicKey(bob.publicKeyStr)).toBe(bob.account)
+    expect(crypto.getAccountIdFromPublicKey(alice.publicKeyStr)).toBe(
+      alice.account
+    )
   })
 })
 
@@ -135,90 +150,24 @@ describe("crypto.verifyBytes test", () => {
 
 describe("crypto.encryptNote test", () => {
   it("is a function", () => {
-    expect(crypto.verifyBytes).toBeInstanceOf(Function)
+    expect(crypto.encryptNote).toBeInstanceOf(Function)
   })
   it("returns encrypted note", () => {
-    expect(
-      crypto.encryptNote(
-        "qwerty",
-        {
-          account: "4644748344150906433",
-          publicKey: [
-            67,
-            118,
-            33,
-            151,
-            136,
-            231,
-            209,
-            148,
-            106,
-            211,
-            119,
-            25,
-            111,
-            215,
-            16,
-            57,
-            88,
-            211,
-            214,
-            214,
-            97,
-            141,
-            201,
-            61,
-            45,
-            13,
-            107,
-            79,
-            113,
-            123,
-            100,
-            29
-          ],
-          privateKey: [
-            208,
-            184,
-            87,
-            238,
-            144,
-            103,
-            23,
-            244,
-            9,
-            23,
-            243,
-            162,
-            194,
-            199,
-            227,
-            250,
-            15,
-            251,
-            59,
-            196,
-            110,
-            221,
-            22,
-            6,
-            184,
-            63,
-            128,
-            188,
-            207,
-            137,
-            6,
-            94
-          ]
-        },
-        "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
-      )
-    ).toBe({
-      message:
-        "1778e1ac06b2d0c90f64321970a1c54498d1463b4049d0f48adb7b13f28c2b089bfddda7b2d2f4720834c5ae8f6926b5",
-      nonce: "4235e8fbc8e823a6123cbf19e4d6296f076ae269598449c07d6d6cf89407cbc7"
-    })
+    let text = "qwerty1 näkökenttäsi лыжи 政府信息公开发布平台"
+    let options: IEncryptOptions = {
+      account: bob.account,
+      privateKey: hexStringToByteArray(bob.privateKeyStr),
+      publicKey: hexStringToByteArray(bob.publicKeyStr)
+    }
+    let encrypted = crypto.encryptNote(text, options, bob.secretPhrase)
+    let decrypted = crypto.decryptMessage(
+      encrypted.message,
+      encrypted.nonce,
+      bob.publicKeyStr,
+      bob.secretPhrase
+    )
+
+    expect(decrypted).toBe(text)
   })
 })
 
@@ -227,140 +176,65 @@ describe("crypto.encryptBinaryNote test", () => {
     expect(crypto.encryptBinaryNote).toBeInstanceOf(Function)
   })
   it("encrypts binary note", () => {
+    let text = "qwerty1"
     let options: crypto.IEncryptOptions = {
-      account: "1522541402758811473",
-      publicKey: [
-        67,
-        118,
-        33,
-        151,
-        136,
-        231,
-        209,
-        148,
-        106,
-        211,
-        119,
-        25,
-        111,
-        215,
-        16,
-        57,
-        88,
-        211,
-        214,
-        214,
-        97,
-        141,
-        201,
-        61,
-        45,
-        13,
-        107,
-        79,
-        113,
-        123,
-        100,
-        29
-      ]
+      account: bob.account,
+      privateKey: hexStringToByteArray(bob.privateKeyStr),
+      publicKey: hexStringToByteArray(bob.publicKeyStr)
     }
 
-    // let options : crypto.IEncryptOptions = {
-    //   account: "1522541402758811473",
-    //   nonce: Uint8Array(32) [217, 36, 147, 177, 9, 103, 5, 98, 113, 107, 59, 179, 43, 73, 105, 221, 161, 51, 241, 174, 32, 123, 159, 165, 71, 28, 160, 183, 175, 17, 30, 103],
-    //   privateKey:(32) [208, 184, 87, 238, 144, 103, 23, 244, 9, 23, 243, 162, 194, 199, 227, 250, 15, 251, 59, 196, 110, 221, 22, 6, 184, 63, 128, 188, 207, 137, 6, 94],
-    //   publicKey:(32) [67, 118, 33, 151, 136, 231, 209, 148, 106, 211, 119, 25, 111, 215, 16, 57, 88, 211, 214, 214, 97, 141, 201, 61, 45, 13, 107, 79, 113, 123, 100, 29],
-    //   sharedKey:(32) [105, 176, 154, 187, 125, 110, 196, 174, 72, 81, 254, 173, 179, 214, 87, 83, 95, 233, 186, 56, 91, 30, 69, 63, 42, 14, 109, 193, 196, 139, 142, 20]
-    // }
+    let encrypted = crypto.encryptBinaryNote(
+      stringToByteArray(text),
+      options,
+      bob.secretPhrase /*todo with true*/
+    )
 
-    expect(
-      crypto.encryptBinaryNote(
-        "qwerty",
-        options,
-        "floor battle paper consider stranger blind alter blur bless wrote prove cloud",
-        true
-      )
-    ).toBe({
-      message:
-        "b7374e4cbed293ebebd604c2c4ebaa7e7041fa223d4658c4cff1f85d78ec796a",
-      nonce: "d92493b109670562716b3bb32b4969dda133f1ae207b9fa5471ca0b7af111e67"
-    })
+    let decrypted = crypto.decryptMessage(
+      encrypted.message,
+      encrypted.nonce,
+      bob.publicKeyStr,
+      bob.secretPhrase
+    )
+
+    expect(decrypted).toBe(text)
   })
 })
 
-describe("crypto.encryptMessage test", () => {
+describe("crypto.encryptMessage, crypto.decryptMessage test", () => {
   it("is a function", () => {
     expect(crypto.encryptMessage).toBeInstanceOf(Function)
-  })
-  it("encrypts binary note", () => {
-    expect(
-      crypto.encryptMessage(
-        "qwerty",
-        "b27b12f1982c6c57da981a4dcefe2ae75b00f0665b813e1b634c0b716e48524d",
-        "floor battle paper consider stranger blind alter blur bless wrote prove cloud",
-        true
-      )
-    ).toBe("todo")
-  })
-})
-
-describe("crypto.decryptMessage test", () => {
-  it("is a function", () => {
     expect(crypto.decryptMessage).toBeInstanceOf(Function)
   })
-  it("decrypt message", () => {
-    expect(
-      crypto.decryptMessage(
-        "db3c0152eb1e88fdac5aeb4c8bd13e3417ed121a0718a42f55b71ddd60e9fa336970f484e3ad0471e6a08276188d4963",
-        "7619172406098fcc9fedd17a40bc40985683eb29dd0e3717eb2c89c9cc592d31",
-        "4376219788e7d1946ad377196fd7103958d3d6d6618dc93d2d0d6b4f717b641d",
-        "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
-      )
-    ).toBe("qwerty1")
-    /* todo with uncomressed
-    expect(crypto.decryptMessage(
-      "db3c0152eb1e88fdac5aeb4c8bd13e3417ed121a0718a42f55b71ddd60e9fa336970f484e3ad0471e6a08276188d4963",
-      "7619172406098fcc9fedd17a40bc40985683eb29dd0e3717eb2c89c9cc592d31",
-      "4376219788e7d1946ad377196fd7103958d3d6d6618dc93d2d0d6b4f717b641d",
-      "floor battle paper consider stranger blind alter blur bless wrote prove cloud",
-      true
-    )).toBe(
-      "qwerty1"
-    )*/
+  it("encrypts, decrypts message", () => {
+    let text = "qwerty ♠═~☺"
+    let encrypted = crypto.encryptMessage(
+      text,
+      bob.publicKeyStr,
+      bob.secretPhrase
+    )
+    let decrypted = crypto.decryptMessage(
+      encrypted.data,
+      encrypted.nonce,
+      bob.publicKeyStr,
+      bob.secretPhrase
+    )
+
+    expect(encrypted.isText).toBe(true)
+    expect(decrypted).toBe(text)
   })
 })
 
-describe("crypto.passphraseEncrypt test", () => {
+describe("crypto.passphraseEncrypt, crypto.passphraseDecrypt test", () => {
   it("is a function", () => {
     expect(crypto.passphraseEncrypt).toBeInstanceOf(Function)
-  })
-  it("encrypts binary note", () => {
-    expect(crypto.passphraseEncrypt("qwerty", "1111")).toBe({
-      ciphertext: "4fXdcuWaxDcMRDUZSXTzew==",
-      salt: "6601be0931e44895239e5950f80a9e6f2772fd69175a6c57200e08982ab4463d",
-      iv: "2a0abc442e69c04fbbe4a535b09e404c",
-      HMAC: "085073bf18fe1799c13bf0a968510dfa7a574a1743210a080dcfd7b6be014e2f"
-    })
-  })
-})
-
-describe("crypto.passphraseDecrypt test", () => {
-  it("is a function", () => {
     expect(crypto.passphraseDecrypt).toBeInstanceOf(Function)
   })
-  it("returns account secret by passphrase", () => {
-    let pem: crypto.PassphraseEncryptedMessage = new crypto.PassphraseEncryptedMessage(
-      "8wr4f58Ke7wpAwnaOwY2ybMqjWURlSvBJ+XRP2ieXIJdsAFrm+y+Xf2mEk7FJ5iZQug2UDO+HQIOOWC3t6Bq480tpLBGv3mjQ95iCee6970uJuzFLhvnB8J7qkyK/ZzHdm9RTOPzS3NG6qebpjXvzdE9Hkz8I0fJokVXgWf3zvBU08XbUpfyUWPefl6YGTlGqMlzN3u0Vd4Z/mOPUG2g3g==",
-      "32da75fc0ca00fec706d7ccf90458c68bdd9fcc1929e8540c7fe55ccf05d6f66",
-      "9a9820d77f14206ed325083744a04fe2",
-      "58322654337ab3795abc185acd8f9d8bfc69955fee7f83c4eaf39ce17c2542a5"
-    )
-    expect(crypto.passphraseDecrypt(pem, "1111")).toBe({
-      account: "2068178321230336428",
-      secretPhrase:
-        "floor battle paper consider stranger blind alter blur bless wrote prove cloud",
-      pincode: "1111",
-      name: ""
-    })
+  it("encrypts, decrypts text using passprase", () => {
+    let text = "qwerty !@#$%^ 12345"
+    let passphrase = "qaz plm [].,/"
+    let encrypted = crypto.passphraseEncrypt(text, passphrase)
+    let decrypted = crypto.passphraseDecrypt(encrypted, passphrase)
+
+    expect(decrypted).toBe(text)
   })
 })
