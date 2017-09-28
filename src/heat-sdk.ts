@@ -26,10 +26,16 @@ import * as utils from "./utils"
 import { Builder, TransactionImpl } from "./builder"
 import * as attachment from "./attachment"
 import { Transaction } from "./transaction"
+import { HeatApi } from "./heat-api"
 
 export class HeatSDKClass {
   public isTestnet = false
   public crypto = crypto
+  public api = new HeatApi({
+    baseURL: this.isTestnet
+      ? "https://alpha.heatledger.com:7734/api/v1"
+      : "https://heatwallet.com:7734/api/v1"
+  })
   public payment(recipientOrRecipientPublicKey: string, amount: string) {
     return new Transaction(
       recipientOrRecipientPublicKey,
