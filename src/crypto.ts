@@ -55,18 +55,18 @@ function getRandomValues(buf: any) {
     return window.crypto.getRandomValues(buf)
   }
   if (
-    window.msCrypto &&
-    typeof window.msCrypto === "object" &&
-    typeof window.msCrypto.getRandomValues === "function"
+    (<any>window).msCrypto &&
+    typeof (<any>window).msCrypto === "object" &&
+    typeof (<any>window).msCrypto.getRandomValues === "function"
   ) {
-    return window.msCrypto.getRandomValues(buf)
+    return (<any>window).msCrypto.getRandomValues(buf)
   }
   if (nodeCrypto && nodeCrypto.randomBytes) {
     if (!(buf instanceof Uint8Array)) {
       throw new TypeError("expected Uint8Array")
     }
     if (buf.length > 65536) {
-      let e: Error = new Error()
+      let e: any = new Error()
       e.code = 22
       e.message =
         "Failed to execute 'getRandomValues' on 'Crypto': The " +
