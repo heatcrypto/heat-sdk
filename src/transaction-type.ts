@@ -21,13 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import {
-  Attachment,
-  ORDINARY_PAYMENT,
-  ARBITRARY_MESSAGE,
-  Message,
-  Payment
-} from "./attachment"
+import * as attachment from "./attachment"
 
 export abstract class TransactionType {
   public static TYPE_PAYMENT = 0
@@ -50,7 +44,7 @@ export abstract class TransactionType {
 
   abstract getType(): number
   abstract getSubtype(): number
-  abstract parseAttachment(buffer: ByteBuffer): Attachment
+  abstract parseAttachment(buffer: ByteBuffer): attachment.Attachment
   abstract canHaveRecipient(): boolean
   abstract getFee(): string
 
@@ -65,11 +59,15 @@ export abstract class TransactionType {
       }
     }
   }
+
+  mustHaveRecipient(): boolean {
+    return this.canHaveRecipient()
+  }
 }
 
 export class OrdinaryPayment extends TransactionType {
   getFee() {
-    return ORDINARY_PAYMENT.getFee()
+    return attachment.ORDINARY_PAYMENT.getFee()
   }
   getType() {
     return TransactionType.TYPE_PAYMENT
@@ -78,7 +76,7 @@ export class OrdinaryPayment extends TransactionType {
     return TransactionType.SUBTYPE_PAYMENT_ORDINARY_PAYMENT
   }
   parseAttachment(buffer: ByteBuffer) {
-    return ORDINARY_PAYMENT
+    return attachment.ORDINARY_PAYMENT
   }
   canHaveRecipient() {
     return true
@@ -87,7 +85,7 @@ export class OrdinaryPayment extends TransactionType {
 
 export class ArbitraryMessage extends TransactionType {
   getFee() {
-    return ARBITRARY_MESSAGE.getFee()
+    return attachment.ARBITRARY_MESSAGE.getFee()
   }
   getType() {
     return TransactionType.TYPE_MESSAGING
@@ -96,12 +94,200 @@ export class ArbitraryMessage extends TransactionType {
     return TransactionType.SUBTYPE_MESSAGING_ARBITRARY_MESSAGE
   }
   parseAttachment(buffer: ByteBuffer) {
-    return ARBITRARY_MESSAGE
+    return attachment.ARBITRARY_MESSAGE
+  }
+  canHaveRecipient() {
+    return true
+  }
+  mustHaveRecipient(): boolean {
+    return false
+  }
+}
+
+abstract class ColoredCoins extends TransactionType {
+  getType() {
+    return TransactionType.TYPE_COLORED_COINS
+  }
+}
+
+export class AssetIssuance extends ColoredCoins {
+  getFee() {
+    return attachment.COLORED_COINS_ASSET_ISSUANCE.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_ASSET_ISSUANCE
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_ASSET_ISSUANCE //???
+  }
+  canHaveRecipient() {
+    return false
+  }
+}
+
+export class AssetIssueMore extends ColoredCoins {
+  getFee() {
+    return attachment.COLORED_COINS_ASSET_ISSUE_MORE.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_ASSET_ISSUE_MORE
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_ASSET_ISSUE_MORE //???
+  }
+  canHaveRecipient() {
+    return false
+  }
+}
+
+export class AssetTransfer extends ColoredCoins {
+  getFee() {
+    return attachment.COLORED_COINS_ASSET_TRANSFER.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_ASSET_TRANSFER
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_ASSET_TRANSFER //???
   }
   canHaveRecipient() {
     return true
   }
 }
 
-export var ORDINARY_PAYMENT_TRANSACTION_TYPE = new OrdinaryPayment()
-export var ARBITRARY_MESSAGE_TRANSACTION_TYPE = new ArbitraryMessage()
+abstract class ColoredCoinsOrderPlacement extends ColoredCoins {
+  canHaveRecipient(): boolean {
+    return false
+  }
+}
+
+export class AskOrderPlacement extends ColoredCoinsOrderPlacement {
+  getFee() {
+    return attachment.COLORED_COINS_ASK_ORDER_PLACEMENT.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_ASK_ORDER_PLACEMENT
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_ASK_ORDER_PLACEMENT //???
+  }
+}
+
+export class BidOrderPlacement extends ColoredCoinsOrderPlacement {
+  getFee() {
+    return attachment.COLORED_COINS_BID_ORDER_PLACEMENT.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_BID_ORDER_PLACEMENT
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_BID_ORDER_PLACEMENT //???
+  }
+}
+
+abstract class ColoredCoinsOrderCancellation extends ColoredCoins {
+  canHaveRecipient(): boolean {
+    return false
+  }
+}
+
+export class AskOrderCancellation extends ColoredCoinsOrderCancellation {
+  getFee() {
+    return attachment.COLORED_COINS_ASK_ORDER_CANCELLATION.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_ASK_ORDER_CANCELLATION
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_ASK_ORDER_CANCELLATION //???
+  }
+}
+
+export class BidOrderCancellation extends ColoredCoinsOrderCancellation {
+  getFee() {
+    return attachment.COLORED_COINS_BID_ORDER_CANCELLATION.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_BID_ORDER_CANCELLATION
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_BID_ORDER_CANCELLATION //???
+  }
+}
+
+abstract class ColoredCoinsWhitelist extends ColoredCoins {
+  canHaveRecipient(): boolean {
+    return false
+  }
+}
+
+export class WhitelistAccountAddition extends ColoredCoinsWhitelist {
+  getFee() {
+    return attachment.COLORED_COINS_WHITELIST_ACCOUNT_ADDITION.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_ADDITION
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_WHITELIST_ACCOUNT_ADDITION //???
+  }
+}
+
+export class WhitelistAccountRemoval extends ColoredCoinsWhitelist {
+  getFee() {
+    return attachment.COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL //???
+  }
+}
+
+export class WhitelistMarket extends ColoredCoinsWhitelist {
+  getFee() {
+    return attachment.COLORED_COINS_WHITELIST_MARKET.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_MARKET
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.COLORED_COINS_WHITELIST_MARKET //???
+  }
+}
+
+abstract class AccountControl extends TransactionType {
+  getType(): number {
+    return TransactionType.TYPE_ACCOUNT_CONTROL
+  }
+  canHaveRecipient(): boolean {
+    return true
+  }
+}
+
+export class EffectiveBalanceLeasing extends AccountControl {
+  getFee() {
+    return attachment.ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING.getFee()
+  }
+  getSubtype() {
+    return TransactionType.SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return attachment.ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING //???
+  }
+}
+
+export let ORDINARY_PAYMENT_TRANSACTION_TYPE = new OrdinaryPayment()
+export let ARBITRARY_MESSAGE_TRANSACTION_TYPE = new ArbitraryMessage()
+export let COLORED_COINS_ASSET_ISSUANCE_TRANSACTION_TYPE = new AssetIssuance()
+export let COLORED_COINS_ASSET_ISSUE_MORE_TRANSACTION_TYPE = new AssetIssueMore()
+export let COLORED_COINS_ASSET_TRANSFER_TRANSACTION_TYPE = new AssetTransfer()
+export let COLORED_COINS_ASK_ORDER_PLACEMENT_TRANSACTION_TYPE = new AskOrderPlacement()
+export let COLORED_COINS_BID_ORDER_PLACEMENT_TRANSACTION_TYPE = new BidOrderPlacement()
+export let ASK_ORDER_CANCELLATION = new AskOrderCancellation()
+export let BID_ORDER_CANCELLATION = new BidOrderCancellation()
+export let WHITELIST_ACCOUNT_ADDITION = new WhitelistAccountAddition()
+export let WHITELIST_ACCOUNT_REMOVAL = new WhitelistAccountRemoval()
+export let WHITELIST_MARKET = new WhitelistMarket()
+export let EFFECTIVE_BALANCE_LEASING = new EffectiveBalanceLeasing()
