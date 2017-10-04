@@ -34,10 +34,7 @@ export class SecretGenerator {
 
   private generateSecret(wordList: string[]): string {
     let words = []
-    //let random = new Uint32Array(128 / 32) TODO
-    let random = new Uint8Array(128 / 32) //mock
-    crypto.getRandomValues(random)
-
+    let random = crypto.random32Values(128 / 32)
     let x,
       w1,
       w2,
@@ -48,17 +45,14 @@ export class SecretGenerator {
       w1 = x % n
       w2 = (((x / n) >> 0) + w1) % n
       w3 = (((((x / n) >> 0) / n) >> 0) + w2) % n
-
       words.push(wordList[w1])
       words.push(wordList[w2])
       words.push(wordList[w3])
     }
-    crypto.getRandomValues(random)
-
+    random.fill(0)
     // only if using a word list of 7776 words or longer can we use 10 words,
     // otherwise use 12 words
     if (wordList.length >= 7776) words = words.slice(0, 10)
-
     return words.join(" ")
   }
 
