@@ -238,3 +238,48 @@ describe("crypto.passphraseEncrypt, crypto.passphraseDecrypt test", () => {
     expect(decrypted).toBe(text)
   })
 })
+
+describe("crypto.getRandomValues, crypto.random16Values, crypto.random32Values test", () => {
+  it("are functions", () => {
+    expect(crypto.getRandomValues).toBeInstanceOf(Function)
+    expect(crypto.random16Values).toBeInstanceOf(Function)
+    expect(crypto.random32Values).toBeInstanceOf(Function)
+  })
+  it("generate randoms", () => {
+    const GROUPNUM = 8
+    const N = 1000
+    let random8 = new Uint8Array(GROUPNUM)
+    let random8Stats: number[] = new Array(GROUPNUM)
+    random8Stats.fill(0)
+    let random16: Uint16Array
+    let random16Stats: number[] = new Array(GROUPNUM)
+    random16Stats.fill(0)
+    let random32: Uint32Array
+    let random32Stats: number[] = new Array(GROUPNUM)
+    random32Stats.fill(0)
+    for (let i = 0; i < N; i++) {
+      random8 = crypto.getRandomValues(random8)
+      random8.map(v => random8Stats[v % GROUPNUM]++)
+      random32 = crypto.random32Values(GROUPNUM)
+      random32.map(v => random32Stats[v % GROUPNUM]++)
+      random16 = crypto.random16Values(GROUPNUM)
+      random16.map(v => random16Stats[v % GROUPNUM]++)
+    }
+    console.log(
+      N + " random 8 bits numbers distribution in 8 groups: " + random8Stats
+    )
+    console.log(
+      N + " random 16 bits numbers distribution in 8 groups: " + random16Stats
+    )
+    console.log(
+      N + " random 32 bits numbers distribution in 8 groups: " + random32Stats
+    )
+
+    random8 = crypto.getRandomValues(random8)
+    random16 = crypto.random16Values(8)
+    random32 = crypto.random32Values(8)
+    expect(random8.length).toBe(8)
+    expect(random16.length).toBe(8)
+    expect(random32.length).toBe(8)
+  })
+})
