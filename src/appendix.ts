@@ -22,15 +22,24 @@
  * SOFTWARE.
  * */
 import * as converters from "./converters"
+import * as ByteBuffer from "./bytebuffer"
+import { Fee } from "./fee"
+import { EncryptedData } from "./encrypted-data"
+import * as Long from "long"
 
 export interface Appendix {
   getSize(): number
   putBytes(buffer: ByteBuffer): void
   getJSONObject(): Object
   getVersion(): number
+  getFee(): string
 }
 
 export abstract class AbstractAppendix implements Appendix {
+  constructor(buffer?: ByteBuffer) {
+    if (buffer) this.parse(buffer)
+  }
+
   protected version: number = 1
 
   public parse(buffer: ByteBuffer) {
@@ -61,6 +70,8 @@ export abstract class AbstractAppendix implements Appendix {
   public getVersion() {
     return this.version
   }
+
+  abstract getFee(): string
 }
 
 export class AppendixMessage extends AbstractAppendix {
@@ -69,6 +80,9 @@ export class AppendixMessage extends AbstractAppendix {
   public create(message: Array<number>, isText: boolean) {
     this.message = message
     this.isText = isText
+  }
+  getFee(): string {
+    return Fee.MESSAGE_APPENDIX_FEE
   }
   public parse(buffer: ByteBuffer) {
     super.parse(buffer)
@@ -106,94 +120,191 @@ export class AppendixMessage extends AbstractAppendix {
   }
 }
 
-export class AppendixEncryptedMessage extends AbstractAppendix {
-  public getAppendixName() {
-    return ""
+export abstract class AbstractAppendixEncryptedMessage extends AbstractAppendix {
+  private _encryptedData: EncryptedData
+  private _isText: boolean
+
+  getFee(): string {
+    return Fee.ENCRYPTED_MESSAGE_APPENDIX_FEE
   }
+
   public getMySize() {
-    return 0
+    return 4 + this._encryptedData.getSize()
   }
+
   public putMyBytes(buffer: ByteBuffer) {}
+
+  public putMyJSON(json: { [key: string]: any }) {}
+
+  getEncryptedData(): EncryptedData {
+    return this._encryptedData
+  }
+
+  isText(): boolean {
+    return this._isText
+  }
+}
+
+export class AppendixEncryptedMessage extends AbstractAppendixEncryptedMessage {
+  public getAppendixName() {
+    return "EncryptedMessage"
+  }
+
+  public putMyBytes(buffer: ByteBuffer) {}
+
   public putMyJSON(json: { [key: string]: any }) {}
 }
 
-export class AppendixEncryptToSelfMessage extends AbstractAppendix {
+export class AppendixEncryptToSelfMessage extends AbstractAppendixEncryptedMessage {
   public getAppendixName() {
-    return ""
+    return "EncryptToSelfMessage"
   }
-  public getMySize() {
-    return 0
-  }
+
   public putMyBytes(buffer: ByteBuffer) {}
+
   public putMyJSON(json: { [key: string]: any }) {}
 }
 
 export class AppendixPublicKeyAnnouncement extends AbstractAppendix {
   private publicKey: Array<number>
+
   public create(publicKey: Array<number>) {
     this.publicKey = publicKey
   }
+
   public parse(buffer: ByteBuffer) {
     super.parse(buffer)
     this.publicKey = []
     for (let i = 0; i < 32; i++) this.publicKey.push(buffer.readByte())
   }
+
+  getFee(): string {
+    return Fee.PUBLICKEY_ANNOUNCEMENT_APPENDIX_FEE
+  }
+
   public getAppendixName() {
     return "PublicKeyAnnouncement"
   }
+
   public getMySize() {
     return 32
   }
+
   public putMyBytes(buffer: ByteBuffer) {
     this.publicKey.forEach(byte => {
       buffer.writeByte(byte)
     })
   }
+
   public putMyJSON(json: { [key: string]: any }) {
     json["recipientPublicKey"] = converters.byteArrayToHexString(this.publicKey)
   }
 }
 
 export class AppendixPrivateNameAnnouncement extends AbstractAppendix {
+  private privateNameAnnouncement: Long
+
+  getFee(): string {
+    return Fee.PUBLICKEY_ANNOUNCEMENT_APPENDIX_FEE
+  }
+
   public getAppendixName() {
-    return ""
+    return "PrivateNameAnnouncement"
   }
+
   public getMySize() {
-    return 0
+    return 8
   }
+
   public putMyBytes(buffer: ByteBuffer) {}
+
   public putMyJSON(json: { [key: string]: any }) {}
+
+  public getName() {
+    return this.privateNameAnnouncement
+  }
 }
 
 export class AppendixPrivateNameAssignment extends AbstractAppendix {
+  private privateNameAssignment: Long
+  private signature: Int8Array
+
+  getFee(): string {
+    return Fee.PRIVATE_NAME_ASSIGNEMENT_APPENDIX_FEE
+  }
+
   public getAppendixName() {
-    return ""
+    return "PrivateNameAssignment"
   }
+
   public getMySize() {
-    return 0
+    return 8 + 64
   }
+
   public putMyBytes(buffer: ByteBuffer) {}
+
   public putMyJSON(json: { [key: string]: any }) {}
+
+  public getName() {
+    return this.privateNameAssignment
+  }
 }
 
 export class AppendixPublicNameAnnouncement extends AbstractAppendix {
+  private nameHash: Long
+  private publicNameAnnouncement: Int8Array
+
+  getFee(): string {
+    return Fee.PUBLIC_NAME_ANNOUNCEMENT_APPENDIX_FEE
+  }
+
   public getAppendixName() {
-    return ""
+    return "PublicNameAnnouncement"
   }
+
   public getMySize() {
-    return 0
+    return 1 + this.publicNameAnnouncement.length
   }
+
   public putMyBytes(buffer: ByteBuffer) {}
+
   public putMyJSON(json: { [key: string]: any }) {}
+
+  public getFullName() {
+    return this.publicNameAnnouncement
+  }
+
+  public getNameHash() {
+    return this.nameHash
+  }
 }
 
 export class AppendixPublicNameAssignment extends AbstractAppendix {
+  private publicNameAssignment: Int8Array
+  private signature: Int8Array
+  private nameHash: Long
+
+  getFee(): string {
+    return Fee.PUBLIC_NAME_ASSIGNEMENT_APPENDIX_FEE
+  }
+
   public getAppendixName() {
-    return ""
+    return "PublicAccountNameAssignment"
   }
+
   public getMySize() {
-    return 0
+    return 1 + this.publicNameAssignment.length + 64
   }
+
   public putMyBytes(buffer: ByteBuffer) {}
+
   public putMyJSON(json: { [key: string]: any }) {}
+
+  public getFullName() {
+    return this.publicNameAssignment
+  }
+
+  public getNameHash() {
+    return this.nameHash
+  }
 }

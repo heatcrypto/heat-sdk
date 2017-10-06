@@ -1,3 +1,4 @@
+/// <reference path='bytebuffer.d.ts' />
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.
@@ -21,23 +22,11 @@
  * SOFTWARE.
  * */
 
-export class Fee {
-  static ONE_HEAT = 100000000 //todo move to global CONSTANTS
+export class EncryptedData {
+  private data: Int8Array
+  private nonce: Int8Array
 
-  public static DEFAULT = (Fee.ONE_HEAT / 100).toString()
-  public static ASSET_ISSUANCE_FEE = (Fee.ONE_HEAT * 500).toString()
-  public static ASSET_ISSUE_MORE_FEE = Fee.DEFAULT
-  public static ASSET_TRANSFER_FEE = Fee.DEFAULT
-  public static ORDER_PLACEMENT_FEE = Fee.DEFAULT
-  public static ORDER_CANCELLATION_FEE = Fee.DEFAULT
-  public static WHITELIST_ACCOUNT_FEE = Fee.DEFAULT
-  public static WHITELIST_MARKET_FEE = (Fee.ONE_HEAT * 10).toString()
-  public static EFFECTIVE_BALANCE_LEASING_FEE = Fee.DEFAULT
-
-  public static MESSAGE_APPENDIX_FEE = "0"
-  public static ENCRYPTED_MESSAGE_APPENDIX_FEE = "0"
-  public static PUBLICKEY_ANNOUNCEMENT_APPENDIX_FEE = "0"
-  public static PRIVATE_NAME_ASSIGNEMENT_APPENDIX_FEE = "0"
-  public static PUBLIC_NAME_ANNOUNCEMENT_APPENDIX_FEE = "0"
-  public static PUBLIC_NAME_ASSIGNEMENT_APPENDIX_FEE = "0"
+  public getSize() {
+    return this.data.length + this.nonce.length
+  }
 }

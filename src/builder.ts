@@ -214,7 +214,7 @@ export class TransactionImpl {
     this.appendages.push(builder._attachment)
 
     if (!utils.isDefined(builder._feeHQT))
-      this.feeHQT = builder._attachment.getTransactionType().getFee()
+      this.feeHQT = builder._attachment.getFee()
 
     if (builder._message) this.appendages.push(builder._message)
     if (builder._encryptedMessage)

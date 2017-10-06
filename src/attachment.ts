@@ -25,6 +25,8 @@ import * as appendix from "./appendix"
 import * as transactionType from "./transaction-type"
 import { byteArrayToHexString, stringToByteArray } from "./converters"
 import { Fee } from "./fee"
+import * as ByteBuffer from "./bytebuffer"
+import * as Long from "long"
 
 export interface Attachment extends appendix.Appendix {
   getTransactionType(): transactionType.TransactionType
@@ -32,6 +34,10 @@ export interface Attachment extends appendix.Appendix {
 
 export abstract class EmptyAttachment extends appendix.AbstractAppendix
   implements Attachment {
+  constructor() {
+    super()
+  }
+
   protected version: number = 0
 
   public parse(buffer: ByteBuffer) {}
@@ -45,10 +51,13 @@ export abstract class EmptyAttachment extends appendix.AbstractAppendix
   }
 
   putMyBytes(buffer: ByteBuffer) {}
+
   putMyJSON(json: { [key: string]: any }) {}
+
   getMySize() {
     return 0
   }
+
   abstract getTransactionType(): transactionType.TransactionType
   abstract getFee(): string
 }
@@ -66,6 +75,9 @@ export class Payment extends EmptyAttachment {
 }
 
 export class Message extends EmptyAttachment {
+  constructor() {
+    super()
+  }
   getFee() {
     return Fee.DEFAULT
   }
@@ -81,9 +93,13 @@ export class Message extends EmptyAttachment {
 
 export class AssetIssuance extends appendix.AbstractAppendix
   implements Attachment {
+  constructor(buffer: ByteBuffer) {
+    super(buffer)
+  }
+
   private _descriptionUrl: string
-  private _descriptionHash: Uint8Array //todo is Uint8Array correct type here?
-  private _quantity: number
+  private _descriptionHash: Int8Array
+  private _quantity: Long
   private _decimals: number
   private _dillutable: boolean
 
@@ -91,11 +107,21 @@ export class AssetIssuance extends appendix.AbstractAppendix
     return 1 + stringToByteArray(this._descriptionUrl).length + 32 + 8 + 1 + 1
   }
 
+  public parse(buffer: ByteBuffer) {
+    super.parse(buffer)
+    this._descriptionUrl = buffer.readUTF8String(buffer.readByte()) //here do not need to check Constants.MAX_ASSET_DESCRIPTION_URL_LENGTH
+    this._descriptionHash = new Int8Array(32)
+    for (let i = 0; i < 32; i++) this._descriptionHash[i] = buffer.readByte()
+    this._quantity = buffer.readInt64()
+    this._decimals = buffer.readByte()
+    this._dillutable = buffer.readByte() == 1
+  }
+
   putMyBytes(buffer: ByteBuffer): void {
     let descriptionUrl = stringToByteArray(this._descriptionUrl)
     buffer.writeByte(descriptionUrl.length)
     buffer.append(this._descriptionUrl)
-    buffer.append(this._descriptionHash)
+    buffer.append(new Uint8Array(this._descriptionHash))
     buffer.writeInt64(this._quantity)
     buffer.writeByte(this._decimals)
     buffer.writeByte(this._dillutable ? 1 : 0)
@@ -103,9 +129,9 @@ export class AssetIssuance extends appendix.AbstractAppendix
 
   putMyJSON(json: { [key: string]: any }): void {
     json["descriptionUrl"] = this._descriptionUrl
-    json["descriptionHash"] = Buffer.from(
-      this._descriptionHash.buffer
-    ).toString("hex")
+    json["descriptionHash"] = byteArrayToHexString(
+      Array.from(this._descriptionHash)
+    )
     json["quantity"] = this._quantity
     json["decimals"] = this._decimals
     json["dillutable"] = this._dillutable
@@ -123,30 +149,30 @@ export class AssetIssuance extends appendix.AbstractAppendix
     return transactionType.COLORED_COINS_ASSET_ISSUANCE_TRANSACTION_TYPE
   }
 
-  get descriptionUrl(): string {
+  getDescriptionUrl(): string {
     return this._descriptionUrl
   }
 
-  get descriptionHash(): Uint8Array {
+  getDescriptionHash(): Int8Array {
     return this._descriptionHash
   }
 
-  get quantity(): number {
+  getQuantity(): Long {
     return this._quantity
   }
 
-  get decimals(): number {
+  getDecimals(): number {
     return this._decimals
   }
 
-  get dillutable(): boolean {
+  getDillutable(): boolean {
     return this._dillutable
   }
 }
 
 abstract class AssetBase extends appendix.AbstractAppendix {
-  private _assetId: number
-  private _quantity: number
+  private _assetId: Long
+  private _quantity: Long
 
   getMySize(): number {
     return 8 + 8
@@ -158,15 +184,15 @@ abstract class AssetBase extends appendix.AbstractAppendix {
   }
 
   putMyJSON(json: { [key: string]: any }): void {
-    json["asset"] = this._assetId >>> 0 //todo is it right convert to unsigned?
+    json["asset"] = this._assetId.toUnsigned()
     json["quantity"] = this._quantity
   }
 
-  get assetId(): number {
+  getAssetId(): Long {
     return this._assetId
   }
 
-  get quantity(): number {
+  getQuantity(): Long {
     return this._quantity
   }
 }
@@ -202,10 +228,10 @@ export class AssetTransfer extends AssetBase implements Attachment {
 // ------------------- Colored coins. Orders ----------------------------------------------------------------------------
 
 abstract class ColoredCoinsOrderPlacement extends appendix.AbstractAppendix {
-  private _currencyId: number
-  private _assetId: number
-  private _quantity: number
-  private _price: number
+  private _currencyId: Long
+  private _assetId: Long
+  private _quantity: Long
+  private _price: Long
   private _expiration: number
 
   getMySize(): number {
@@ -221,8 +247,8 @@ abstract class ColoredCoinsOrderPlacement extends appendix.AbstractAppendix {
   }
 
   putMyJSON(json: { [key: string]: any }): void {
-    json["currency"] = this._currencyId >>> 0 //todo is it right convert to unsigned?
-    json["asset"] = this._assetId >>> 0 //todo is it right convert to unsigned?
+    json["currency"] = this._currencyId.toUnsigned()
+    json["asset"] = this._assetId.toUnsigned()
     json["quantity"] = this._quantity
     json["price"] = this._price
     json["expiration"] = this._expiration
@@ -232,23 +258,23 @@ abstract class ColoredCoinsOrderPlacement extends appendix.AbstractAppendix {
     return Fee.ORDER_PLACEMENT_FEE
   }
 
-  get currencyId(): number {
+  getCurrencyId(): Long {
     return this._currencyId
   }
 
-  get assetId(): number {
+  getAssetId(): Long {
     return this._assetId
   }
 
-  get quantity(): number {
+  getQuantity(): Long {
     return this._quantity
   }
 
-  get price(): number {
+  getPrice(): Long {
     return this._price
   }
 
-  get expiration(): number {
+  getExpiration(): number {
     return this._expiration
   }
 }
@@ -276,7 +302,7 @@ export class ColoredCoinsBidOrderPlacement extends ColoredCoinsOrderPlacement
 }
 
 abstract class ColoredCoinsOrderCancellation extends appendix.AbstractAppendix {
-  private _orderId: number
+  private _orderId: Long
 
   getMySize(): number {
     return 8
@@ -287,14 +313,14 @@ abstract class ColoredCoinsOrderCancellation extends appendix.AbstractAppendix {
   }
 
   putMyJSON(json: { [key: string]: any }): void {
-    json["order"] = this._orderId >>> 0 //todo is it right convert to unsigned?
+    json["order"] = this._orderId.toUnsigned()
   }
 
   getFee() {
     return Fee.ORDER_CANCELLATION_FEE
   }
 
-  get orderId(): number {
+  getOrderId(): Long {
     return this._orderId
   }
 }
@@ -306,7 +332,7 @@ export class ColoredCoinsAskOrderCancellation extends ColoredCoinsOrderCancellat
   }
 
   getTransactionType() {
-    return transactionType.ASK_ORDER_CANCELLATION
+    return transactionType.ASK_ORDER_CANCELLATION_TRANSACTION_TYPE
   }
 }
 
@@ -317,7 +343,7 @@ export class ColoredCoinsBidOrderCancellation extends ColoredCoinsOrderCancellat
   }
 
   getTransactionType() {
-    return transactionType.BID_ORDER_CANCELLATION
+    return transactionType.BID_ORDER_CANCELLATION_TRANSACTION_TYPE
   }
 }
 
@@ -325,8 +351,8 @@ export class ColoredCoinsBidOrderCancellation extends ColoredCoinsOrderCancellat
 
 export class ColoredCoinsWhitelistAccountAddition extends appendix.AbstractAppendix
   implements Attachment {
-  private _assetId: number
-  private _accountId: number
+  private _assetId: Long
+  private _accountId: Long
   private _endHeight: number
 
   getMySize(): number {
@@ -340,8 +366,8 @@ export class ColoredCoinsWhitelistAccountAddition extends appendix.AbstractAppen
   }
 
   putMyJSON(json: { [key: string]: any }): void {
-    json["asset"] = this._assetId >>> 0 //todo is it right convert to unsigned?
-    json["account"] = this._accountId >>> 0 //todo is it right convert to unsigned?
+    json["asset"] = this._assetId.toUnsigned()
+    json["account"] = this._accountId.toUnsigned()
     json["endHeight"] = this._endHeight
   }
 
@@ -350,30 +376,30 @@ export class ColoredCoinsWhitelistAccountAddition extends appendix.AbstractAppen
   }
 
   getTransactionType() {
-    return transactionType.WHITELIST_ACCOUNT_ADDITION
+    return transactionType.WHITELIST_ACCOUNT_ADDITION_TRANSACTION_TYPE
   }
 
   getFee() {
     return Fee.WHITELIST_ACCOUNT_FEE
   }
 
-  get assetId(): number {
+  getAssetId(): Long {
     return this._assetId
   }
 
-  get accountId(): number {
+  getAccountId(): Long {
     return this._accountId
   }
 
-  get endHeight(): number {
+  getEndHeight(): number {
     return this._endHeight
   }
 }
 
 export class ColoredCoinsWhitelistAccountRemoval extends appendix.AbstractAppendix
   implements Attachment {
-  private _assetId: number
-  private _accountId: number
+  private _assetId: Long
+  private _accountId: Long
 
   getMySize(): number {
     return 8 + 8
@@ -385,8 +411,8 @@ export class ColoredCoinsWhitelistAccountRemoval extends appendix.AbstractAppend
   }
 
   putMyJSON(json: { [key: string]: any }): void {
-    json["asset"] = this._assetId >>> 0 //todo is it right convert to unsigned?
-    json["account"] = this._accountId >>> 0 //todo is it right convert to unsigned?
+    json["asset"] = this._assetId.toUnsigned()
+    json["account"] = this._accountId.toUnsigned()
   }
 
   getAppendixName() {
@@ -394,26 +420,26 @@ export class ColoredCoinsWhitelistAccountRemoval extends appendix.AbstractAppend
   }
 
   getTransactionType() {
-    return transactionType.WHITELIST_ACCOUNT_REMOVAL
+    return transactionType.WHITELIST_ACCOUNT_REMOVAL_TRANSACTION_TYPE
   }
 
   getFee() {
     return Fee.WHITELIST_ACCOUNT_FEE
   }
 
-  get assetId(): number {
+  getAssetId(): Long {
     return this._assetId
   }
 
-  get accountId(): number {
+  getAccountId(): Long {
     return this._accountId
   }
 }
 
 export class ColoredCoinsWhitelistMarket extends appendix.AbstractAppendix
   implements Attachment {
-  private _currencyId: number
-  private _assetId: number
+  private _currencyId: Long
+  private _assetId: Long
 
   getMySize(): number {
     return 8 + 8
@@ -425,8 +451,8 @@ export class ColoredCoinsWhitelistMarket extends appendix.AbstractAppendix
   }
 
   putMyJSON(json: { [key: string]: any }): void {
-    json["asset"] = this._assetId >>> 0 //todo is it right convert to unsigned?
-    json["account"] = this._currencyId >>> 0 //todo is it right convert to unsigned?
+    json["asset"] = this._assetId.toUnsigned()
+    json["account"] = this._currencyId.toUnsigned()
   }
 
   getAppendixName() {
@@ -434,18 +460,18 @@ export class ColoredCoinsWhitelistMarket extends appendix.AbstractAppendix
   }
 
   getTransactionType() {
-    return transactionType.WHITELIST_MARKET
+    return transactionType.WHITELIST_MARKET_TRANSACTION_TYPE
   }
 
   getFee() {
     return Fee.WHITELIST_MARKET_FEE
   }
 
-  get assetId(): number {
+  getAssetId(): Long {
     return this._assetId
   }
 
-  get currencyId(): number {
+  getCurrencyId(): Long {
     return this._currencyId
   }
 }
@@ -473,28 +499,28 @@ export class AccountControlEffectiveBalanceLeasing extends appendix.AbstractAppe
   }
 
   getTransactionType() {
-    return transactionType.EFFECTIVE_BALANCE_LEASING
+    return transactionType.EFFECTIVE_BALANCE_LEASING_TRANSACTION_TYPE
   }
 
   getFee() {
     return Fee.EFFECTIVE_BALANCE_LEASING_FEE
   }
 
-  get period(): number {
+  getPeriod(): number {
     return this._period
   }
 }
 
 export let ORDINARY_PAYMENT = new Payment()
 export let ARBITRARY_MESSAGE = new Message()
-export let COLORED_COINS_ASSET_ISSUANCE = new AssetIssuance()
-export let COLORED_COINS_ASSET_ISSUE_MORE = new AssetIssueMore()
-export let COLORED_COINS_ASSET_TRANSFER = new AssetTransfer()
-export let COLORED_COINS_ASK_ORDER_PLACEMENT = new ColoredCoinsAskOrderPlacement()
-export let COLORED_COINS_BID_ORDER_PLACEMENT = new ColoredCoinsBidOrderPlacement()
-export let COLORED_COINS_ASK_ORDER_CANCELLATION = new ColoredCoinsAskOrderCancellation()
-export let COLORED_COINS_BID_ORDER_CANCELLATION = new ColoredCoinsBidOrderCancellation()
-export let COLORED_COINS_WHITELIST_ACCOUNT_ADDITION = new ColoredCoinsWhitelistAccountAddition()
-export let COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL = new ColoredCoinsWhitelistAccountRemoval()
-export let COLORED_COINS_WHITELIST_MARKET = new ColoredCoinsWhitelistMarket()
-export let ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = new AccountControlEffectiveBalanceLeasing()
+// export let COLORED_COINS_ASSET_ISSUANCE = new AssetIssuance()
+// export let COLORED_COINS_ASSET_ISSUE_MORE = new AssetIssueMore()
+// export let COLORED_COINS_ASSET_TRANSFER = new AssetTransfer()
+// export let COLORED_COINS_ASK_ORDER_PLACEMENT = new ColoredCoinsAskOrderPlacement()
+// export let COLORED_COINS_BID_ORDER_PLACEMENT = new ColoredCoinsBidOrderPlacement()
+// export let COLORED_COINS_ASK_ORDER_CANCELLATION = new ColoredCoinsAskOrderCancellation()
+// export let COLORED_COINS_BID_ORDER_CANCELLATION = new ColoredCoinsBidOrderCancellation()
+// export let COLORED_COINS_WHITELIST_ACCOUNT_ADDITION = new ColoredCoinsWhitelistAccountAddition()
+// export let COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL = new ColoredCoinsWhitelistAccountRemoval()
+// export let COLORED_COINS_WHITELIST_MARKET = new ColoredCoinsWhitelistMarket()
+// export let ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = new AccountControlEffectiveBalanceLeasing()

@@ -46,7 +46,6 @@ export abstract class TransactionType {
   abstract getSubtype(): number
   abstract parseAttachment(buffer: ByteBuffer): attachment.Attachment
   abstract canHaveRecipient(): boolean
-  abstract getFee(): string
 
   public static findTransactionType(type: number, subtype: number) {
     if (type == this.TYPE_PAYMENT) {
@@ -57,6 +56,30 @@ export abstract class TransactionType {
       if (subtype == this.SUBTYPE_MESSAGING_ARBITRARY_MESSAGE) {
         return ARBITRARY_MESSAGE_TRANSACTION_TYPE
       }
+    } else if (type == this.TYPE_COLORED_COINS) {
+      if (subtype == this.SUBTYPE_COLORED_COINS_ASSET_ISSUANCE)
+        return COLORED_COINS_ASSET_ISSUANCE_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_ASSET_ISSUE_MORE)
+        return COLORED_COINS_ASSET_ISSUE_MORE_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_ASSET_TRANSFER)
+        return COLORED_COINS_ASSET_TRANSFER_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_ASK_ORDER_PLACEMENT)
+        return COLORED_COINS_ASK_ORDER_PLACEMENT_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_BID_ORDER_PLACEMENT)
+        return COLORED_COINS_BID_ORDER_PLACEMENT_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_ASK_ORDER_CANCELLATION)
+        return ASK_ORDER_CANCELLATION_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_BID_ORDER_CANCELLATION)
+        return BID_ORDER_CANCELLATION_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_ADDITION)
+        return WHITELIST_ACCOUNT_ADDITION_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL)
+        return WHITELIST_ACCOUNT_REMOVAL_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_WHITELIST_MARKET)
+        return WHITELIST_MARKET_TRANSACTION_TYPE
+    } else if (type == this.TYPE_ACCOUNT_CONTROL) {
+      if (subtype == this.SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING)
+        return EFFECTIVE_BALANCE_LEASING_TRANSACTION_TYPE
     }
   }
 
@@ -66,9 +89,6 @@ export abstract class TransactionType {
 }
 
 export class OrdinaryPayment extends TransactionType {
-  getFee() {
-    return attachment.ORDINARY_PAYMENT.getFee()
-  }
   getType() {
     return TransactionType.TYPE_PAYMENT
   }
@@ -76,6 +96,7 @@ export class OrdinaryPayment extends TransactionType {
     return TransactionType.SUBTYPE_PAYMENT_ORDINARY_PAYMENT
   }
   parseAttachment(buffer: ByteBuffer) {
+    buffer.offset++ // advance the buffer position past the version byte
     return attachment.ORDINARY_PAYMENT
   }
   canHaveRecipient() {
@@ -84,9 +105,6 @@ export class OrdinaryPayment extends TransactionType {
 }
 
 export class ArbitraryMessage extends TransactionType {
-  getFee() {
-    return attachment.ARBITRARY_MESSAGE.getFee()
-  }
   getType() {
     return TransactionType.TYPE_MESSAGING
   }
@@ -94,6 +112,7 @@ export class ArbitraryMessage extends TransactionType {
     return TransactionType.SUBTYPE_MESSAGING_ARBITRARY_MESSAGE
   }
   parseAttachment(buffer: ByteBuffer) {
+    buffer.offset++ // advance the buffer position past the version byte
     return attachment.ARBITRARY_MESSAGE
   }
   canHaveRecipient() {
@@ -111,14 +130,11 @@ abstract class ColoredCoins extends TransactionType {
 }
 
 export class AssetIssuance extends ColoredCoins {
-  getFee() {
-    return attachment.COLORED_COINS_ASSET_ISSUANCE.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_ASSET_ISSUANCE
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_ASSET_ISSUANCE //???
+    return new attachment.AssetIssuance(buffer)
   }
   canHaveRecipient() {
     return false
@@ -126,14 +142,11 @@ export class AssetIssuance extends ColoredCoins {
 }
 
 export class AssetIssueMore extends ColoredCoins {
-  getFee() {
-    return attachment.COLORED_COINS_ASSET_ISSUE_MORE.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_ASSET_ISSUE_MORE
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_ASSET_ISSUE_MORE //???
+    return new attachment.AssetIssueMore(buffer)
   }
   canHaveRecipient() {
     return false
@@ -141,14 +154,11 @@ export class AssetIssueMore extends ColoredCoins {
 }
 
 export class AssetTransfer extends ColoredCoins {
-  getFee() {
-    return attachment.COLORED_COINS_ASSET_TRANSFER.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_ASSET_TRANSFER
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_ASSET_TRANSFER //???
+    return new attachment.AssetTransfer(buffer)
   }
   canHaveRecipient() {
     return true
@@ -162,26 +172,20 @@ abstract class ColoredCoinsOrderPlacement extends ColoredCoins {
 }
 
 export class AskOrderPlacement extends ColoredCoinsOrderPlacement {
-  getFee() {
-    return attachment.COLORED_COINS_ASK_ORDER_PLACEMENT.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_ASK_ORDER_PLACEMENT
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_ASK_ORDER_PLACEMENT //???
+    return new attachment.ColoredCoinsAskOrderPlacement(buffer)
   }
 }
 
 export class BidOrderPlacement extends ColoredCoinsOrderPlacement {
-  getFee() {
-    return attachment.COLORED_COINS_BID_ORDER_PLACEMENT.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_BID_ORDER_PLACEMENT
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_BID_ORDER_PLACEMENT //???
+    return new attachment.ColoredCoinsBidOrderPlacement(buffer)
   }
 }
 
@@ -192,26 +196,20 @@ abstract class ColoredCoinsOrderCancellation extends ColoredCoins {
 }
 
 export class AskOrderCancellation extends ColoredCoinsOrderCancellation {
-  getFee() {
-    return attachment.COLORED_COINS_ASK_ORDER_CANCELLATION.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_ASK_ORDER_CANCELLATION
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_ASK_ORDER_CANCELLATION //???
+    return new attachment.ColoredCoinsAskOrderCancellation(buffer)
   }
 }
 
 export class BidOrderCancellation extends ColoredCoinsOrderCancellation {
-  getFee() {
-    return attachment.COLORED_COINS_BID_ORDER_CANCELLATION.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_BID_ORDER_CANCELLATION
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_BID_ORDER_CANCELLATION //???
+    return new attachment.ColoredCoinsBidOrderCancellation(buffer)
   }
 }
 
@@ -222,38 +220,29 @@ abstract class ColoredCoinsWhitelist extends ColoredCoins {
 }
 
 export class WhitelistAccountAddition extends ColoredCoinsWhitelist {
-  getFee() {
-    return attachment.COLORED_COINS_WHITELIST_ACCOUNT_ADDITION.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_ADDITION
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_WHITELIST_ACCOUNT_ADDITION //???
+    return new attachment.ColoredCoinsWhitelistAccountAddition(buffer)
   }
 }
 
 export class WhitelistAccountRemoval extends ColoredCoinsWhitelist {
-  getFee() {
-    return attachment.COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL //???
+    return new attachment.ColoredCoinsWhitelistAccountRemoval(buffer)
   }
 }
 
 export class WhitelistMarket extends ColoredCoinsWhitelist {
-  getFee() {
-    return attachment.COLORED_COINS_WHITELIST_MARKET.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_MARKET
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.COLORED_COINS_WHITELIST_MARKET //???
+    return new attachment.ColoredCoinsWhitelistMarket(buffer)
   }
 }
 
@@ -267,14 +256,11 @@ abstract class AccountControl extends TransactionType {
 }
 
 export class EffectiveBalanceLeasing extends AccountControl {
-  getFee() {
-    return attachment.ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING.getFee()
-  }
   getSubtype() {
     return TransactionType.SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING
   }
   parseAttachment(buffer: ByteBuffer) {
-    return attachment.ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING //???
+    return new attachment.AccountControlEffectiveBalanceLeasing(buffer)
   }
 }
 
@@ -285,9 +271,9 @@ export let COLORED_COINS_ASSET_ISSUE_MORE_TRANSACTION_TYPE = new AssetIssueMore(
 export let COLORED_COINS_ASSET_TRANSFER_TRANSACTION_TYPE = new AssetTransfer()
 export let COLORED_COINS_ASK_ORDER_PLACEMENT_TRANSACTION_TYPE = new AskOrderPlacement()
 export let COLORED_COINS_BID_ORDER_PLACEMENT_TRANSACTION_TYPE = new BidOrderPlacement()
-export let ASK_ORDER_CANCELLATION = new AskOrderCancellation()
-export let BID_ORDER_CANCELLATION = new BidOrderCancellation()
-export let WHITELIST_ACCOUNT_ADDITION = new WhitelistAccountAddition()
-export let WHITELIST_ACCOUNT_REMOVAL = new WhitelistAccountRemoval()
-export let WHITELIST_MARKET = new WhitelistMarket()
-export let EFFECTIVE_BALANCE_LEASING = new EffectiveBalanceLeasing()
+export let ASK_ORDER_CANCELLATION_TRANSACTION_TYPE = new AskOrderCancellation()
+export let BID_ORDER_CANCELLATION_TRANSACTION_TYPE = new BidOrderCancellation()
+export let WHITELIST_ACCOUNT_ADDITION_TRANSACTION_TYPE = new WhitelistAccountAddition()
+export let WHITELIST_ACCOUNT_REMOVAL_TRANSACTION_TYPE = new WhitelistAccountRemoval()
+export let WHITELIST_MARKET_TRANSACTION_TYPE = new WhitelistMarket()
+export let EFFECTIVE_BALANCE_LEASING_TRANSACTION_TYPE = new EffectiveBalanceLeasing()
