@@ -25,7 +25,7 @@ import * as appendix from "./appendix"
 import * as transactionType from "./transaction-type"
 import { byteArrayToHexString, stringToByteArray } from "./converters"
 import { Fee } from "./fee"
-import * as ByteBuffer from "./bytebuffer"
+import ByteBuffer from "./bytebuffer"
 import * as Long from "long"
 
 export interface Attachment extends appendix.Appendix {

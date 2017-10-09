@@ -6,12 +6,6 @@
 
 import Long = require("long")
 
-declare namespace ByteBuffer {
-
-}
-export = ByteBuffer
-export as namespace ByteBuffer
-
 declare class ByteBuffer {
   /**
      * Constructs a new ByteBuffer.
@@ -669,3 +663,5 @@ declare class ByteBuffer {
     offset?: number
   ): ByteBuffer | number
 }
+
+export default ByteBuffer

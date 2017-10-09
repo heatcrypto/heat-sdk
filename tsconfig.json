@@ -11,7 +11,7 @@
         "emitDecoratorMetadata": true,
         "outDir": "compiled",
         "typeRoots": [
-          "node_modules/@types"          
+          "node_modules/@types"
         ],
         "noImplicitThis": false,
         "allowJs": true
@@ -26,6 +26,10 @@
         "src/heat-sdk.ts",
         "src/transaction-type.ts",
         "src/transaction.ts",
-        "src/utils.ts"
+        "src/utils.ts",
+        "src/encrypted-data.ts",
+        "src/fee.ts",
+        "src/heat-api.ts",
+        "src/secret-generator.ts"
     ]
 }

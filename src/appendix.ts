@@ -22,7 +22,7 @@
  * SOFTWARE.
  * */
 import * as converters from "./converters"
-import * as ByteBuffer from "./bytebuffer"
+import ByteBuffer from "./bytebuffer"
 import { Fee } from "./fee"
 import { EncryptedData } from "./encrypted-data"
 import * as Long from "long"

@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import * as ByteBuffer from "./bytebuffer"
+import ByteBuffer from "./bytebuffer"
 import { TransactionType } from "./transaction-type"
 import { Attachment } from "./attachment"
 import * as appendix from "./appendix"
