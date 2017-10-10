@@ -67,4 +67,20 @@ describe("Transaction builder", () => {
     expect(t2).toBeInstanceOf(TransactionImpl)
     expect(t2.getJSONObject()).toEqual(transaction.getJSONObject())
   })
+  it("can parse transaction bytes on the server", () => {
+    let transaction = heatsdk.default
+      .payment("12345", "100.2")
+      //.publicMessage("Hello world")
+      .sign("secret phrase")
+      .getTransaction()
+    let bytes = transaction.getBytesAsHex()
+    return heatsdk.default.api
+      .post("/tx/parse", { transactionBytes: bytes })
+      .then(response => {
+        console.log(response)
+      })
+      .catch(response => {
+        console.log(response)
+      })
+  })
 })
