@@ -36,18 +36,13 @@ export abstract class EmptyAttachment extends appendix.AbstractAppendix
   implements Attachment {
   constructor() {
     super()
+    this.version = 0
   }
-
-  protected version: number = 0
 
   public parse(buffer: ByteBuffer) {}
 
   public getSize(): number {
     return this.getMySize()
-  }
-
-  public putBytes(buffer: ByteBuffer) {
-    this.putMyBytes(buffer)
   }
 
   putMyBytes(buffer: ByteBuffer) {}
