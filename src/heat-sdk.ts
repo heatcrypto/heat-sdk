@@ -20,31 +20,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import * as converters from "./converters"
 import * as crypto from "./crypto"
 import * as utils from "./utils"
-import { Builder, TransactionImpl } from "./builder"
 import * as attachment from "./attachment"
+import { Builder } from "./builder"
 import { Transaction } from "./transaction"
 import { HeatApi } from "./heat-api"
 
-export class HeatSDKClass {
-  public isTestnet = false
+export interface ConfigArgs {
+  isTestnet?: boolean
+  baseURL?: string
+  websocketURL?: string
+}
+
+export class Configuration {
+  isTestnet = false
+  baseURL: string
+  websocketURL: string
+  constructor(args?: ConfigArgs) {
+    if (args) {
+      if (utils.isDefined(args.isTestnet)) this.isTestnet = !!args.isTestnet
+      if (utils.isDefined(args.baseURL)) this.baseURL = <string>args.baseURL
+      if (utils.isDefined(args.websocketURL))
+        this.websocketURL = <string>args.websocketURL
+    }
+    if (!utils.isDefined(this.baseURL))
+      this.baseURL = this.isTestnet
+        ? "https://alpha.heatledger.com:7734/api/v1"
+        : "https://heatwallet.com:7734/api/v1"
+    if (!utils.isDefined(this.websocketURL))
+      this.websocketURL = this.isTestnet
+        ? "wss://alpha.heatledger.com:7755/ws/"
+        : "wss://heatwallet.com:7755/ws/"
+  }
+}
+
+export class HeatSDK {
+  public api: HeatApi
   public crypto = crypto
-  public api = new HeatApi({
-    baseURL: this.isTestnet
-      ? "https://alpha.heatledger.com:7734/api/v1"
-      : "https://heatwallet.com:7734/api/v1"
-  })
+  public config: Configuration
+
+  constructor(config?: Configuration) {
+    const config_ = config ? config : new Configuration()
+    this.config = config_
+    this.api = new HeatApi({ baseURL: this.config.baseURL })
+  }
+
   public payment(recipientOrRecipientPublicKey: string, amount: string) {
     return new Transaction(
+      this,
       recipientOrRecipientPublicKey,
       new Builder()
+        .isTestnet(this.config.isTestnet)
         .attachment(attachment.ORDINARY_PAYMENT)
         .amountHQT(utils.convertToQNT(amount))
     )
   }
 }
-
-let heatsdk = new HeatSDKClass()
-export default heatsdk

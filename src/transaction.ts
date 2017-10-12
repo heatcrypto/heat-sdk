@@ -25,6 +25,18 @@ import * as utils from "./utils"
 import * as appendix from "./appendix"
 import * as converters from "./converters"
 import * as crypto from "./crypto"
+import { HeatSDK } from "./heat-sdk"
+
+export interface IBroadcastOutput {
+  /**
+   * The full hash of the signed transaction ,
+   */
+  fullHash: string
+  /**
+   * The transaction ID
+   */
+  transaction: string
+}
 
 export class Transaction {
   private publicMessage_: string
@@ -35,6 +47,7 @@ export class Transaction {
   private transaction_: TransactionImpl
 
   constructor(
+    private heatsdk: HeatSDK,
     private recipientOrRecipientPublicKey: string,
     private builder: Builder
   ) {}
@@ -45,11 +58,17 @@ export class Transaction {
     return this
   }
 
-  public broadcast() {
+  public broadcast<T>(): Promise<T> {
     if (!utils.isDefined(this.transaction_))
       throw new Error("Must call sign() first")
+    return this.heatsdk.api.post("/tx/broadcast", {
+      transactionBytes: this.transaction_.getBytesAsHex()
+    })
   }
 
+  /**
+   * Return signed transaction
+   */
   public getTransaction() {
     if (!utils.isDefined(this.transaction_))
       throw new Error("Must call sign() first")

@@ -29,7 +29,6 @@ import * as utils from "./utils"
 import * as converters from "./converters"
 import * as crypto from "./crypto"
 import Long from "long"
-import * as heatsdk from "./heat-sdk"
 
 export class Builder {
   public _deadline = 1440
@@ -375,7 +374,7 @@ export class TransactionImpl {
     return json
   }
 
-  public static parse(transactionBytesHex: string) {
+  public static parse(transactionBytesHex: string, isTestnet?: boolean) {
     let buffer = ByteBuffer.wrap(transactionBytesHex, "hex", true)
 
     let type = buffer.readByte() // 1
@@ -462,7 +461,7 @@ export class TransactionImpl {
       a.parse(buffer)
       builder.publicNameAssignment(a)
     }
-    if (heatsdk.default.isTestnet) buffer.readLong()
+    if (isTestnet) buffer.readLong()
 
     return new TransactionImpl(builder, null)
   }
