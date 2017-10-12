@@ -20,31 +20,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import * as converters from "./converters"
 import * as crypto from "./crypto"
 import * as utils from "./utils"
-import { Builder, TransactionImpl } from "./builder"
 import * as attachment from "./attachment"
+import { Builder } from "./builder"
 import { Transaction } from "./transaction"
 import { HeatApi } from "./heat-api"
 
 export class HeatSDKClass {
+  constructor(baseURL?: string, testnet?: boolean) {
+    this.isTestnet = testnet ? true : false
+    let apiBaseURL = baseURL
+      ? baseURL
+      : this.isTestnet
+        ? "https://alpha.heatledger.com:7734/api/v1"
+        : "https://heatwallet.com:7734/api/v1"
+    this.api = new HeatApi({ baseURL: apiBaseURL })
+  }
+
+  public api: HeatApi
+
   public isTestnet = false
+
   public crypto = crypto
-  public api = new HeatApi({
-    baseURL: this.isTestnet
-      ? "https://alpha.heatledger.com:7734/api/v1"
-      : "https://heatwallet.com:7734/api/v1"
-  })
+
   public payment(recipientOrRecipientPublicKey: string, amount: string) {
     return new Transaction(
       recipientOrRecipientPublicKey,
       new Builder()
+        .isTestnet(this.isTestnet)
         .attachment(attachment.ORDINARY_PAYMENT)
         .amountHQT(utils.convertToQNT(amount))
     )
   }
 }
 
-let heatsdk = new HeatSDKClass()
-export default heatsdk
+let sdk: HeatSDKClass
+
+export function initHeatSDK(baseURL?: string, testnet?: boolean) {
+  if (!sdk) sdk = new HeatSDKClass(baseURL, testnet)
+  else throw Error("Heat SDK already initialized")
+}
+
+export default function heatsdk(): HeatSDKClass {
+  if (!sdk) throw Error("Heat SDK needs initialized first")
+  return sdk
+}

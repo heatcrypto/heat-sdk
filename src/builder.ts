@@ -29,7 +29,7 @@ import * as utils from "./utils"
 import * as converters from "./converters"
 import * as crypto from "./crypto"
 import Long from "long"
-import * as heatsdk from "./heat-sdk"
+import heatsdk from "./heat-sdk"
 
 export class Builder {
   public _deadline = 1440
@@ -462,7 +462,7 @@ export class TransactionImpl {
       a.parse(buffer)
       builder.publicNameAssignment(a)
     }
-    if (heatsdk.default.isTestnet) buffer.readLong()
+    if (heatsdk().isTestnet) buffer.readLong()
 
     return new TransactionImpl(builder, null)
   }

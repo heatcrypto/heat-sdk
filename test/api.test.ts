@@ -3,9 +3,11 @@ import { HeatApiError } from "../src/heat-api"
 
 describe("heat-api", () => {
   it("can GET stuff", () => {
-    return heatsdk.api.get("/blockchain/status").then((data: any) => {
-      expect(data.application).toBe("HEAT")
-    })
+    return heatsdk()
+      .api.get("/blockchain/status1")
+      .then((data: any) => {
+        expect(data.application).toBe("HEAT")
+      })
   })
   it("can POST stuff", () => {
     let params = {
@@ -14,9 +16,11 @@ describe("heat-api", () => {
       deadline: "1440",
       secretPhrase: "test works as long as no one uses this secretphrase"
     }
-    return heatsdk.api.post("/tx/lease", params).catch((data: HeatApiError) => {
-      expect(data.errorDescription).toBe("Unknown account")
-      expect(data.errorCode).toBe(3)
-    })
+    return heatsdk()
+      .api.post("/tx/lease", params)
+      .catch((data: HeatApiError) => {
+        expect(data.errorDescription).toBe("Unknown account")
+        expect(data.errorCode).toBe(3)
+      })
   })
 })
