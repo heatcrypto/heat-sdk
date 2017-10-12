@@ -1,3 +1,25 @@
+/*
+ * The MIT License (MIT)
+ * Copyright (c) 2017 Heat Ledger Ltd.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * */
 import * as crypto from "../src/crypto"
 import { IEncryptOptions } from "../src/crypto"
 import { hexStringToByteArray, stringToByteArray } from "../src/converters"
@@ -265,15 +287,15 @@ describe("crypto.getRandomValues, crypto.random16Values, crypto.random32Values t
       random16 = crypto.random16Values(GROUPNUM)
       random16.map(v => random16Stats[v % GROUPNUM]++)
     }
-    console.log(
-      N + " random 8 bits numbers distribution in 8 groups: " + random8Stats
-    )
-    console.log(
-      N + " random 16 bits numbers distribution in 8 groups: " + random16Stats
-    )
-    console.log(
-      N + " random 32 bits numbers distribution in 8 groups: " + random32Stats
-    )
+    // console.log(
+    //   N + " random 8 bits numbers distribution in 8 groups: " + random8Stats
+    // )
+    // console.log(
+    //   N + " random 16 bits numbers distribution in 8 groups: " + random16Stats
+    // )
+    // console.log(
+    //   N + " random 32 bits numbers distribution in 8 groups: " + random32Stats
+    // )
 
     random8 = crypto.getRandomValues(random8)
     random16 = crypto.random16Values(8)

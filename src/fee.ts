@@ -20,7 +20,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-
 export class Fee {
   static ONE_HEAT = 100000000 //todo move to global CONSTANTS
 
