@@ -24,8 +24,8 @@ import * as appendix from "./appendix"
 import * as transactionType from "./transaction-type"
 import * as converters from "./converters"
 import { Fee } from "./fee"
-import ByteBuffer from "bytebuffer"
-import Long from "long"
+import * as ByteBuffer from "bytebuffer"
+import * as Long from "long"
 
 export interface Attachment extends appendix.Appendix {
   getTransactionType(): transactionType.TransactionType

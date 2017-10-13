@@ -20,11 +20,13 @@ export default [
       resolve({
         preferBuiltins: true
       }),
-      commonjs(),
+      commonjs({
+        ignore: [ 'memcpy' ]
+      }),
       sourceMaps()
     ],
     sourcemap: true,
-    external: ['fs', 'path', 'events', 'module'],
+    external: 'buffer,memcpy,url,http,https,zlib,stream,util'.split(','),
     output: [
 			{ file: 'dist/heat-sdk.js', format: 'cjs' }
     ]

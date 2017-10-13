@@ -20,14 +20,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import ByteBuffer from "bytebuffer"
+import * as ByteBuffer from "bytebuffer"
 import { TransactionType } from "./transaction-type"
 import { Attachment } from "./attachment"
 import * as appendix from "./appendix"
 import * as utils from "./utils"
 import * as converters from "./converters"
 import * as crypto from "./crypto"
-import Long from "long"
+import * as Long from "long"
 
 export class Builder {
   public _deadline = 1440
