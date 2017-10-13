@@ -1,36 +1,41 @@
 {
-    "compilerOptions": {
-        "moduleResolution": "node",
-        "target": "es5",
-        "module":"es2015",
-        "lib": ["es2015", "es2016", "es2017", "dom"],
-        "strict": true,
-        "strictNullChecks": false,
-        "sourceMap": true,
-        "allowSyntheticDefaultImports": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "outDir": "compiled",
-        "typeRoots": [
-          "node_modules/@types"
-        ],
-        "noImplicitThis": false,
-        "allowJs": true
-    },
-    "files": [
-        "src/appendix.ts",
-        "src/attachment.ts",
-        "src/builder.ts",
-        "src/bytebuffer.js",
-        "src/converters.ts",
-        "src/crypto.ts",
-        "src/heat-sdk.ts",
-        "src/transaction-type.ts",
-        "src/transaction.ts",
-        "src/utils.ts",
-        "src/encrypted-data.ts",
-        "src/fee.ts",
-        "src/heat-api.ts",
-        "src/secret-generator.ts"
-    ]
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "target": "es5",
+    "module": "es2015",
+    "lib": [
+      "es2015",
+      "es2016",
+      "es2017",
+      "dom"
+    ],
+    "strict": true,
+    "strictNullChecks": false,
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "compiled",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "noImplicitThis": false,
+    "allowJs": true
+  },
+  "files": [
+    "src/appendix.ts",
+    "src/attachment.ts",
+    "src/builder.ts",
+    "src/bytebuffer.js",
+    "src/converters.ts",
+    "src/crypto.ts",
+    "src/encrypted-data.ts",
+    "src/fee.ts",
+    "src/heat-api.ts",
+    "src/heat-sdk.ts",
+    "src/secret-generator.ts",
+    "src/transaction-type.ts",
+    "src/transaction.ts",
+    "src/utils.ts"
+  ]
 }
