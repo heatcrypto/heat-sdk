@@ -26,6 +26,14 @@ This includes but is not limited to:
 - Full client side encryption/decryption support for transaction attachments
 - Support for all other low-level HEAT functionality. But all client side, no server needed! (publickeys, accountids, transaction signatures etc.)
 
+### Samples
+
+All samples open in https://runkit.com/ which gives you a live Nodejs environment, feel free to play around change the code samples, click RUN and see the output.
+
+[![RUNKIT | API ACCESS](https://img.shields.io/badge/RUNKIT-API%20ACCESS-orange.svg)](https://runkit.com/dmdeklerk/heat-sdk-api-access)
+
+[![RUNKIT | GENERATE ACCOUNT](https://img.shields.io/badge/RUNKIT-GENERATE%20ACCOUNT-orange.svg)](https://runkit.com/dmdeklerk/heat-sdk-generate-account)
+
 ### Usage
 
 #### Node
@@ -36,14 +44,21 @@ Install heat-sdk
 npm install heat-sdk --save
 ```
 
+When using TypeScript install @typings with
+
+```bash
+npm install @types/heat-sdk --save
+```
+
 Require heat-sdk and use it in your project
 
 ```javascript
-var heatsdk = require('heat-sdk').default
-heatsdk.payment("mike@heatwallet.com","99.95")
-       .publicMessage("Happy birthday!")
-       .sign("my secret phrase")
-       .broadcast()
+var {HeatSDK} = require('heat-sdk')
+var sdk = new HeatSDK()
+sdk.payment("mike@heatwallet.com","99.95")
+   .publicMessage("Happy birthday!")
+   .sign("my secret phrase")
+   .broadcast()
 ```
 
 #### Browser
@@ -55,10 +70,11 @@ heat-sdk comes as an UMD module which means you could either `require` or `impor
   <head>
     <script src="heat-sdk.js"></script>
     <script>
-      window.heatsdk.payment("mike@heatwallet.com","99.95")
-                    .publicMessage("Happy birthday!")
-                    .sign("my secret phrase")
-                    .broadcast()
+      var sdk = new heatsdk.HeatSDK()
+      sdk.payment("mike@heatwallet.com","99.95")
+         .publicMessage("Happy birthday!")
+         .sign("my secret phrase")
+         .broadcast()
     </script>
   </head>
 </html>
