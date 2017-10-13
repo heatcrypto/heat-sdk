@@ -26,7 +26,7 @@ export default [
     sourcemap: true,
     external: ['fs', 'path', 'events', 'module'],
     output: [
-			{ file: 'dist/heat-sdk.js', format: 'es' }
+			{ file: 'dist/heat-sdk.js', format: 'cjs' }
     ]
   },
   // heat-sdk.umd.js
