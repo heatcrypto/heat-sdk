@@ -20,15 +20,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import * as crypto from "../src/crypto"
+import * as crypto from "./crypto"
 
 export class SecretGenerator {
-  public generate(langCode: string): string {
-    return this.generateSecret(this.getWordlist(langCode))
-  }
-
-  private getWordlist(langCode: string): Array<string> {
-    return this.words
+  public generate(): string {
+    return this.generateSecret(this.words)
   }
 
   private generateSecret(wordList: string[]): string {
