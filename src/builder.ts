@@ -357,8 +357,8 @@ export class TransactionImpl {
     if (this.type.canHaveRecipient()) {
       json["recipient"] = this.recipientId
     }
-    json["amountHQT"] = this.amountHQT
-    json["feeHQT"] = this.feeHQT
+    json["amount"] = this.amountHQT
+    json["fee"] = this.feeHQT
     json["ecBlockHeight"] = this.ecBlockHeight
     json["ecBlockId"] = this.ecBlockId
     json["signature"] = converters.byteArrayToHexString(this.signature)
@@ -372,6 +372,100 @@ export class TransactionImpl {
     }
     json["version"] = this.version
     return json
+  }
+
+  public verifySignature(): boolean {
+    if (!emptyArrayToNull(this.signature))
+      throw new Error("Transaction is not signed")
+    let signatureHex = converters.byteArrayToHexString(this.signature)
+    let bytesHex = converters.byteArrayToHexString(this.getUnsignedBytes())
+    let publicKeyHex = converters.byteArrayToHexString(this.senderPublicKey)
+    return crypto.verifyBytes(signatureHex, bytesHex, publicKeyHex)
+  }
+
+  public static parseJSON(json: { [key: string]: any }, isTestnet?: boolean) {
+    let type = json.type
+    let subtype = json.subtype
+    let version = json.version
+    let timestamp = json.timestamp
+    let deadline = json.deadline
+    let senderPublicKey: number[] = []
+    if (json.senderPublicKey)
+      senderPublicKey = converters.hexStringToByteArray(json.senderPublicKey)
+
+    let recipientId = Long.fromString(json.recipient, true)
+    let amountHQT = Long.fromString(json.amount)
+    let feeHQT = Long.fromString(json.fee)
+    let signature: number[] = []
+    if (json.signature)
+      signature = converters.hexStringToByteArray(json.signature)
+    signature = <number[]>emptyArrayToNull(signature)
+
+    let ecBlockHeight = json.ecBlockHeight
+    let ecBlockId = Long.fromString(json.ecBlockId, true)
+
+    let transactionType = TransactionType.findTransactionType(type, subtype)
+    if (!transactionType)
+      throw new Error("Transaction type not implemented or undefined")
+
+    let attachment = json.attachment
+    let builder = new Builder()
+      .timestamp(timestamp)
+      .version(version)
+      .senderPublicKey(senderPublicKey)
+      .amountHQT(amountHQT.toString())
+      .feeHQT(feeHQT.toString())
+      .deadline(deadline)
+      .attachment(transactionType.parseAttachmentJSON(attachment))
+      .timestamp(timestamp)
+      .signature(signature)
+      .ecBlockHeight(ecBlockHeight)
+      .ecBlockId(ecBlockId.toUnsigned().toString())
+      .isTestnet(!!isTestnet)
+    if (transactionType.canHaveRecipient())
+      builder.recipientId(recipientId.toUnsigned().toString())
+
+    if (utils.isDefined(attachment["version.Message"])) {
+      let a = new appendix.AppendixMessage()
+      a.parseJSON(attachment)
+      builder.message(a)
+    }
+    if (utils.isDefined(attachment["version.EncryptedMessage"])) {
+      let a = new appendix.AppendixEncryptedMessage()
+      a.parseJSON(attachment)
+      builder.encryptedMessage(a)
+    }
+    if (utils.isDefined(attachment["version.PublicKeyAnnouncement"])) {
+      let a = new appendix.AppendixPublicKeyAnnouncement()
+      a.parseJSON(attachment)
+      builder.publicKeyAnnouncement(a)
+    }
+    if (utils.isDefined(attachment["version.EncryptToSelfMessage"])) {
+      let a = new appendix.AppendixEncryptToSelfMessage()
+      a.parse(attachment)
+      builder.encryptToSelfMessage(a)
+    }
+    if (utils.isDefined(attachment["version.PrivateNameAnnouncement"])) {
+      let a = new appendix.AppendixPrivateNameAnnouncement()
+      a.parseJSON(attachment)
+      builder.privateNameAnnouncement(a)
+    }
+    if (utils.isDefined(attachment["version.PrivateNameAssignment"])) {
+      let a = new appendix.AppendixPrivateNameAssignment()
+      a.parseJSON(attachment)
+      builder.privateNameAssignment(a)
+    }
+    if (utils.isDefined(attachment["version.PublicNameAnnouncement"])) {
+      let a = new appendix.AppendixPublicNameAnnouncement()
+      a.parseJSON(attachment)
+      builder.publicNameAnnouncement(a)
+    }
+    if (utils.isDefined(attachment["version.PublicNameAssignment"])) {
+      let a = new appendix.AppendixPublicNameAssignment()
+      a.parseJSON(attachment)
+      builder.publicNameAssignment(a)
+    }
+    return new TransactionImpl(builder, null)
   }
 
   public static parse(transactionBytesHex: string, isTestnet?: boolean) {

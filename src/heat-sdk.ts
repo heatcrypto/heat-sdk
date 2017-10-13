@@ -23,9 +23,10 @@
 import * as crypto from "./crypto"
 import * as utils from "./utils"
 import * as attachment from "./attachment"
-import { Builder } from "./builder"
+import { Builder, TransactionImpl } from "./builder"
 import { Transaction } from "./transaction"
 import { HeatApi } from "./heat-api"
+import { SecretGenerator } from "./secret-generator"
 
 export interface ConfigArgs {
   isTestnet?: boolean
@@ -57,13 +58,32 @@ export class Configuration {
 
 export class HeatSDK {
   public api: HeatApi
+  public utils = utils
   public crypto = crypto
   public config: Configuration
+  public secretGenerator = new SecretGenerator()
 
   constructor(config?: Configuration) {
     const config_ = config ? config : new Configuration()
     this.config = config_
     this.api = new HeatApi({ baseURL: this.config.baseURL })
+  }
+
+  public parseTransactionBytes(transactionBytesHex: string) {
+    return TransactionImpl.parse(transactionBytesHex, this.config.isTestnet)
+  }
+
+  public parseTransactionJSON(json: { [key: string]: any }) {
+    return TransactionImpl.parseJSON(json, this.config.isTestnet)
+  }
+
+  public passphraseEncrypt(plainText: string, passphrase: string) {
+    return crypto.passphraseEncrypt(plainText, passphrase).encode()
+  }
+
+  public passphraseDecrypt(cipherText: string, passphrase: string) {
+    let encrypted = crypto.PassphraseEncryptedMessage.decode(cipherText)
+    return crypto.passphraseDecrypt(encrypted, passphrase)
   }
 
   public payment(recipientOrRecipientPublicKey: string, amount: string) {

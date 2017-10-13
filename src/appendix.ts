@@ -25,7 +25,7 @@ import * as converters from "./converters"
 import ByteBuffer from "./bytebuffer"
 import { Fee } from "./fee"
 import { EncryptedData } from "./encrypted-data"
-import * as Long from "long"
+import Long from "long"
 
 export interface Appendix {
   getSize(): number
@@ -36,14 +36,14 @@ export interface Appendix {
 }
 
 export abstract class AbstractAppendix implements Appendix {
-  constructor(buffer?: ByteBuffer) {
-    if (buffer) this.parse(buffer)
-  }
-
   protected version: number = 1
 
   public parse(buffer: ByteBuffer) {
     this.version = buffer.readByte()
+  }
+
+  public parseJSON(json: { [key: string]: any }) {
+    this.version = json["version." + this.getAppendixName()]
   }
 
   abstract getAppendixName(): string
@@ -105,6 +105,13 @@ export class AppendixMessage extends AbstractAppendix {
     this.message.forEach(byte => {
       buffer.writeByte(byte)
     })
+  }
+  public parseJSON(json: { [key: string]: any }) {
+    super.parseJSON(json)
+    this.isText = json["messageIsText"]
+    this.message = this.isText
+      ? converters.stringToByteArray(json["message"])
+      : converters.hexStringToByteArray(json["message"])
   }
   public putMyJSON(json: { [key: string]: any }) {
     json["message"] = this.isText
@@ -194,6 +201,11 @@ export class AppendixPublicKeyAnnouncement extends AbstractAppendix {
     this.publicKey.forEach(byte => {
       buffer.writeByte(byte)
     })
+  }
+
+  public parseJSON(json: { [key: string]: any }) {
+    super.parseJSON(json)
+    this.publicKey = converters.hexStringToByteArray(json["recipientPublicKey"])
   }
 
   public putMyJSON(json: { [key: string]: any }) {

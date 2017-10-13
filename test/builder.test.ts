@@ -76,8 +76,8 @@ describe("Transaction builder", () => {
       senderPublicKey:
         "9f349432381a0803cfe795b9e9df645d4b9b990f98d0e545c46ae801dd329d3f",
       recipient: "12345",
-      amountHQT: "10020000000",
-      feeHQT: "1000000",
+      amount: "10020000000",
+      fee: "1000000",
       ecBlockHeight: 1,
       ecBlockId: "0",
       signature: expect.any(String),

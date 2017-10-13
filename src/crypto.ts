@@ -3337,7 +3337,7 @@ code.google.com/p/crypto-js
 (c) 2009-2013 by Jeff Mott. All rights reserved.
 code.google.com/p/crypto-js/wiki/License
 */
-var CryptoJS = (function(u, p) {
+var CryptoJS = (function(u?: any, p?: any) {
   var d: any = {},
     l: any = (d.lib = {}),
     s = class {},
@@ -3469,8 +3469,8 @@ var CryptoJS = (function(u, p) {
           e = c.words,
           j = c.sigBytes,
           k = this.blockSize,
-          b = j / (4 * k),
-          b = a ? u.ceil(b) : u.max((b | 0) - this._minBufferSize, 0)
+          b: any = j / (4 * k),
+          b: any = a ? u.ceil(b) : u.max((b | 0) - this._minBufferSize, 0)
         a = b * k
         j = u.min(4 * a, j)
         var q
@@ -3774,7 +3774,7 @@ var CryptoJS = (function(u, p) {
   }
 })()
 CryptoJS.lib.Cipher ||
-  (function(u) {
+  (function(u?: any) {
     var p = CryptoJS,
       d = p.lib,
       l = d.Base,

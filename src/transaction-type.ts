@@ -46,6 +46,9 @@ export abstract class TransactionType {
   abstract getType(): number
   abstract getSubtype(): number
   abstract parseAttachment(buffer: ByteBuffer): attachment.Attachment
+  abstract parseAttachmentJSON(json: {
+    [key: string]: any
+  }): attachment.Attachment
   abstract canHaveRecipient(): boolean
 
   public static findTransactionType(type: number, subtype: number) {
@@ -100,6 +103,9 @@ export class OrdinaryPayment extends TransactionType {
     buffer.offset++ // advance the buffer position past the version byte
     return attachment.ORDINARY_PAYMENT
   }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    return attachment.ORDINARY_PAYMENT
+  }
   canHaveRecipient() {
     return true
   }
@@ -114,6 +120,9 @@ export class ArbitraryMessage extends TransactionType {
   }
   parseAttachment(buffer: ByteBuffer) {
     buffer.offset++ // advance the buffer position past the version byte
+    return attachment.ARBITRARY_MESSAGE
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
     return attachment.ARBITRARY_MESSAGE
   }
   canHaveRecipient() {
@@ -135,7 +144,14 @@ export class AssetIssuance extends ColoredCoins {
     return TransactionType.SUBTYPE_COLORED_COINS_ASSET_ISSUANCE
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.AssetIssuance(buffer)
+    let a = new attachment.AssetIssuance()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.AssetIssuance()
+    a.parseJSON(json)
+    return a
   }
   canHaveRecipient() {
     return false
@@ -147,7 +163,14 @@ export class AssetIssueMore extends ColoredCoins {
     return TransactionType.SUBTYPE_COLORED_COINS_ASSET_ISSUE_MORE
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.AssetIssueMore(buffer)
+    let a = new attachment.AssetIssueMore()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.AssetIssueMore()
+    a.parseJSON(json)
+    return a
   }
   canHaveRecipient() {
     return false
@@ -159,7 +182,14 @@ export class AssetTransfer extends ColoredCoins {
     return TransactionType.SUBTYPE_COLORED_COINS_ASSET_TRANSFER
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.AssetTransfer(buffer)
+    let a = new attachment.AssetTransfer()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.AssetTransfer()
+    a.parseJSON(json)
+    return a
   }
   canHaveRecipient() {
     return true
@@ -177,7 +207,14 @@ export class AskOrderPlacement extends ColoredCoinsOrderPlacement {
     return TransactionType.SUBTYPE_COLORED_COINS_ASK_ORDER_PLACEMENT
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.ColoredCoinsAskOrderPlacement(buffer)
+    let a = new attachment.ColoredCoinsAskOrderPlacement()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.ColoredCoinsAskOrderPlacement()
+    a.parseJSON(json)
+    return a
   }
 }
 
@@ -186,7 +223,14 @@ export class BidOrderPlacement extends ColoredCoinsOrderPlacement {
     return TransactionType.SUBTYPE_COLORED_COINS_BID_ORDER_PLACEMENT
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.ColoredCoinsBidOrderPlacement(buffer)
+    let a = new attachment.ColoredCoinsBidOrderPlacement()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.ColoredCoinsBidOrderPlacement()
+    a.parseJSON(json)
+    return a
   }
 }
 
@@ -201,7 +245,14 @@ export class AskOrderCancellation extends ColoredCoinsOrderCancellation {
     return TransactionType.SUBTYPE_COLORED_COINS_ASK_ORDER_CANCELLATION
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.ColoredCoinsAskOrderCancellation(buffer)
+    let a = new attachment.ColoredCoinsAskOrderCancellation()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.ColoredCoinsAskOrderCancellation()
+    a.parseJSON(json)
+    return a
   }
 }
 
@@ -210,7 +261,14 @@ export class BidOrderCancellation extends ColoredCoinsOrderCancellation {
     return TransactionType.SUBTYPE_COLORED_COINS_BID_ORDER_CANCELLATION
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.ColoredCoinsBidOrderCancellation(buffer)
+    let a = new attachment.ColoredCoinsBidOrderCancellation()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.ColoredCoinsBidOrderCancellation()
+    a.parseJSON(json)
+    return a
   }
 }
 
@@ -225,7 +283,14 @@ export class WhitelistAccountAddition extends ColoredCoinsWhitelist {
     return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_ADDITION
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.ColoredCoinsWhitelistAccountAddition(buffer)
+    let a = new attachment.ColoredCoinsWhitelistAccountAddition()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.ColoredCoinsWhitelistAccountAddition()
+    a.parseJSON(json)
+    return a
   }
 }
 
@@ -234,7 +299,14 @@ export class WhitelistAccountRemoval extends ColoredCoinsWhitelist {
     return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.ColoredCoinsWhitelistAccountRemoval(buffer)
+    let a = new attachment.ColoredCoinsWhitelistAccountRemoval()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.ColoredCoinsWhitelistAccountRemoval()
+    a.parseJSON(json)
+    return a
   }
 }
 
@@ -243,7 +315,14 @@ export class WhitelistMarket extends ColoredCoinsWhitelist {
     return TransactionType.SUBTYPE_COLORED_COINS_WHITELIST_MARKET
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.ColoredCoinsWhitelistMarket(buffer)
+    let a = new attachment.ColoredCoinsWhitelistMarket()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.ColoredCoinsWhitelistMarket()
+    a.parseJSON(json)
+    return a
   }
 }
 
@@ -261,7 +340,14 @@ export class EffectiveBalanceLeasing extends AccountControl {
     return TransactionType.SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING
   }
   parseAttachment(buffer: ByteBuffer) {
-    return new attachment.AccountControlEffectiveBalanceLeasing(buffer)
+    let a = new attachment.AccountControlEffectiveBalanceLeasing()
+    a.parse(buffer)
+    return a
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    let a = new attachment.AccountControlEffectiveBalanceLeasing()
+    a.parseJSON(json)
+    return a
   }
 }
 
