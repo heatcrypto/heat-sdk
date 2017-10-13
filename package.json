@@ -15,9 +15,9 @@
     "cryptography",
     "microservices"
   ],
-  "main": "dist/heat-sdk.js",
-  "module": "dist/heat-sdk.node.js",
-  "typings": "dist/types/heat-sdk.d.ts",
+  "main": "./dist/heat-sdk.js",
+  "browser": "./dist/heat-sdk.umd.js",
+  "types": "./dist/types/heat-sdk.d.ts",
   "files": [
     "dist"
   ],
@@ -33,8 +33,8 @@
   "scripts": {
     "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "prebuild": "rimraf dist",
-    "build": "tsc && rollup -c && rimraf compiled && typedoc --sourcefile-url-prefix 'https://github.com/Heat-Ledger-Ltd/heat-sdk/blob/master/src/' --out dist/docs --target es6 --theme minimal src",
-    "start": "tsc -w & rollup -c -w",
+    "build": "rollup -c && rimraf compiled && typedoc --sourcefile-url-prefix 'https://github.com/Heat-Ledger-Ltd/heat-sdk/blob/master/src/' --out dist/docs --target es6 --theme minimal src",
+    "start": "rollup -c -w",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
@@ -86,21 +86,14 @@
     }
   },
   "devDependencies": {
-    "@types/big.js": "0.0.32",
-    "@types/isomorphic-fetch": "0.0.34",
     "@types/jest": "^20.0.0",
-    "@types/long": "^3.0.32",
     "@types/node": "^8.0.0",
-    "@types/pako": "^1.0.0",
-    "big.js": "^3.2.0",
-    "bytebuffer": "^5.0.1",
     "colors": "^1.1.2",
     "commitizen": "^2.9.6",
     "coveralls": "^2.13.1",
     "cross-env": "^5.0.1",
     "cz-conventional-changelog": "^2.0.0",
     "husky": "^0.14.0",
-    "isomorphic-fetch": "^2.2.1",
     "jest": "^21.0.0",
     "lint-staged": "^4.0.0",
     "lodash.camelcase": "^4.3.0",
@@ -114,6 +107,7 @@
     "rollup-plugin-node-globals": "^1.1.0",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.7.0",
     "rollup-plugin-uglify": "^2.0.1",
     "semantic-release": "^8.0.3",
     "ts-jest": "^21.0.0",
@@ -128,8 +122,16 @@
     "validate-commit-msg": "^2.12.2"
   },
   "dependencies": {
+    "@types/big.js": "0.0.32",
+    "@types/bytebuffer": "^5.0.34",
+    "@types/isomorphic-fetch": "0.0.34",
+    "@types/long": "^3.0.32",
+    "@types/pako": "^1.0.0",
     "es6-promise": "^4.1.1",
     "long": "^3.2.0",
-    "pako": "^1.0.6"
+    "pako": "^1.0.6",
+    "isomorphic-fetch": "^2.2.1",
+    "big.js": "^3.2.0",
+    "bytebuffer": "^5.0.1"
   }
 }

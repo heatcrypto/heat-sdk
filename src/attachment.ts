@@ -1,4 +1,3 @@
-/// <reference path='bytebuffer.d.ts' />
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.
@@ -25,7 +24,7 @@ import * as appendix from "./appendix"
 import * as transactionType from "./transaction-type"
 import * as converters from "./converters"
 import { Fee } from "./fee"
-import ByteBuffer from "./bytebuffer"
+import ByteBuffer from "bytebuffer"
 import Long from "long"
 
 export interface Attachment extends appendix.Appendix {
@@ -176,7 +175,7 @@ export class AssetIssuance extends appendix.AbstractAppendix
   }
 }
 
-abstract class AssetBase extends appendix.AbstractAppendix {
+export abstract class AssetBase extends appendix.AbstractAppendix {
   private _assetId: Long
   private _quantity: Long
 
@@ -239,7 +238,7 @@ export class AssetTransfer extends AssetBase implements Attachment {
 
 // ------------------- Colored coins. Orders ----------------------------------------------------------------------------
 
-abstract class ColoredCoinsOrderPlacement extends appendix.AbstractAppendix {
+export abstract class ColoredCoinsOrderPlacement extends appendix.AbstractAppendix {
   private _currencyId: Long
   private _assetId: Long
   private _quantity: Long
@@ -331,7 +330,7 @@ export class ColoredCoinsBidOrderPlacement extends ColoredCoinsOrderPlacement
   }
 }
 
-abstract class ColoredCoinsOrderCancellation extends appendix.AbstractAppendix {
+export abstract class ColoredCoinsOrderCancellation extends appendix.AbstractAppendix {
   private _orderId: Long
 
   getMySize(): number {

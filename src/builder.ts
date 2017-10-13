@@ -1,4 +1,3 @@
-/// <reference path='bytebuffer.d.ts' />
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.
@@ -21,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import ByteBuffer from "./bytebuffer"
+import ByteBuffer from "bytebuffer"
 import { TransactionType } from "./transaction-type"
 import { Attachment } from "./attachment"
 import * as appendix from "./appendix"

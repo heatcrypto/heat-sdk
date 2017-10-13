@@ -20,13 +20,12 @@
       "node_modules/@types"
     ],
     "noImplicitThis": false,
-    "allowJs": true
+    "declaration": true
   },
   "files": [
     "src/appendix.ts",
     "src/attachment.ts",
     "src/builder.ts",
-    "src/bytebuffer.js",
     "src/converters.ts",
     "src/crypto.ts",
     "src/encrypted-data.ts",

@@ -10,3 +10,4 @@ compiled
 .awcache
 deploy_docs.sh
 build
+.rpt2_cache

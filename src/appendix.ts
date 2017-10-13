@@ -1,4 +1,3 @@
-/// <reference path='bytebuffer.d.ts' />
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.
@@ -22,7 +21,7 @@
  * SOFTWARE.
  * */
 import * as converters from "./converters"
-import ByteBuffer from "./bytebuffer"
+import ByteBuffer from "bytebuffer"
 import { Fee } from "./fee"
 import { EncryptedData } from "./encrypted-data"
 import Long from "long"

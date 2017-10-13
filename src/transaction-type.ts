@@ -1,4 +1,3 @@
-/// <reference path='bytebuffer.d.ts' />
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.
@@ -22,7 +21,7 @@
  * SOFTWARE.
  * */
 import * as attachment from "./attachment"
-import ByteBuffer from "./bytebuffer"
+import ByteBuffer from "bytebuffer"
 
 export abstract class TransactionType {
   public static TYPE_PAYMENT = 0
@@ -133,7 +132,7 @@ export class ArbitraryMessage extends TransactionType {
   }
 }
 
-abstract class ColoredCoins extends TransactionType {
+export abstract class ColoredCoins extends TransactionType {
   getType() {
     return TransactionType.TYPE_COLORED_COINS
   }
@@ -196,7 +195,7 @@ export class AssetTransfer extends ColoredCoins {
   }
 }
 
-abstract class ColoredCoinsOrderPlacement extends ColoredCoins {
+export abstract class ColoredCoinsOrderPlacement extends ColoredCoins {
   canHaveRecipient(): boolean {
     return false
   }
@@ -234,7 +233,7 @@ export class BidOrderPlacement extends ColoredCoinsOrderPlacement {
   }
 }
 
-abstract class ColoredCoinsOrderCancellation extends ColoredCoins {
+export abstract class ColoredCoinsOrderCancellation extends ColoredCoins {
   canHaveRecipient(): boolean {
     return false
   }
@@ -272,7 +271,7 @@ export class BidOrderCancellation extends ColoredCoinsOrderCancellation {
   }
 }
 
-abstract class ColoredCoinsWhitelist extends ColoredCoins {
+export abstract class ColoredCoinsWhitelist extends ColoredCoins {
   canHaveRecipient(): boolean {
     return false
   }
@@ -326,7 +325,7 @@ export class WhitelistMarket extends ColoredCoinsWhitelist {
   }
 }
 
-abstract class AccountControl extends TransactionType {
+export abstract class AccountControl extends TransactionType {
   getType(): number {
     return TransactionType.TYPE_ACCOUNT_CONTROL
   }

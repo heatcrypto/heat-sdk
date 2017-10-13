@@ -5,8 +5,9 @@ import globals from "rollup-plugin-node-globals"
 const pkg = require("./package.json")
 const camelCase = require("lodash.camelcase")
 import json from 'rollup-plugin-json'
-import uglify from 'rollup-plugin-uglify';
-import { minify } from 'uglify-es';
+import uglify from 'rollup-plugin-uglify'
+import { minify } from 'uglify-es'
+import typescript from 'rollup-plugin-typescript2'
 
 const libraryName = "heat-sdk"
 export default [
@@ -14,6 +15,7 @@ export default [
   {
     input: `compiled/${libraryName}.js`,
     plugins: [
+      typescript(/*{ plugin options }*/),
       json(),
       resolve({
         preferBuiltins: true
@@ -25,14 +27,13 @@ export default [
     external: ['fs', 'path', 'events', 'module'],
     output: [
 			{ file: 'dist/heat-sdk.js', format: 'es' }
-    ],
-    moduleContext: {
-    }
+    ]
   },
   // heat-sdk.umd.js
   {
     input: `compiled/${libraryName}.js`,
     plugins: [
+      typescript(/*{ plugin options }*/),
       json(),
       resolve({
         browser: true,
@@ -45,13 +46,14 @@ export default [
       sourceMaps()      
     ],
     output: [
-			{ file: 'dist/heat-sdk.browser.js', format: 'umd', name: 'heatsdk' }
+			{ file: 'dist/heat-sdk.umd.js', format: 'umd', name: 'heatsdk' }
     ]
   },
   // heat-sdk.umd.min.js
   {
     input: `compiled/${libraryName}.js`,
     plugins: [
+      typescript(/*{ plugin options }*/),
       json(),
       resolve({
         browser: true,
@@ -66,7 +68,7 @@ export default [
     ],
     sourcemap: true,
     output: [
-			{ file: 'dist/heat-sdk.browser.min.js', format: 'umd', name: 'heatsdk' }
+			{ file: 'dist/heat-sdk.umd.min.js', format: 'umd', name: 'heatsdk' }
     ]
   }  
 ]
