@@ -13,7 +13,7 @@ const libraryName = "heat-sdk"
 export default [
   // heat-sdk.js
   {
-    input: `compiled/${libraryName}.js`,
+    input: `src/${libraryName}.ts`,
     plugins: [
       typescript(/*{ plugin options }*/),
       json(),
@@ -31,7 +31,7 @@ export default [
   },
   // heat-sdk.umd.js
   {
-    input: `compiled/${libraryName}.js`,
+    input: `src/${libraryName}.ts`,
     plugins: [
       typescript(/*{ plugin options }*/),
       json(),
@@ -51,7 +51,7 @@ export default [
   },
   // heat-sdk.umd.min.js
   {
-    input: `compiled/${libraryName}.js`,
+    input: `src/${libraryName}.ts`,
     plugins: [
       typescript(/*{ plugin options }*/),
       json(),
