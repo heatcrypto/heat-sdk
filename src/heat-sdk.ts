@@ -26,6 +26,7 @@ import * as attachment from "./attachment"
 import { Builder, TransactionImpl } from "./builder"
 import { Transaction } from "./transaction"
 import { HeatApi } from "./heat-api"
+import { HeatSubscriber } from "./heat-subscriber"
 import { SecretGenerator } from "./secret-generator"
 
 export interface ConfigArgs {
@@ -58,6 +59,7 @@ export class Configuration {
 
 export class HeatSDK {
   public api: HeatApi
+  public subscriber: HeatSubscriber
   public utils = utils
   public crypto = crypto
   public config: Configuration
@@ -67,6 +69,7 @@ export class HeatSDK {
     const config_ = config ? config : new Configuration()
     this.config = config_
     this.api = new HeatApi({ baseURL: this.config.baseURL })
+    this.subscriber = new HeatSubscriber(this.config.websocketURL)
   }
 
   public parseTransactionBytes(transactionBytesHex: string) {

@@ -127,11 +127,12 @@
     "@types/isomorphic-fetch": "0.0.34",
     "@types/long": "^3.0.32",
     "@types/pako": "^1.0.0",
-    "es6-promise": "^4.1.1",
-    "long": "^3.2.0",
-    "pako": "^1.0.6",
-    "isomorphic-fetch": "^2.2.1",
+    "@types/ws": "^3.2.0",
     "big.js": "^3.2.0",
-    "bytebuffer": "^5.0.1"
+    "bytebuffer": "^5.0.1",
+    "es6-promise": "^4.1.1",
+    "isomorphic-fetch": "^2.2.1",
+    "long": "^3.2.0",
+    "pako": "^1.0.6"
   }
 }
