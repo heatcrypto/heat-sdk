@@ -21,7 +21,7 @@
  * SOFTWARE.
  * */
 import * as attachment from "./attachment"
-import * as ByteBuffer from "bytebuffer"
+import ByteBuffer from "bytebuffer"
 
 export abstract class TransactionType {
   public static TYPE_PAYMENT = 0

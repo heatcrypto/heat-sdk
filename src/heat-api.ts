@@ -20,8 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import "es6-promise/auto"
-import "isomorphic-fetch"
+import fetch from "node-fetch"
 
 export interface HeatApiConfig {
   baseURL: string

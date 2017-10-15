@@ -24,10 +24,7 @@
 import { SubscriberTopic } from "./subscriber-topic"
 import Subscription from "./subscription"
 import * as utils from "./utils"
-const WebSocket =
-  window && (<any>window).WebSocket
-    ? (<any>window).WebSocket
-    : <any>require("ws")
+import WebSocket from "ws"
 
 export class SubscriberBase {
   private RETRY_SYNC_DELAY = 2.5 * 1000 // 2.5 seconds in milliseconds
@@ -114,7 +111,7 @@ export class SubscriberBase {
       return this.connectedSocketPromise
     }
     this.connectedSocketPromise = new Promise((resolve, reject) => {
-      var websocket = new WebSocket(this.url, undefined, undefined)
+      var websocket = new WebSocket(this.url, undefined)
       var onclose = (event: any) => {
         reject(event)
         this.connectedSocketPromise = null

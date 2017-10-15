@@ -21,10 +21,10 @@
  * SOFTWARE.
  * */
 import * as converters from "./converters"
-import * as ByteBuffer from "bytebuffer"
 import { Fee } from "./fee"
 import { EncryptedData } from "./encrypted-data"
 import Long from "long"
+import ByteBuffer from "bytebuffer"
 
 export interface Appendix {
   getSize(): number

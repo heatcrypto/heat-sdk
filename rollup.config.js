@@ -8,7 +8,9 @@ import json from 'rollup-plugin-json'
 import uglify from 'rollup-plugin-uglify'
 import { minify } from 'uglify-es'
 import typescript from 'rollup-plugin-typescript2'
+import alias from 'rollup-plugin-alias'
 
+const path = require('path')
 const libraryName = "heat-sdk"
 export default [
   // heat-sdk.js
@@ -35,6 +37,11 @@ export default [
   {
     input: `src/${libraryName}.ts`,
     plugins: [
+      alias({
+        'ws': path.resolve(__dirname, 'src/ws.browser.js'),
+        'bytebuffer': path.resolve(__dirname, 'node_modules/bytebuffer/dist/bytebuffer.js'),
+        'node-fetch': path.resolve(__dirname, 'src/node-fetch.browser.js')
+      }),
       typescript(/*{ plugin options }*/),
       json(),
       resolve({
@@ -55,6 +62,11 @@ export default [
   {
     input: `src/${libraryName}.ts`,
     plugins: [
+      alias({
+        'ws': path.resolve(__dirname, 'src/ws.browser.js'),
+        'bytebuffer': path.resolve(__dirname, 'node_modules/bytebuffer/dist/bytebuffer.js'),
+        'node-fetch': path.resolve(__dirname, 'src/node-fetch.browser.js')
+      }),
       typescript(/*{ plugin options }*/),
       json(),
       resolve({

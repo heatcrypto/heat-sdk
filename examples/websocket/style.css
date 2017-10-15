@@ -1,0 +1,28 @@
+body {
+  padding: 10px;
+}
+.demo-card-wide.mdl-card {
+  width: 512px;
+}
+.demo-card-wide > .mdl-card__title {
+  color: #fff;
+  height: 176px;
+  background: url('https://media.licdn.com/mpr/mpr/AAEAAQAAAAAAAARSAAAAJDZlNmMzZGZjLTJmYjgtNDExMi1hNTI4LWVmZTViYmZjOTQzOA.jpg') center / cover;
+}
+.demo-card-wide > .mdl-card__menu {
+  color: #fff;
+}
+.bigger {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+.mdl-switch {
+  margin-bottom: 4px;
+}
+textarea {
+  width: 100%;
+  background-color: black;
+  color: yellow;
+  font-family: monospace;
+  margin-top: 8px;
+}

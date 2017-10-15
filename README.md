@@ -30,9 +30,17 @@ This includes but is not limited to:
 
 All samples open in https://runkit.com/ which gives you a live Nodejs environment, feel free to play around change the code samples, click RUN and see the output.
 
-[![RUNKIT | API ACCESS](https://img.shields.io/badge/RUNKIT-API%20ACCESS-orange.svg)](https://runkit.com/dmdeklerk/heat-sdk-api-access)
+[![NODEJS | API ACCESS](https://img.shields.io/badge/NODEJS-API%20ACCESS-orange.svg)](https://runkit.com/dmdeklerk/heat-sdk-api-access)
 
-[![RUNKIT | GENERATE ACCOUNT](https://img.shields.io/badge/RUNKIT-GENERATE%20ACCOUNT-orange.svg)](https://runkit.com/dmdeklerk/heat-sdk-generate-account)
+[![NODEJS | GENERATE ACCOUNT](https://img.shields.io/badge/NODEJS-GENERATE%20ACCOUNT-orange.svg)](https://runkit.com/dmdeklerk/heat-sdk-generate-account)
+
+[![BROWSER | GENERATE ACCOUNT](https://img.shields.io/badge/BROWSER-GENERATE%20ACCOUNT-orange.svg)](https://embed.plnkr.co/ySpykW/)
+
+[![NODEJS | DEX USD to HEAT  ](https://img.shields.io/badge/NODEJS-DEX%20USD%20to%20HEAT-orange.svg)](https://runkit.com/dmdeklerk/heat-sdk-live-dex-usd-to-heat)
+
+[![BROWSER | DEX USD to HEAT  ](https://img.shields.io/badge/BROWSER-DEX%20USD%20to%20HEAT-orange.svg)](https://embed.plnkr.co/rsVVcU/)
+
+[![BROWSER | BLOCK WHEN?  ](https://img.shields.io/badge/BROWSER-BLOCK%20WHEN-orange.svg)](https://embed.plnkr.co/gVZVlH/)
 
 ### Usage
 
