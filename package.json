@@ -1,6 +1,6 @@
 {
   "name": "heat-sdk",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "HEAT support libraries for use in Node.js and any (modern) browser",
   "keywords": [
     "heat",
@@ -124,7 +124,6 @@
   "dependencies": {
     "@types/big.js": "0.0.32",
     "@types/bytebuffer": "^5.0.34",
-    "@types/isomorphic-fetch": "0.0.34",
     "@types/long": "^3.0.32",
     "@types/pako": "^1.0.0",
     "@types/ws": "^3.2.0",
@@ -132,8 +131,8 @@
     "bytebuffer": "^5.0.1",
     "es6-promise": "^4.1.1",
     "isomorphic-fetch": "^2.2.1",
-    "isomorphic-ws": "^3.2.0",
     "long": "^3.2.0",
-    "pako": "^1.0.6"
+    "pako": "^1.0.6",
+    "ws": "^3.2.0"
   }
 }

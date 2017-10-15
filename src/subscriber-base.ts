@@ -24,9 +24,10 @@
 import { SubscriberTopic } from "./subscriber-topic"
 import Subscription from "./subscription"
 import * as utils from "./utils"
-try {
-  var WebSocket = <any>require("isomorphic-ws")
-} catch (e) {}
+const WebSocket =
+  window && (<any>window).WebSocket
+    ? (<any>window).WebSocket
+    : <any>require("ws")
 
 export class SubscriberBase {
   private RETRY_SYNC_DELAY = 2.5 * 1000 // 2.5 seconds in milliseconds
