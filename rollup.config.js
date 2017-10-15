@@ -13,11 +13,10 @@ import alias from 'rollup-plugin-alias'
 const path = require('path')
 const libraryName = "heat-sdk"
 export default [
-  // heat-sdk.js
-  {
+  { // heat-sdk.js | NodeJS CommonJS module
     input: `src/${libraryName}.ts`,
     plugins: [
-      typescript(/*{ plugin options }*/),
+      typescript({ typescript: require("typescript") }),
       json(),
       resolve({
         preferBuiltins: true
@@ -33,8 +32,7 @@ export default [
 			{ file: 'dist/heat-sdk.js', format: 'cjs' }
     ]
   },
-  // heat-sdk.umd.js
-  {
+  { // heat-sdk.umd.js | Browser UMD module
     input: `src/${libraryName}.ts`,
     plugins: [
       alias({
@@ -42,7 +40,7 @@ export default [
         'bytebuffer': path.resolve(__dirname, 'node_modules/bytebuffer/dist/bytebuffer.js'),
         'node-fetch': path.resolve(__dirname, 'src/node-fetch.browser.js')
       }),
-      typescript(/*{ plugin options }*/),
+      typescript({ typescript: require("typescript") }),
       json(),
       resolve({
         browser: true,
@@ -56,10 +54,10 @@ export default [
     ],
     output: [
 			{ file: 'dist/heat-sdk.umd.js', format: 'umd', name: 'heatsdk' }
-    ]
+    ],
+    external: ['utf-8-validate','bufferutil']
   },
-  // heat-sdk.umd.min.js
-  {
+  { // heat-sdk.umd.min.js | Minified Browser UMD module
     input: `src/${libraryName}.ts`,
     plugins: [
       alias({
@@ -67,7 +65,7 @@ export default [
         'bytebuffer': path.resolve(__dirname, 'node_modules/bytebuffer/dist/bytebuffer.js'),
         'node-fetch': path.resolve(__dirname, 'src/node-fetch.browser.js')
       }),
-      typescript(/*{ plugin options }*/),
+      typescript({ typescript: require("typescript") }),
       json(),
       resolve({
         browser: true,

@@ -32,7 +32,7 @@
           var input = $("#"+id)
           var logMessage = (m) => { 
             beep();
-            log(name + " >> " + JSON.stringify(m));
+            log(name + " >>>>> " + JSON.stringify(m,null,2));
           }
           var toggle = () => {            
             if (subs[id]) {
@@ -49,6 +49,9 @@
           input.change(toggle)
         }
 
+        // Note that all websocket subscriptions can be given filters that determine when they are 
+        // invoked, or not. Please see https://heat-ledger-ltd.github.io/heat-sdk/classes/_heat_subscriber_.heatsubscriber.html
+        // for details on the various subscriber filters.
         setup('block-pushed', 'block pushed', sdk.subscriber.blockPushed({}))
         setup('block-popped', 'block popped', sdk.subscriber.blockPopped({}))
         setup('balance-changed', 'balance changed', sdk.subscriber.balanceChanged({}))
@@ -69,8 +72,11 @@
   <body>
     <h3>HEAT-SDK | Websockets / push</h3>
     
-    <h6>With heat-sdk we can subscribe for realtime push messages for observing live blockchain events. Checkout the <a href="https://heat-ledger-ltd.github.io/heat-sdk/classes/_heat_subscriber_.heatsubscriber.html">sdk documentation</a> for further details</h6>
+    <h6>With heat-sdk we can subscribe for realtime push messages for observing live blockchain events. Checkout the <a href="https://heat-ledger-ltd.github.io/heat-sdk/classes/_heat_subscriber_.heatsubscriber.html">sdk documentation</a> for further details.
+    Note that these same samples will run in your browser, in your mobile phone and in your server side scripts.</h6>
     
+    <h6>Expect blocks to arrive every 30 seconds, this means you'd have to wait at max 30 seconds to see the push messages coming in.</h6>
+
     <div class="demo-card-wide mdl-card mdl-shadow--2dp">
       <div class="mdl-card__title">
         <h2 class="mdl-card__title-text"></h2>
@@ -107,11 +113,6 @@
           <span class="mdl-switch__label">Unconfirmed Transaction</span>
         </label> 
         <textarea rows="10" id="console"></textarea>
-      </div>
-      <div class="mdl-card__actions mdl-card--border">
-        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" id="btn">
-          Generate New
-        </a>
       </div>
     </div>    
     
