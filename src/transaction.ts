@@ -53,7 +53,7 @@ export class Transaction {
   ) {}
 
   public sign(secretPhrase: string): Transaction {
-    this.build()
+    this.build(secretPhrase)
     this.transaction_ = this.builder.build(secretPhrase)
     return this
   }
@@ -75,43 +75,62 @@ export class Transaction {
     return this.transaction_
   }
 
-  private build() {
+  private build(secretPhrase: string) {
     this.builder
       .deadline(utils.isDefined(this.deadline_) ? this.deadline_ : 1440)
       .timestamp(utils.epochTime())
       .ecBlockHeight(1)
       .ecBlockId("0")
-    let recipientPublicKeyHex = utils.isPublicKey(
-      this.recipientOrRecipientPublicKey
-    )
-      ? this.recipientOrRecipientPublicKey
-      : null
-    if (recipientPublicKeyHex) {
-      let a = new appendix.AppendixPublicKeyAnnouncement()
-      a.create(converters.hexStringToByteArray(recipientPublicKeyHex))
-      this.builder.publicKeyAnnouncement(a)
-      this.builder.recipientId(
-        crypto.getAccountIdFromPublicKey(recipientPublicKeyHex)
+
+    let recipientPublicKeyHex
+    if (utils.isDefined(this.privateMessageToSelf_))
+      recipientPublicKeyHex = crypto.secretPhraseToPublicKey(secretPhrase)
+
+    if (!recipientPublicKeyHex)
+      recipientPublicKeyHex = utils.isPublicKey(
+        this.recipientOrRecipientPublicKey
       )
+        ? this.recipientOrRecipientPublicKey
+        : null
+
+    if (recipientPublicKeyHex) {
+      this.builder
+        .publicKeyAnnouncement(
+          new appendix.AppendixPublicKeyAnnouncement().init(
+            converters.hexStringToByteArray(recipientPublicKeyHex)
+          )
+        )
+        .recipientId(crypto.getAccountIdFromPublicKey(recipientPublicKeyHex))
     } else {
       this.builder.recipientId(this.recipientOrRecipientPublicKey)
     }
 
     if (utils.isDefined(this.publicMessage_)) {
-      let a = new appendix.AppendixMessage()
-      if (this.messageIsBinary_)
-        a.create(converters.hexStringToByteArray(this.publicMessage_), false)
-      else a.create(converters.stringToByteArray(this.publicMessage_), true)
+      let a = new appendix.AppendixMessage().init(
+        this.messageIsBinary_
+          ? converters.hexStringToByteArray(this.publicMessage_)
+          : converters.stringToByteArray(this.publicMessage_),
+        !this.messageIsBinary_
+      )
       this.builder.message(a)
+    } else {
+      let isPrivate = utils.isDefined(this.privateMessage_)
+      let isPrivateToSelf = utils.isDefined(this.privateMessageToSelf_)
+      if (isPrivate || isPrivateToSelf) {
+        if (!recipientPublicKeyHex)
+          throw new Error("Recipient public key not provided")
+        let encryptedMessage = crypto.encryptMessage(
+          isPrivate ? this.privateMessage_ : this.privateMessageToSelf_,
+          recipientPublicKeyHex,
+          secretPhrase
+        )
+        let a = (isPrivate
+          ? new appendix.AppendixEncryptedMessage()
+          : new appendix.AppendixEncryptToSelfMessage()
+        ).init(encryptedMessage, !this.messageIsBinary_)
+        this.builder.encryptToSelfMessage(a)
+      }
     }
-    // else if (utils.isDefined(this.privateMessage_)) {
-    //   let a = new appendix.AppendixEncryptedMessage()
-    //   if (this.messageIsBinary_)
-    //     a.create(converters.hexStringToByteArray(this.publicMessage_), true)
-    //   else
-    //     a.create(converters.stringToByteArray(this.publicMessage_), false)
-    //   this.builder.encryptedMessage(a)
-    // }
   }
 
   private hasMessage() {

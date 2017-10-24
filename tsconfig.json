@@ -28,7 +28,6 @@
     "src/builder.ts",
     "src/converters.ts",
     "src/crypto.ts",
-    "src/encrypted-data.ts",
     "src/fee.ts",
     "src/heat-api.ts",
     "src/heat-sdk.ts",

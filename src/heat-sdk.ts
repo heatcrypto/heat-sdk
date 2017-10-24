@@ -20,6 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
+import * as converters from "./converters"
 import * as crypto from "./crypto"
 import * as utils from "./utils"
 import * as attachment from "./attachment"
@@ -28,6 +29,12 @@ import { Transaction } from "./transaction"
 import { HeatApi } from "./heat-api"
 import { HeatSubscriber } from "./heat-subscriber"
 import { SecretGenerator } from "./secret-generator"
+import {
+  AssetIssuance,
+  AssetTransfer,
+  ColoredCoinsAskOrderPlacement
+} from "./attachment"
+import { Fee } from "./fee"
 
 export interface ConfigArgs {
   isTestnet?: boolean
@@ -98,5 +105,102 @@ export class HeatSDK {
         .attachment(attachment.ORDINARY_PAYMENT)
         .amountHQT(utils.convertToQNT(amount))
     )
+  }
+
+  public arbitraryMessage(
+    recipientOrRecipientPublicKey: string,
+    message: string
+  ) {
+    return new Transaction(
+      this,
+      recipientOrRecipientPublicKey,
+      new Builder()
+        .isTestnet(this.config.isTestnet)
+        .attachment(attachment.ARBITRARY_MESSAGE)
+        .amountHQT("0")
+    ).publicMessage(message)
+  }
+
+  public privateMessage(recipientPublicKey: string, message: string) {
+    return new Transaction(
+      this,
+      recipientPublicKey,
+      new Builder()
+        .isTestnet(this.config.isTestnet)
+        .attachment(attachment.ARBITRARY_MESSAGE)
+        .amountHQT("0")
+    ).privateMessage(message)
+  }
+
+  public privateMessageToSelf(message: string) {
+    return new Transaction(
+      this,
+      null, // if null and provide private message then to send encrypted message to self
+      new Builder()
+        .isTestnet(this.config.isTestnet)
+        .attachment(attachment.ARBITRARY_MESSAGE)
+        .amountHQT("0")
+    ).privateMessageToSelf(message)
+  }
+
+  public assetIssuance(
+    descriptionUrl: string,
+    descriptionHash: number[],
+    quantity: string,
+    decimals: number,
+    dillutable: boolean,
+    feeHQT?: string
+  ) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(
+        new AssetIssuance().init(
+          descriptionUrl,
+          descriptionHash,
+          quantity,
+          decimals,
+          dillutable
+        )
+      )
+      .amountHQT("0")
+      .feeHQT(feeHQT ? feeHQT : Fee.ASSET_ISSUANCE_FEE)
+    return new Transaction(this, "0", builder)
+  }
+
+  public assetTransfer(
+    recipientOrRecipientPublicKey: string,
+    assetId: string,
+    quantity: string,
+    feeHQT?: string
+  ) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(new AssetTransfer().init(assetId, quantity))
+      .amountHQT("0")
+      .feeHQT(feeHQT ? feeHQT : Fee.ASSET_TRANSFER_FEE)
+    return new Transaction(this, recipientOrRecipientPublicKey, builder)
+  }
+
+  public placeAskOrder(
+    currencyId: string,
+    assetId: string,
+    quantity: string,
+    price: string,
+    expiration: number
+  ) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(
+        new ColoredCoinsAskOrderPlacement().init(
+          currencyId,
+          assetId,
+          quantity,
+          price,
+          expiration
+        )
+      )
+      .amountHQT("0")
+      .feeHQT("1000000")
+    return new Transaction(this, "0", builder)
   }
 }

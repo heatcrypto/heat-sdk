@@ -426,46 +426,37 @@ export class TransactionImpl {
     if (transactionType.canHaveRecipient())
       builder.recipientId(recipientId.toUnsigned().toString())
 
-    if (utils.isDefined(attachment["version.Message"])) {
-      let a = new appendix.AppendixMessage()
-      a.parseJSON(attachment)
-      builder.message(a)
-    }
-    if (utils.isDefined(attachment["version.EncryptedMessage"])) {
-      let a = new appendix.AppendixEncryptedMessage()
-      a.parseJSON(attachment)
-      builder.encryptedMessage(a)
-    }
-    if (utils.isDefined(attachment["version.PublicKeyAnnouncement"])) {
-      let a = new appendix.AppendixPublicKeyAnnouncement()
-      a.parseJSON(attachment)
-      builder.publicKeyAnnouncement(a)
-    }
-    if (utils.isDefined(attachment["version.EncryptToSelfMessage"])) {
-      let a = new appendix.AppendixEncryptToSelfMessage()
-      a.parse(attachment)
-      builder.encryptToSelfMessage(a)
-    }
-    if (utils.isDefined(attachment["version.PrivateNameAnnouncement"])) {
-      let a = new appendix.AppendixPrivateNameAnnouncement()
-      a.parseJSON(attachment)
-      builder.privateNameAnnouncement(a)
-    }
-    if (utils.isDefined(attachment["version.PrivateNameAssignment"])) {
-      let a = new appendix.AppendixPrivateNameAssignment()
-      a.parseJSON(attachment)
-      builder.privateNameAssignment(a)
-    }
-    if (utils.isDefined(attachment["version.PublicNameAnnouncement"])) {
-      let a = new appendix.AppendixPublicNameAnnouncement()
-      a.parseJSON(attachment)
-      builder.publicNameAnnouncement(a)
-    }
-    if (utils.isDefined(attachment["version.PublicNameAssignment"])) {
-      let a = new appendix.AppendixPublicNameAssignment()
-      a.parseJSON(attachment)
-      builder.publicNameAssignment(a)
-    }
+    if (utils.isDefined(attachment["version.Message"]))
+      builder.message(new appendix.AppendixMessage().parseJSON(attachment))
+    if (utils.isDefined(attachment["version.EncryptedMessage"]))
+      builder.encryptedMessage(
+        new appendix.AppendixEncryptedMessage().parseJSON(attachment)
+      )
+    if (utils.isDefined(attachment["version.PublicKeyAnnouncement"]))
+      builder.publicKeyAnnouncement(
+        new appendix.AppendixPublicKeyAnnouncement().parseJSON(attachment)
+      )
+    if (utils.isDefined(attachment["version.EncryptToSelfMessage"]))
+      builder.encryptToSelfMessage(
+        new appendix.AppendixEncryptToSelfMessage().parseJSON(attachment)
+      )
+    if (utils.isDefined(attachment["version.PrivateNameAnnouncement"]))
+      builder.privateNameAnnouncement(
+        new appendix.AppendixPrivateNameAnnouncement().parseJSON(attachment)
+      )
+    if (utils.isDefined(attachment["version.PrivateNameAssignment"]))
+      builder.privateNameAssignment(
+        new appendix.AppendixPrivateNameAssignment().parseJSON(attachment)
+      )
+    if (utils.isDefined(attachment["version.PublicNameAnnouncement"]))
+      builder.publicNameAnnouncement(
+        new appendix.AppendixPublicNameAnnouncement().parseJSON(attachment)
+      )
+    if (utils.isDefined(attachment["version.PublicNameAssignment"]))
+      builder.publicNameAssignment(
+        new appendix.AppendixPublicNameAssignment().parseJSON(attachment)
+      )
+
     return new TransactionImpl(builder, null)
   }
 
@@ -509,53 +500,43 @@ export class TransactionImpl {
       builder.recipientId(recipientId.toUnsigned().toString())
 
     let position = 1
-    if ((flags & position) != 0) {
-      let a = new appendix.AppendixMessage()
-      a.parse(buffer)
-      builder.message(a)
-    }
+    if ((flags & position) != 0)
+      builder.message(new appendix.AppendixMessage().parse(buffer))
     position <<= 1
-    if ((flags & position) != 0) {
-      let a = new appendix.AppendixEncryptedMessage()
-      a.parse(buffer)
-      builder.encryptedMessage(a)
-    }
+    if ((flags & position) != 0)
+      builder.encryptedMessage(
+        new appendix.AppendixEncryptedMessage().parse(buffer)
+      )
     position <<= 1
-    if ((flags & position) != 0) {
-      let a = new appendix.AppendixPublicKeyAnnouncement()
-      a.parse(buffer)
-      builder.publicKeyAnnouncement(a)
-    }
+    if ((flags & position) != 0)
+      builder.publicKeyAnnouncement(
+        new appendix.AppendixPublicKeyAnnouncement().parse(buffer)
+      )
     position <<= 1
-    if ((flags & position) != 0) {
-      let a = new appendix.AppendixEncryptToSelfMessage()
-      a.parse(buffer)
-      builder.encryptToSelfMessage(a)
-    }
+    if ((flags & position) != 0)
+      builder.encryptToSelfMessage(
+        new appendix.AppendixEncryptToSelfMessage().parse(buffer)
+      )
     position <<= 1
-    if ((flags & position) != 0) {
-      let a = new appendix.AppendixPrivateNameAnnouncement()
-      a.parse(buffer)
-      builder.privateNameAnnouncement(a)
-    }
+    if ((flags & position) != 0)
+      builder.privateNameAnnouncement(
+        new appendix.AppendixPrivateNameAnnouncement().parse(buffer)
+      )
     position <<= 1
-    if ((flags & position) != 0) {
-      let a = new appendix.AppendixPrivateNameAssignment()
-      a.parse(buffer)
-      builder.privateNameAssignment(a)
-    }
+    if ((flags & position) != 0)
+      builder.privateNameAssignment(
+        new appendix.AppendixPrivateNameAssignment().parse(buffer)
+      )
     position <<= 1
-    if ((flags & position) != 0) {
-      let a = new appendix.AppendixPublicNameAnnouncement()
-      a.parse(buffer)
-      builder.publicNameAnnouncement(a)
-    }
+    if ((flags & position) != 0)
+      builder.publicNameAnnouncement(
+        new appendix.AppendixPublicNameAnnouncement().parse(buffer)
+      )
     position <<= 1
-    if ((flags & position) != 0) {
-      let a = new appendix.AppendixPublicNameAssignment()
-      a.parse(buffer)
-      builder.publicNameAssignment(a)
-    }
+    if ((flags & position) != 0)
+      builder.publicNameAssignment(
+        new appendix.AppendixPublicNameAssignment().parse(buffer)
+      )
     if (isTestnet) buffer.readLong()
 
     return new TransactionImpl(builder, null)

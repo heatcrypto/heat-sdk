@@ -23,6 +23,7 @@
 import * as crypto from "../src/crypto"
 import { IEncryptOptions } from "../src/crypto"
 import { hexStringToByteArray, stringToByteArray } from "../src/converters"
+import * as Long from "long"
 
 let bob = {
   secretPhrase:
@@ -76,6 +77,18 @@ describe("crypto.fullNameToHash test", () => {
   it("returns a full name hash", () => {
     expect(crypto.fullNameToHash("oskol@heatwallet.com")).toBe(
       "8932144534527668929"
+    )
+  })
+})
+
+describe("crypto.fullNameToLong test", () => {
+  it("is a function", () => {
+    expect(crypto.fullNameToLong).toBeInstanceOf(Function)
+  })
+  it("returns a full name hash", () => {
+    let bytes = stringToByteArray("oskol@heatwallet.com")
+    expect(crypto.fullNameToLong(bytes)).toEqual(
+      Long.fromString("8932144534527668929")
     )
   })
 })

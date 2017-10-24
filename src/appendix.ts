@@ -21,10 +21,13 @@
  * SOFTWARE.
  * */
 import * as converters from "./converters"
-import { Fee } from "./fee"
-import { EncryptedData } from "./encrypted-data"
-import Long from "long"
+import * as utils from "./utils"
 import ByteBuffer from "bytebuffer"
+import { Fee } from "./fee"
+import * as Long from "long"
+import * as constants from "./constants"
+import * as crypto from "./crypto"
+import { fullNameToLong } from "./crypto"
 
 export interface Appendix {
   getSize(): number
@@ -35,15 +38,11 @@ export interface Appendix {
 }
 
 export abstract class AbstractAppendix implements Appendix {
+  constructor(buffer?: ByteBuffer) {
+    if (buffer) this.parse(buffer)
+  }
+
   protected version: number = 1
-
-  public parse(buffer: ByteBuffer) {
-    this.version = buffer.readByte()
-  }
-
-  public parseJSON(json: { [key: string]: any }) {
-    this.version = json["version." + this.getAppendixName()]
-  }
 
   abstract getAppendixName(): string
 
@@ -56,7 +55,18 @@ export abstract class AbstractAppendix implements Appendix {
     buffer.writeByte(this.version)
     this.putMyBytes(buffer)
   }
+
+  public parse(buffer: ByteBuffer) {
+    this.version = buffer.readByte()
+    return this
+  }
+
   abstract putMyBytes(buffer: ByteBuffer): void
+
+  public parseJSON(json: { [key: string]: any }) {
+    this.version = json["version." + this.getAppendixName()]
+    return this
+  }
 
   public getJSONObject() {
     let json: { [key: string]: any } = {}
@@ -76,78 +86,153 @@ export abstract class AbstractAppendix implements Appendix {
 export class AppendixMessage extends AbstractAppendix {
   private message: Array<number>
   private isText: boolean
-  public create(message: Array<number>, isText: boolean) {
+
+  init(message: Array<number>, isText: boolean) {
     this.message = message
     this.isText = isText
+    return this
   }
+
   getFee(): string {
     return Fee.MESSAGE_APPENDIX_FEE
   }
+
+  public getAppendixName() {
+    return "Message"
+  }
+
+  public getMySize() {
+    return 4 + this.message.length
+  }
+
   public parse(buffer: ByteBuffer) {
     super.parse(buffer)
     let messageLength = buffer.readInt()
     this.isText = messageLength < 0
-    if (messageLength < 0) messageLength &= 0x7fffffff
+    if (messageLength < 0) messageLength &= constants.MAX_INT32
     this.message = []
     for (let i = 0; i < messageLength; i++) this.message.push(buffer.readByte())
+    return this
   }
-  public getAppendixName() {
-    return "Message"
-  }
-  public getMySize() {
-    return 4 + this.message.length
-  }
+
   public putMyBytes(buffer: ByteBuffer) {
     buffer.writeInt(
-      this.isText ? this.message.length | 0x80000000 : this.message.length
+      this.isText
+        ? this.message.length | constants.MIN_INT32
+        : this.message.length
     )
     this.message.forEach(byte => {
       buffer.writeByte(byte)
     })
   }
+
   public parseJSON(json: { [key: string]: any }) {
     super.parseJSON(json)
     this.isText = json["messageIsText"]
     this.message = this.isText
       ? converters.stringToByteArray(json["message"])
       : converters.hexStringToByteArray(json["message"])
+    return this
   }
+
   public putMyJSON(json: { [key: string]: any }) {
     json["message"] = this.isText
       ? converters.byteArrayToString(this.message)
       : converters.byteArrayToHexString(this.message)
     json["messageIsText"] = this.isText
   }
+
   public getMessage() {
     return this.message
   }
+
   public getIsText() {
     return this.isText
   }
 }
 
 export abstract class AbstractAppendixEncryptedMessage extends AbstractAppendix {
-  private _encryptedData: EncryptedData
-  private _isText: boolean
+  private encryptedMessage: crypto.IEncryptedMessage
+  private isText_: boolean
+
+  init(message: crypto.IEncryptedMessage, isText: boolean) {
+    this.encryptedMessage = message
+    this.isText_ = isText
+    return this
+  }
 
   getFee(): string {
     return Fee.ENCRYPTED_MESSAGE_APPENDIX_FEE
   }
 
   public getMySize() {
-    return 4 + this._encryptedData.getSize()
+    return (
+      4 + this.encryptedMessage.data.length + this.encryptedMessage.nonce.length
+    )
   }
 
-  public putMyBytes(buffer: ByteBuffer) {}
+  public parse(buffer: ByteBuffer) {
+    super.parse(buffer)
+    let length = buffer.readInt32()
+    this.isText_ = length < 0
+    if (length < 0) length &= constants.MAX_INT32
+    if (length == 0) {
+      this.encryptedMessage = {
+        isText: this.isText_,
+        data: "",
+        nonce: ""
+      }
+      return this
+    }
+    if (length > constants.MAX_ENCRYPTED_MESSAGE_LENGTH)
+      throw new Error("Max encrypted data length exceeded: " + length)
+    let messageBytes: number[] = new Array(length)
+    for (let i = 0; i < length; i++) messageBytes[i] = buffer.readByte()
+    let nonceBytes: number[] = new Array(32)
+    for (let i = 0; i < 32; i++) nonceBytes[i] = buffer.readByte()
+    this.encryptedMessage = {
+      isText: this.isText_,
+      data: converters.byteArrayToHexString(messageBytes),
+      nonce: converters.byteArrayToHexString(nonceBytes)
+    }
+    return this
+  }
 
-  public putMyJSON(json: { [key: string]: any }) {}
+  public putMyBytes(buffer: ByteBuffer) {
+    let messageBytes = converters.hexStringToByteArray(
+      this.encryptedMessage.data
+    )
+    let length = messageBytes.length
+    buffer.writeInt32(this.isText_ ? length | constants.MIN_INT32 : length)
+    messageBytes.forEach(byte => {
+      buffer.writeByte(byte)
+    })
+    converters
+      .hexStringToByteArray(this.encryptedMessage.nonce)
+      .forEach(byte => {
+        buffer.writeByte(byte)
+      })
+  }
 
-  getEncryptedData(): EncryptedData {
-    return this._encryptedData
+  public parseJSON(json: { [key: string]: any }) {
+    super.parseJSON(json)
+    this.isText_ = json["isText"]
+    this.encryptedMessage = {
+      isText: this.isText_,
+      data: json["data"],
+      nonce: json["nonce"]
+    }
+    return this
+  }
+
+  public putMyJSON(json: { [key: string]: any }) {
+    json["data"] = this.encryptedMessage.data
+    json["nonce"] = this.encryptedMessage.nonce
+    json["isText"] = this.isText
   }
 
   isText(): boolean {
-    return this._isText
+    return this.isText_
   }
 }
 
@@ -156,9 +241,15 @@ export class AppendixEncryptedMessage extends AbstractAppendixEncryptedMessage {
     return "EncryptedMessage"
   }
 
-  public putMyBytes(buffer: ByteBuffer) {}
+  public parseJSON(json: { [key: string]: any }) {
+    super.parseJSON(json["encryptedMessage"])
+    return this
+  }
 
-  public putMyJSON(json: { [key: string]: any }) {}
+  public putMyJSON(json: { [key: string]: any }) {
+    super.putMyJSON(json)
+    json["encryptedMessage"] = json
+  }
 }
 
 export class AppendixEncryptToSelfMessage extends AbstractAppendixEncryptedMessage {
@@ -166,22 +257,29 @@ export class AppendixEncryptToSelfMessage extends AbstractAppendixEncryptedMessa
     return "EncryptToSelfMessage"
   }
 
-  public putMyBytes(buffer: ByteBuffer) {}
+  public parseJSON(json: { [key: string]: any }) {
+    super.parseJSON(json["encryptToSelfMessage"])
+    return this
+  }
 
-  public putMyJSON(json: { [key: string]: any }) {}
+  public putMyJSON(json: { [key: string]: any }) {
+    super.putMyJSON(json)
+    json["encryptToSelfMessage"] = json
+  }
 }
 
 export class AppendixPublicKeyAnnouncement extends AbstractAppendix {
   private publicKey: Array<number>
 
-  public create(publicKey: Array<number>) {
+  public init(publicKey: Array<number>) {
     this.publicKey = publicKey
+    return this
   }
 
   public parse(buffer: ByteBuffer) {
     super.parse(buffer)
-    this.publicKey = []
-    for (let i = 0; i < 32; i++) this.publicKey.push(buffer.readByte())
+    this.publicKey = utils.readBytes(buffer, 32)
+    return this
   }
 
   getFee(): string {
@@ -197,14 +295,13 @@ export class AppendixPublicKeyAnnouncement extends AbstractAppendix {
   }
 
   public putMyBytes(buffer: ByteBuffer) {
-    this.publicKey.forEach(byte => {
-      buffer.writeByte(byte)
-    })
+    utils.writeBytes(buffer, this.publicKey)
   }
 
   public parseJSON(json: { [key: string]: any }) {
     super.parseJSON(json)
     this.publicKey = converters.hexStringToByteArray(json["recipientPublicKey"])
+    return this
   }
 
   public putMyJSON(json: { [key: string]: any }) {
@@ -216,7 +313,7 @@ export class AppendixPrivateNameAnnouncement extends AbstractAppendix {
   private privateNameAnnouncement: Long
 
   getFee(): string {
-    return Fee.PUBLICKEY_ANNOUNCEMENT_APPENDIX_FEE
+    return Fee.PRIVATE_NAME_ANNOUNCEMENT_APPENDIX_FEE
   }
 
   public getAppendixName() {
@@ -238,7 +335,7 @@ export class AppendixPrivateNameAnnouncement extends AbstractAppendix {
 
 export class AppendixPrivateNameAssignment extends AbstractAppendix {
   private privateNameAssignment: Long
-  private signature: Int8Array
+  private signature: number[]
 
   getFee(): string {
     return Fee.PRIVATE_NAME_ASSIGNEMENT_APPENDIX_FEE
@@ -252,9 +349,34 @@ export class AppendixPrivateNameAssignment extends AbstractAppendix {
     return 8 + 64
   }
 
-  public putMyBytes(buffer: ByteBuffer) {}
+  public parse(buffer: ByteBuffer) {
+    super.parse(buffer)
+    this.privateNameAssignment = buffer.readInt64()
+    this.signature = utils.readBytes(buffer, 64)
+    return this
+  }
 
-  public putMyJSON(json: { [key: string]: any }) {}
+  public putMyBytes(buffer: ByteBuffer) {
+    buffer.writeInt64(this.privateNameAssignment)
+    utils.writeBytes(buffer, this.signature)
+  }
+
+  public parseJSON(json: { [key: string]: any }) {
+    super.parseJSON(json)
+    this.privateNameAssignment = Long.fromString(
+      json["privateNameAssignment"],
+      true
+    )
+    this.signature = converters.hexStringToByteArray(json["signature"])
+    return this
+  }
+
+  public putMyJSON(json: { [key: string]: any }) {
+    json[
+      "privateNameAssignment"
+    ] = this.privateNameAssignment.toUnsigned().toString()
+    json["signature"] = converters.byteArrayToHexString(this.signature)
+  }
 
   public getName() {
     return this.privateNameAssignment
@@ -291,8 +413,8 @@ export class AppendixPublicNameAnnouncement extends AbstractAppendix {
 }
 
 export class AppendixPublicNameAssignment extends AbstractAppendix {
-  private publicNameAssignment: Int8Array
-  private signature: Int8Array
+  private publicNameAssignment: number[]
+  private signature: number[]
   private nameHash: Long
 
   getFee(): string {
@@ -307,9 +429,36 @@ export class AppendixPublicNameAssignment extends AbstractAppendix {
     return 1 + this.publicNameAssignment.length + 64
   }
 
-  public putMyBytes(buffer: ByteBuffer) {}
+  public parse(buffer: ByteBuffer) {
+    super.parse(buffer)
+    this.publicNameAssignment = utils.readBytes(buffer, buffer.readByte())
+    this.signature = utils.readBytes(buffer, 64)
+    this.nameHash = crypto.fullNameToLong(this.publicNameAssignment)
+    return this
+  }
 
-  public putMyJSON(json: { [key: string]: any }) {}
+  public putMyBytes(buffer: ByteBuffer) {
+    buffer.writeByte(this.publicNameAssignment.length)
+    utils.writeBytes(buffer, this.publicNameAssignment)
+    utils.writeBytes(buffer, this.signature)
+  }
+
+  public parseJSON(json: { [key: string]: any }) {
+    super.parseJSON(json)
+    this.publicNameAssignment = converters.hexStringToByteArray(
+      json["publicNameAssignment"]
+    )
+    this.signature = converters.hexStringToByteArray(json["signature"])
+    this.nameHash = crypto.fullNameToLong(this.publicNameAssignment)
+    return this
+  }
+
+  public putMyJSON(json: { [key: string]: any }) {
+    json["publicNameAssignment"] = converters.byteArrayToHexString(
+      this.publicNameAssignment
+    )
+    json["signature"] = converters.byteArrayToHexString(this.signature)
+  }
 
   public getFullName() {
     return this.publicNameAssignment

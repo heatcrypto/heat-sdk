@@ -21,11 +21,11 @@
  * SOFTWARE.
  * */
 
-export class EncryptedData {
-  private data: Int8Array
-  private nonce: Int8Array
+export let MIN_INT32 = 0x80000000
+export let MAX_INT32 = 0x7fffffff
 
-  public getSize() {
-    return this.data.length + this.nonce.length
-  }
+export let MAX_ENCRYPTED_MESSAGE_LENGTH = 1000
+
+export class HeatConstants {
+  static ONE_HEAT = 100000000
 }

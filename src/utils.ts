@@ -22,11 +22,16 @@
  * */
 import Big from "big.js"
 import * as converters from "./converters"
+import * as ByteBuffer from "bytebuffer"
 
 export function isPublicKey(publicKeyHex: string): boolean {
-  if (parseInt(publicKeyHex, 16).toString(16) === publicKeyHex.toLowerCase()) {
+  // if (parseInt(publicKeyHex, 16).toString(16) === publicKeyHex.toLowerCase()) {
+  //   return converters.hexStringToByteArray(publicKeyHex).length == 32
+  // }
+  // return false
+  var regExp = /^[-+]?[0-9A-Fa-f]+\.?[0-9A-Fa-f]*?$/
+  if (regExp.test(publicKeyHex))
     return converters.hexStringToByteArray(publicKeyHex).length == 32
-  }
   return false
 }
 
@@ -307,4 +312,19 @@ export function isEmpty(obj: { [key: string]: any }) {
     if (obj.hasOwnProperty(key)) return false
   }
   return true
+}
+
+export function readBytes(
+  buffer: ByteBuffer,
+  length: number,
+  offset?: number
+): number[] {
+  if (offset) buffer.offset = offset
+  let array = []
+  for (let i = 0; i < length; i++) array.push(buffer.readByte())
+  return array
+}
+
+export function writeBytes(buffer: ByteBuffer, bytes: number[]) {
+  for (let i = 0; i < bytes.length; i++) buffer.writeByte(bytes[i])
 }
