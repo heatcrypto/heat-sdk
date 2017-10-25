@@ -42,6 +42,8 @@ All samples open in https://runkit.com/ which gives you a live Nodejs environmen
 
 [![BROWSER | BLOCK WHEN?  ](https://img.shields.io/badge/BROWSER-BLOCK%20WHEN-orange.svg)](https://embed.plnkr.co/gVZVlH/)
 
+[![BROWSER | WEBSOCKETS  ](https://img.shields.io/badge/BROWSER-WEBSOCKETS-orange.svg)](https://embed.plnkr.co/h57qe7NRprjB409Vhb6f/)
+
 ### Usage
 
 #### Node

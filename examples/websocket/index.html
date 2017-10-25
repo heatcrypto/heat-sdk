@@ -16,7 +16,7 @@
     
     <!-- Please note how we hardcode the use of heat-sdk version, 0.3.3 in this case -->
     
-    <script src="../../dist/heat-sdk.umd.js"></script>
+    <script src="https://unpkg.com/heat-sdk@0.5.0/dist/heat-sdk.umd.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script>
       function beep() {
@@ -112,6 +112,7 @@
           <input type="checkbox" id="unconfirmed" class="mdl-switch__input" checked>
           <span class="mdl-switch__label">Unconfirmed Transaction</span>
         </label> 
+        <div>Status ouput and push message contents</div>
         <textarea rows="10" id="console"></textarea>
       </div>
     </div>    
