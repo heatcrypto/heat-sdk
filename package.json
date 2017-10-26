@@ -1,6 +1,6 @@
 {
   "name": "heat-sdk",
-  "version": "0.4.2",
+  "version": "0.6.1",
   "description": "HEAT support libraries for use in Node.js and any (modern) browser",
   "keywords": [
     "heat",
