@@ -35,6 +35,7 @@ import {
   ColoredCoinsAskOrderPlacement
 } from "./attachment"
 import { Fee } from "./fee"
+import { setRandomSource } from "./random-bytes"
 
 export interface ConfigArgs {
   isTestnet?: boolean
@@ -71,6 +72,7 @@ export class HeatSDK {
   public crypto = crypto
   public config: Configuration
   public secretGenerator = new SecretGenerator()
+  public setRandomSource = setRandomSource
 
   constructor(config?: Configuration) {
     const config_ = config ? config : new Configuration()
