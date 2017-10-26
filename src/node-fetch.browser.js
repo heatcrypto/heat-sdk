@@ -1,1 +1,1 @@
-export default window.fetch
+export default window.fetch || fetch
