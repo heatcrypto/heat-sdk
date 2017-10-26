@@ -35,6 +35,7 @@ import {
 import Big from "big.js"
 import pako from "pako"
 import * as Long from "long"
+import { randomBytes } from "./random-bytes"
 
 var _hash = {
   init: SHA256_init,
@@ -44,46 +45,28 @@ var _hash = {
 
 export var SHA256 = _hash
 
-let nodeCrypto: any
-try {
-  nodeCrypto = require("crypto")
-} catch (err) {
-  console.log("node crypto is disabled")
-}
-
 export function getRandomValues(buf: any) {
-  if (nodeCrypto && nodeCrypto.randomBytes) {
-    if (!(buf instanceof Uint8Array)) {
-      throw new TypeError("expected Uint8Array")
-    }
-    if (buf.length > 65536) {
-      let e: any = new Error()
-      e.code = 22
-      e.message =
-        "Failed to execute 'getRandomValues' on 'Crypto': The " +
-        "ArrayBufferView's byte length (" +
-        buf.length +
-        ") exceeds the " +
-        "number of bytes of entropy available via this API (65536)."
-      e.name = "QuotaExceededError"
-      throw e
-    }
-    var bytes = nodeCrypto.randomBytes(buf.length)
+  if (buf.length > 65536) {
+    let e: any = new Error()
+    e.code = 22
+    e.message =
+      "Failed to execute 'getRandomValues' on 'Crypto': The " +
+      "ArrayBufferView's byte length (" +
+      buf.length +
+      ") exceeds the " +
+      "number of bytes of entropy available via this API (65536)."
+    e.name = "QuotaExceededError"
+    throw e
+  }
+  var bytes = randomBytes(buf.length)
+  if (buf instanceof Uint8Array) {
     buf.set(bytes)
-    return buf
-  }
-  if (window.crypto && window.crypto.getRandomValues) {
-    return window.crypto.getRandomValues(buf)
-  }
-  if (
-    (<any>window).msCrypto &&
-    typeof (<any>window).msCrypto === "object" &&
-    typeof (<any>window).msCrypto.getRandomValues === "function"
-  ) {
-    return (<any>window).msCrypto.getRandomValues(buf)
   } else {
-    throw new Error("No secure random number generator available.")
+    for (let i = 0; i < buf.length; i++) {
+      buf[i] = bytes[i]
+    }
   }
+  return buf
 }
 
 export function random16Values(len: number): Uint16Array {

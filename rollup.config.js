@@ -38,7 +38,8 @@ export default [
       alias({
         'ws': path.resolve(__dirname, 'src/ws.browser.js'),
         'bytebuffer': path.resolve(__dirname, 'node_modules/bytebuffer/dist/bytebuffer.js'),
-        'node-fetch': path.resolve(__dirname, 'src/node-fetch.browser.js')
+        'node-fetch': path.resolve(__dirname, 'src/node-fetch.browser.js'),
+        './random-bytes': path.resolve(__dirname, 'src/random-bytes.browser.js')
       }),
       typescript({ typescript: require("typescript") }),
       json(),
@@ -63,7 +64,8 @@ export default [
       alias({
         'ws': path.resolve(__dirname, 'src/ws.browser.js'),
         'bytebuffer': path.resolve(__dirname, 'node_modules/bytebuffer/dist/bytebuffer.js'),
-        'node-fetch': path.resolve(__dirname, 'src/node-fetch.browser.js')
+        'node-fetch': path.resolve(__dirname, 'src/node-fetch.browser.js'),
+        './random-bytes': path.resolve(__dirname, 'src/random-bytes.browser.js') 
       }),
       typescript({ typescript: require("typescript") }),
       json(),
