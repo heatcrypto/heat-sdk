@@ -45,40 +45,16 @@ var _hash = {
 
 export var SHA256 = _hash
 
-export function getRandomValues(buf: any) {
-  if (buf.length > 65536) {
-    let e: any = new Error()
-    e.code = 22
-    e.message =
-      "Failed to execute 'getRandomValues' on 'Crypto': The " +
-      "ArrayBufferView's byte length (" +
-      buf.length +
-      ") exceeds the " +
-      "number of bytes of entropy available via this API (65536)."
-    e.name = "QuotaExceededError"
-    throw e
-  }
-  var bytes = randomBytes(buf.length)
-  if (buf instanceof Uint8Array) {
-    buf.set(bytes)
-  } else {
-    for (let i = 0; i < buf.length; i++) {
-      buf[i] = bytes[i]
-    }
-  }
-  return buf
+export function random8Values(len: number): Promise<Uint8Array> {
+  return randomBytes(len)
 }
 
-export function random16Values(len: number): Uint16Array {
-  let arr = new Uint8Array(len * 2)
-  getRandomValues(arr)
-  return new Uint16Array(arr.buffer)
+export function random16Values(len: number): Promise<Uint16Array> {
+  return randomBytes(len * 2).then(bytes => new Uint16Array(bytes.buffer))
 }
 
-export function random32Values(len: number): Uint32Array {
-  let arr = new Uint8Array(len * 4)
-  getRandomValues(arr)
-  return new Uint32Array(arr.buffer)
+export function random32Values(len: number): Promise<Uint32Array> {
+  return randomBytes(len * 4).then(bytes => new Uint32Array(bytes.buffer))
 }
 
 function simpleHash(message: any) {
@@ -319,7 +295,7 @@ export function encryptNote(
   options: IEncryptOptions,
   secretPhrase: string,
   uncompressed?: boolean
-) {
+): Promise<{ message: string; nonce: string }> {
   if (!options.sharedKey) {
     if (!options.privateKey) {
       options.privateKey = hexStringToByteArray(getPrivateKey(secretPhrase))
@@ -328,11 +304,16 @@ export function encryptNote(
       throw new Error("Missing publicKey argument")
     }
   }
-  var encrypted = encryptData(stringToByteArray(message), options, uncompressed)
-  return {
-    message: byteArrayToHexString(encrypted.data),
-    nonce: byteArrayToHexString(encrypted.nonce)
-  }
+  return encryptData(
+    stringToByteArray(message),
+    options,
+    uncompressed
+  ).then(encrypted => {
+    return {
+      message: byteArrayToHexString(encrypted.data),
+      nonce: byteArrayToHexString(<any>encrypted.nonce)
+    }
+  })
 }
 
 /**
@@ -349,7 +330,7 @@ export function encryptBinaryNote(
   options: IEncryptOptions,
   secretPhrase: string,
   uncompressed?: boolean
-) {
+): Promise<{ nonce: string; message: string }> {
   if (!options.sharedKey) {
     if (!options.privateKey) {
       options.privateKey = hexStringToByteArray(getPrivateKey(secretPhrase))
@@ -358,11 +339,12 @@ export function encryptBinaryNote(
       throw new Error("Missing publicKey argument")
     }
   }
-  var encrypted = encryptData(message, options, uncompressed)
-  return {
-    message: byteArrayToHexString(encrypted.data),
-    nonce: byteArrayToHexString(encrypted.nonce)
-  }
+  return encryptData(message, options, uncompressed).then(encrypted => {
+    return {
+      message: byteArrayToHexString(encrypted.data),
+      nonce: byteArrayToHexString(<any>encrypted.nonce)
+    }
+  })
 }
 
 /**
@@ -380,46 +362,53 @@ function encryptData(
   plaintext: Array<number>,
   options: IEncryptOptions,
   uncompressed?: boolean
-) {
-  if (!options.sharedKey) {
-    options.sharedKey = getSharedKey(options.privateKey, options.publicKey)
-  }
+): Promise<{ nonce: Uint8Array; data: any[] }> {
+  return randomBytes(32)
+    .then(bytes => {
+      if (!options.sharedKey) {
+        options.sharedKey = getSharedKey(options.privateKey, options.publicKey)
+      }
+      options.nonce = bytes
 
-  options.nonce = new Uint8Array(32)
-  getRandomValues(options.nonce)
+      var compressedPlaintext = uncompressed
+        ? new Uint8Array(plaintext)
+        : pako.gzip(new Uint8Array(plaintext))
 
-  var compressedPlaintext = uncompressed
-    ? new Uint8Array(plaintext)
-    : pako.gzip(new Uint8Array(plaintext))
-  var data = aesEncrypt(<any>compressedPlaintext, options)
-  return {
-    nonce: options.nonce,
-    data: data
-  }
+      return aesEncrypt(<any>compressedPlaintext, options)
+    })
+    .then(data => {
+      return {
+        nonce: options.nonce,
+        data: data
+      }
+    })
 }
 
-function aesEncrypt(plaintext: Array<number>, options: IEncryptOptions) {
-  var text = byteArrayToWordArray(plaintext)
-  var sharedKey = options.sharedKey
-    ? options.sharedKey.slice(0)
-    : getSharedKey(options.privateKey, options.publicKey)
+function aesEncrypt(
+  plaintext: Array<number>,
+  options: IEncryptOptions
+): Promise<number[]> {
+  return randomBytes(16).then(bytes => {
+    var text = byteArrayToWordArray(plaintext)
+    var sharedKey = options.sharedKey
+      ? options.sharedKey.slice(0)
+      : getSharedKey(options.privateKey, options.publicKey)
 
-  for (var i = 0; i < 32; i++) {
-    sharedKey[i] ^= options.nonce[i]
-  }
+    for (var i = 0; i < 32; i++) {
+      sharedKey[i] ^= options.nonce[i]
+    }
 
-  var tmp: any = new Uint8Array(16)
-  getRandomValues(tmp)
+    var tmp: any = bytes
+    var key = CryptoJS.SHA256(byteArrayToWordArray(sharedKey))
+    var iv = byteArrayToWordArray(tmp)
+    var encrypted = CryptoJS.AES.encrypt(text, key, {
+      iv: iv
+    })
 
-  var key = CryptoJS.SHA256(byteArrayToWordArray(sharedKey))
-  var iv = byteArrayToWordArray(tmp)
-  var encrypted = CryptoJS.AES.encrypt(text, key, {
-    iv: iv
+    var ivOut = wordArrayToByteArray(encrypted.iv)
+    var ciphertextOut = wordArrayToByteArray(encrypted.ciphertext)
+    return ivOut.concat(ciphertextOut)
   })
-
-  var ivOut = wordArrayToByteArray(encrypted.iv)
-  var ciphertextOut = wordArrayToByteArray(encrypted.ciphertext)
-  return ivOut.concat(ciphertextOut)
 }
 
 export interface IEncryptedMessage {
@@ -433,17 +422,23 @@ export function encryptMessage(
   publicKey: string,
   secretPhrase: string,
   uncompressed?: boolean
-): IEncryptedMessage {
+): Promise<IEncryptedMessage> {
   var options: IEncryptOptions = {
     account: getAccountIdFromPublicKey(publicKey),
     publicKey: hexStringToByteArray(publicKey)
   }
-  var encrypted = encryptNote(message, options, secretPhrase, uncompressed)
-  return {
-    isText: true,
-    data: encrypted.message,
-    nonce: encrypted.nonce
-  }
+  return encryptNote(
+    message,
+    options,
+    secretPhrase,
+    uncompressed
+  ).then(encrypted => {
+    return {
+      isText: true,
+      data: encrypted.message,
+      nonce: encrypted.nonce
+    }
+  })
 }
 
 export function decryptMessage(
@@ -1986,38 +1981,38 @@ var curve25519 = (function() {
     for (i = 1; i < 5; i++) {
       sqr(t1, t3)
       sqr(t3, t1)
-    } /* t3 */ /* 2^20  - 2^10	*/
+    } /* 2^20  - 2^10	*/ /* t3 */
     mul(t1, t3, t2) /* 2^20  - 2^0	*/
     sqr(t3, t1) /* 2^21  - 2^1	*/
     sqr(t4, t3) /* 2^22  - 2^2	*/
     for (i = 1; i < 10; i++) {
       sqr(t3, t4)
       sqr(t4, t3)
-    } /* t4 */ /* 2^40  - 2^20	*/
+    } /* 2^40  - 2^20	*/ /* t4 */
     mul(t3, t4, t1) /* 2^40  - 2^0	*/
     for (i = 0; i < 5; i++) {
       sqr(t1, t3)
       sqr(t3, t1)
-    } /* t3 */ /* 2^50  - 2^10	*/
+    } /* 2^50  - 2^10	*/ /* t3 */
     mul(t1, t3, t2) /* 2^50  - 2^0	*/
     sqr(t2, t1) /* 2^51  - 2^1	*/
     sqr(t3, t2) /* 2^52  - 2^2	*/
     for (i = 1; i < 25; i++) {
       sqr(t2, t3)
       sqr(t3, t2)
-    } /* t3 */ /* 2^100 - 2^50 */
+    } /* 2^100 - 2^50 */ /* t3 */
     mul(t2, t3, t1) /* 2^100 - 2^0	*/
     sqr(t3, t2) /* 2^101 - 2^1	*/
     sqr(t4, t3) /* 2^102 - 2^2	*/
     for (i = 1; i < 50; i++) {
       sqr(t3, t4)
       sqr(t4, t3)
-    } /* t4 */ /* 2^200 - 2^100 */
+    } /* 2^200 - 2^100 */ /* t4 */
     mul(t3, t4, t2) /* 2^200 - 2^0	*/
     for (i = 0; i < 25; i++) {
       sqr(t4, t3)
       sqr(t3, t4)
-    } /* t3 */ /* 2^250 - 2^50	*/
+    } /* 2^250 - 2^50	*/ /* t3 */
     mul(t2, t3, t1) /* 2^250 - 2^0	*/
     sqr(t1, t2) /* 2^251 - 2^1	*/
     sqr(t2, t1) /* 2^252 - 2^2	*/

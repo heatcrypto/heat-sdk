@@ -23,34 +23,35 @@
 import * as crypto from "./crypto"
 
 export class SecretGenerator {
-  public generate(): string {
+  public generate(): Promise<string> {
     return this.generateSecret(this.words)
   }
 
-  private generateSecret(wordList: string[]): string {
-    let words = []
-    let random = crypto.random32Values(128 / 32)
-    let x,
-      w1,
-      w2,
-      w3,
-      n = wordList.length
-    for (let i = 0; i < random.length; i++) {
-      x = random[i]
-      w1 = x % n
-      w2 = (((x / n) >> 0) + w1) % n
-      w3 = (((((x / n) >> 0) / n) >> 0) + w2) % n
-      words.push(wordList[w1])
-      words.push(wordList[w2])
-      words.push(wordList[w3])
-    }
-    // only if using a word list of 7776 words or longer can we use 10 words,
-    // otherwise use 12 words
-    if (wordList.length >= 7776) words = words.slice(0, 10)
-    let result = words.join(" ")
-    random.fill(0)
-    words.fill("")
-    return result
+  private generateSecret(wordList: string[]): Promise<string> {
+    return crypto.random32Values(128 / 32).then(random => {
+      let words = []
+      let x,
+        w1,
+        w2,
+        w3,
+        n = wordList.length
+      for (let i = 0; i < random.length; i++) {
+        x = random[i]
+        w1 = x % n
+        w2 = (((x / n) >> 0) + w1) % n
+        w3 = (((((x / n) >> 0) / n) >> 0) + w2) % n
+        words.push(wordList[w1])
+        words.push(wordList[w2])
+        words.push(wordList[w3])
+      }
+      // only if using a word list of 7776 words or longer can we use 10 words,
+      // otherwise use 12 words
+      if (wordList.length >= 7776) words = words.slice(0, 10)
+      let result = words.join(" ")
+      random.fill(0)
+      words.fill("")
+      return result
+    })
   }
 
   private words: Array<

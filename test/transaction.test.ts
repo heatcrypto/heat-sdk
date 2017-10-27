@@ -26,7 +26,7 @@ describe("Transaction API", () => {
       .payment("4644748344150906433", "0.002")
       .publicMessage("Happy birthday!")
       .sign(secretPhrase1)
-      .broadcast()
+      .then(transaction => transaction.broadcast())
     handleResult(promise)
   })
 
@@ -34,7 +34,7 @@ describe("Transaction API", () => {
     let promise = heatsdk
       .arbitraryMessage("4644748344150906433", "Qwerty Йцукен")
       .sign(secretPhrase1)
-      .broadcast()
+      .then(transaction => transaction.broadcast())
     handleResult(promise)
   })
 
@@ -42,7 +42,7 @@ describe("Transaction API", () => {
     let promise = heatsdk
       .privateMessage(crypto.secretPhraseToPublicKey("user1"), "Private Info")
       .sign(secretPhrase1)
-      .broadcast()
+      .then(transaction => transaction.broadcast())
     handleResult(promise)
   })
 
@@ -50,7 +50,7 @@ describe("Transaction API", () => {
     let promise = heatsdk
       .privateMessageToSelf("Private message to self")
       .sign(secretPhrase1)
-      .broadcast()
+      .then(transaction => transaction.broadcast())
     handleResult(promise)
   })
 
@@ -58,7 +58,7 @@ describe("Transaction API", () => {
     let promise = heatsdk
       .assetIssuance("https://heatsdktest/assetN01", null, "1000", 0, true)
       .sign(secretPhrase1)
-      .broadcast()
+      .then(transaction => transaction.broadcast())
     handleResult(promise)
   })
 
@@ -66,13 +66,13 @@ describe("Transaction API", () => {
     let promise = heatsdk
       .assetTransfer(account2, "1047478663291988214", "4")
       .sign(secretPhrase1)
-      .broadcast()
+      .then(transaction => transaction.broadcast())
     handleResult(promise)
     //transfer back
     promise = heatsdk
       .assetTransfer(account1, "1047478663291988214", "4")
       .sign(secretPhrase2)
-      .broadcast()
+      .then(transaction => transaction.broadcast())
     handleResult(promise)
   })
 })

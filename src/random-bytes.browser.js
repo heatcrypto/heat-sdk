@@ -1,19 +1,18 @@
 import * as utils from "./utils"
-let randomSource = null
+var randomSource /* RandomUint8ArrayProvider */
 
 export function randomBytes(length) {
-  var array = new Uint32Array(length);
-  var source = getRandomSource()
-  source.getRandomValues(array)
-  return array
+  if (utils.isDefined(randomSource))
+    return randomSource.generate(length)
+
+  // Relies on https://developer.mozilla.org/en-US/docs/Web/API/RandomSource
+  // https://www.w3.org/TR/WebCryptoAPI/#RandomSource-method-getRandomValues
+  return new Promise((resolve, reject) => {
+    let array = new Uint8Array(length)
+    resolve(window.crypto.getRandomValues(array))
+  })
 }
 
-function getRandomSource() {
-  if (utils.isObject(window) && utils.isObject(window.crypto)) 
-    return window.crypto
-  return randomSource
-}
-
-export function setRandomSource(source) {
+export function setRandomSource(source /* RandomUint8ArrayProvider */) {
   randomSource = source
 }

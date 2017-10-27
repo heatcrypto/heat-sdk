@@ -46,7 +46,7 @@
     "precommit": "lint-staged",
     "prepush": "npm run test && npm run build",
     "commitmsg": "validate-commit-msg",
-    "webpack": "webpack --verbose"
+    "rollup": "rollup -c"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [

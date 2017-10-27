@@ -194,15 +194,18 @@ describe("crypto.encryptNote test", () => {
       privateKey: hexStringToByteArray(bob.privateKeyStr),
       publicKey: hexStringToByteArray(bob.publicKeyStr)
     }
-    let encrypted = crypto.encryptNote(text, options, bob.secretPhrase)
-    let decrypted = crypto.decryptMessage(
-      encrypted.message,
-      encrypted.nonce,
-      bob.publicKeyStr,
-      bob.secretPhrase
-    )
-
-    expect(decrypted).toBe(text)
+    return crypto
+      .encryptNote(text, options, bob.secretPhrase)
+      .then(encrypted => {
+        let decrypted = crypto.decryptMessage(
+          encrypted.message,
+          encrypted.nonce,
+          bob.publicKeyStr,
+          bob.secretPhrase
+        )
+        return expect(decrypted).toBe(text)
+      })
+      .catch(console.error)
   })
 })
 
@@ -218,20 +221,21 @@ describe("crypto.encryptBinaryNote test", () => {
       publicKey: hexStringToByteArray(bob.publicKeyStr)
     }
 
-    let encrypted = crypto.encryptBinaryNote(
-      stringToByteArray(text),
-      options,
-      bob.secretPhrase /*todo with true*/
-    )
-
-    let decrypted = crypto.decryptMessage(
-      encrypted.message,
-      encrypted.nonce,
-      bob.publicKeyStr,
-      bob.secretPhrase
-    )
-
-    expect(decrypted).toBe(text)
+    return crypto
+      .encryptBinaryNote(
+        stringToByteArray(text),
+        options,
+        bob.secretPhrase /*todo with true*/
+      )
+      .then(encrypted => {
+        let decrypted = crypto.decryptMessage(
+          encrypted.message,
+          encrypted.nonce,
+          bob.publicKeyStr,
+          bob.secretPhrase
+        )
+        return expect(decrypted).toBe(text)
+      })
   })
 })
 
@@ -242,20 +246,18 @@ describe("crypto.encryptMessage, crypto.decryptMessage test", () => {
   })
   it("encrypts, decrypts message", () => {
     let text = "qwerty ♠═~☺"
-    let encrypted = crypto.encryptMessage(
-      text,
-      bob.publicKeyStr,
-      bob.secretPhrase
-    )
-    let decrypted = crypto.decryptMessage(
-      encrypted.data,
-      encrypted.nonce,
-      bob.publicKeyStr,
-      bob.secretPhrase
-    )
-
-    expect(encrypted.isText).toBe(true)
-    expect(decrypted).toBe(text)
+    return crypto
+      .encryptMessage(text, bob.publicKeyStr, bob.secretPhrase)
+      .then(encrypted => {
+        let decrypted = crypto.decryptMessage(
+          encrypted.data,
+          encrypted.nonce,
+          bob.publicKeyStr,
+          bob.secretPhrase
+        )
+        expect(encrypted.isText).toBe(true)
+        return expect(decrypted).toBe(text)
+      })
   })
 })
 
@@ -274,32 +276,51 @@ describe("crypto.passphraseEncrypt, crypto.passphraseDecrypt test", () => {
   })
 })
 
-describe("crypto.getRandomValues, crypto.random16Values, crypto.random32Values test", () => {
+describe("crypto.random8Values, crypto.random16Values, crypto.random32Values test", () => {
   it("are functions", () => {
-    expect(crypto.getRandomValues).toBeInstanceOf(Function)
+    expect(crypto.random8Values).toBeInstanceOf(Function)
     expect(crypto.random16Values).toBeInstanceOf(Function)
     expect(crypto.random32Values).toBeInstanceOf(Function)
   })
+  it("returns Uint8Array", () => {
+    return crypto.random8Values(4).then(array => {
+      expect(array).toBeInstanceOf(Uint8Array)
+      return expect(array.length).toBe(4)
+    })
+  })
+  it("returns Uint16Array", () => {
+    return crypto.random16Values(4).then(array => {
+      expect(array).toBeInstanceOf(Uint16Array)
+      return expect(array.length).toBe(4)
+    })
+  })
+  it("returns Uint32Array", () => {
+    return crypto.random32Values(4).then(array => {
+      expect(array).toBeInstanceOf(Uint32Array)
+      return expect(array.length).toBe(4)
+    })
+  })
+
   it("generate randoms", () => {
-    const GROUPNUM = 8
-    const N = 1000
-    let random8 = new Uint8Array(GROUPNUM)
-    let random8Stats: number[] = new Array(GROUPNUM)
-    random8Stats.fill(0)
-    let random16: Uint16Array
-    let random16Stats: number[] = new Array(GROUPNUM)
-    random16Stats.fill(0)
-    let random32: Uint32Array
-    let random32Stats: number[] = new Array(GROUPNUM)
-    random32Stats.fill(0)
-    for (let i = 0; i < N; i++) {
-      random8 = crypto.getRandomValues(random8)
-      random8.map(v => random8Stats[v % GROUPNUM]++)
-      random32 = crypto.random32Values(GROUPNUM)
-      random32.map(v => random32Stats[v % GROUPNUM]++)
-      random16 = crypto.random16Values(GROUPNUM)
-      random16.map(v => random16Stats[v % GROUPNUM]++)
-    }
+    // const GROUPNUM = 8
+    // const N = 1000
+    // let random8 = new Uint8Array(GROUPNUM)
+    // let random8Stats: number[] = new Array(GROUPNUM)
+    // random8Stats.fill(0)
+    // let random16: Uint16Array
+    // let random16Stats: number[] = new Array(GROUPNUM)
+    // random16Stats.fill(0)
+    // let random32: Uint32Array
+    // let random32Stats: number[] = new Array(GROUPNUM)
+    // random32Stats.fill(0)
+    // for (let i = 0; i < N; i++) {
+    //   random8 = crypto.getRandomValues(random8)
+    //   random8.map(v => random8Stats[v % GROUPNUM]++)
+    //   random32 = crypto.random32Values(GROUPNUM)
+    //   random32.map(v => random32Stats[v % GROUPNUM]++)
+    //   random16 = crypto.random16Values(GROUPNUM)
+    //   random16.map(v => random16Stats[v % GROUPNUM]++)
+    // }
     // console.log(
     //   N + " random 8 bits numbers distribution in 8 groups: " + random8Stats
     // )
@@ -309,12 +330,11 @@ describe("crypto.getRandomValues, crypto.random16Values, crypto.random32Values t
     // console.log(
     //   N + " random 32 bits numbers distribution in 8 groups: " + random32Stats
     // )
-
-    random8 = crypto.getRandomValues(random8)
-    random16 = crypto.random16Values(8)
-    random32 = crypto.random32Values(8)
-    expect(random8.length).toBe(8)
-    expect(random16.length).toBe(8)
-    expect(random32.length).toBe(8)
+    // random8 = crypto.getRandomValues(random8)
+    // random16 = crypto.random16Values(8)
+    // random32 = crypto.random32Values(8)
+    // expect(random8.length).toBe(8)
+    // expect(random16.length).toBe(8)
+    // expect(random32.length).toBe(8)
   })
 })
