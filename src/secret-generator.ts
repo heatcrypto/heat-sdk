@@ -44,13 +44,7 @@ export class SecretGenerator {
         words.push(wordList[w2])
         words.push(wordList[w3])
       }
-      // only if using a word list of 7776 words or longer can we use 10 words,
-      // otherwise use 12 words
-      if (wordList.length >= 7776) words = words.slice(0, 10)
-      let result = words.join(" ")
-      random.fill(0)
-      words.fill("")
-      return result
+      return words.join(" ")
     })
   }
 
