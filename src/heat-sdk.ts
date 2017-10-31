@@ -70,6 +70,7 @@ export class HeatSDK {
   public subscriber: HeatSubscriber
   public utils = utils
   public crypto = crypto
+  public converters = converters
   public config: Configuration
   public secretGenerator = new SecretGenerator()
   public setRandomSource = setRandomSource
