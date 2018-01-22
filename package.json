@@ -131,7 +131,6 @@
     "@types/node-fetch": "^1.6.7",
     "@types/pako": "^1.0.0",
     "@types/ws": "^3.2.1",
-    "avsc": "^5.1.2",
     "big.js": "^3.2.0",
     "buffer": "^5.0.8",
     "bytebuffer": "^5.0.1",
