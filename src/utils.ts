@@ -30,8 +30,7 @@ export function isPublicKey(publicKeyHex: string): boolean {
   // }
   // return false
   var regExp = /^[-+]?[0-9A-Fa-f]+\.?[0-9A-Fa-f]*?$/
-  if (regExp.test(publicKeyHex))
-    return converters.hexStringToByteArray(publicKeyHex).length == 32
+  if (regExp.test(publicKeyHex)) return converters.hexStringToByteArray(publicKeyHex).length == 32
   return false
 }
 
@@ -65,9 +64,7 @@ export function commaFormat(amount: string) {
       )
     }
   }
-  return (
-    (neg ? "-" : "") + format.join(",") + (dec.length == 2 ? "." + dec[1] : "")
-  )
+  return (neg ? "-" : "") + format.join(",") + (dec.length == 2 ? "." + dec[1] : "")
 }
 
 export function isNumber(value: string) {
@@ -131,8 +128,7 @@ export function formatQNT(
       break
     }
     ret = parts[0] + "." + parts[1]
-  } else
-    ret = parts[0] + "." + parts[1] + "0".repeat(decimals - parts[1].length)
+  } else ret = parts[0] + "." + parts[1] + "0".repeat(decimals - parts[1].length)
   return returnNullZero && !ret.match(/[^0\.]/) ? null : ret
 }
 
@@ -140,8 +136,7 @@ export function trimDecimals(formatted: string, decimals: number): string {
   var parts = formatted.split(".")
   if (!parts[1]) parts[1] = "0".repeat(decimals)
   else parts[1] = parts[1].substr(0, decimals)
-  if (parts[1].length < decimals)
-    parts[1] += "0".repeat(decimals - parts[1].length)
+  if (parts[1].length < decimals) parts[1] += "0".repeat(decimals - parts[1].length)
   return parts[0] + "." + parts[1]
 }
 
@@ -170,10 +165,7 @@ export function convertToQNTf(quantity: string): string {
   return quantity + afterComma
 }
 
-export function calculateTotalOrderPriceQNT(
-  quantityQNT: string,
-  priceQNT: string
-): string {
+export function calculateTotalOrderPriceQNT(quantityQNT: string, priceQNT: string): string {
   return new Big(quantityQNT)
     .times(new Big(priceQNT).div(new Big(100000000)))
     .round()
@@ -192,9 +184,7 @@ class ConvertToQNTError implements Error {
  *
  * @throws utils.ConvertToQNTError
  */
-export function convertToQNT(
-  quantity: string /*, decimals: number = 8 */
-): string {
+export function convertToQNT(quantity: string /*, decimals: number = 8 */): string {
   var decimals = 8 // qnts all have 8 decimals.
   var parts = quantity.split(".")
   var qnt = parts[0]
@@ -207,10 +197,7 @@ export function convertToQNT(
   } else if (parts.length == 2) {
     var fraction = parts[1]
     if (fraction.length > decimals) {
-      throw new ConvertToQNTError(
-        "Fraction can only have " + decimals + " decimals max.",
-        1
-      )
+      throw new ConvertToQNTError("Fraction can only have " + decimals + " decimals max.", 1)
     } else if (fraction.length < decimals) {
       for (var i = fraction.length; i < decimals; i++) {
         fraction += "0"
@@ -222,10 +209,7 @@ export function convertToQNT(
   }
   //in case there's a comma or something else in there.. at this point there should only be numbers
   if (!/^\d+$/.test(qnt)) {
-    throw new ConvertToQNTError(
-      "Invalid input. Only numbers and a dot are accepted.",
-      3
-    )
+    throw new ConvertToQNTError("Invalid input. Only numbers and a dot are accepted.", 3)
   }
   //remove leading zeroes
   return qnt.replace(/^0+/, "")
@@ -245,9 +229,7 @@ export function getByteLen(value: string): number {
         ? 1
         : c < 1 << 11
           ? 2
-          : c < 1 << 16
-            ? 3
-            : c < 1 << 21 ? 4 : c < 1 << 26 ? 5 : c < 1 << 31 ? 6 : Number.NaN
+          : c < 1 << 16 ? 3 : c < 1 << 21 ? 4 : c < 1 << 26 ? 5 : c < 1 << 31 ? 6 : Number.NaN
   }
   return byteLen
 }
@@ -297,10 +279,7 @@ export function isArray(input: any): boolean {
   return Array.isArray(input)
 }
 
-export function extend(
-  destination: { [key: string]: any },
-  source: { [key: string]: any }
-) {
+export function extend(destination: { [key: string]: any }, source: { [key: string]: any }) {
   for (var key in source) {
     if (source.hasOwnProperty(key)) destination[key] = source[key]
   }
@@ -314,11 +293,7 @@ export function isEmpty(obj: { [key: string]: any }) {
   return true
 }
 
-export function readBytes(
-  buffer: ByteBuffer,
-  length: number,
-  offset?: number
-): number[] {
+export function readBytes(buffer: ByteBuffer, length: number, offset?: number): number[] {
   if (offset) buffer.offset = offset
   let array = []
   for (let i = 0; i < length; i++) array.push(buffer.readByte())
@@ -327,4 +302,15 @@ export function readBytes(
 
 export function writeBytes(buffer: ByteBuffer, bytes: number[]) {
   for (let i = 0; i < bytes.length; i++) buffer.writeByte(bytes[i])
+}
+
+/* inpired by: https://italonascimento.github.io/applying-a-timeout-to-your-promises/ */
+export function setPromiseTimeout<T>(milliseconds: number, promise: Promise<any>): Promise<T> {
+  let timeout = new Promise((resolve, reject) => {
+    let id = setTimeout(() => {
+      clearTimeout(id)
+      reject("Timed out in " + milliseconds + "ms.")
+    }, milliseconds)
+  })
+  return Promise.race([promise, timeout])
 }

@@ -31,9 +31,11 @@
     "src/fee.ts",
     "src/heat-api.ts",
     "src/heat-sdk.ts",
+    "src/heat-rpc.ts",
     "src/secret-generator.ts",
     "src/transaction-type.ts",
     "src/transaction.ts",
+    "src/types.ts",
     "src/utils.ts"
   ]
 }

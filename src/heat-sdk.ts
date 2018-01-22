@@ -29,13 +29,10 @@ import { Transaction } from "./transaction"
 import { HeatApi } from "./heat-api"
 import { HeatSubscriber } from "./heat-subscriber"
 import { SecretGenerator } from "./secret-generator"
-import {
-  AssetIssuance,
-  AssetTransfer,
-  ColoredCoinsAskOrderPlacement
-} from "./attachment"
+import { AssetIssuance, AssetTransfer, ColoredCoinsAskOrderPlacement } from "./attachment"
 import { Fee } from "./fee"
 import { setRandomSource } from "./random-bytes"
+import { HeatRpc } from "./heat-rpc"
 
 export interface ConfigArgs {
   isTestnet?: boolean
@@ -51,8 +48,7 @@ export class Configuration {
     if (args) {
       if (utils.isDefined(args.isTestnet)) this.isTestnet = !!args.isTestnet
       if (utils.isDefined(args.baseURL)) this.baseURL = <string>args.baseURL
-      if (utils.isDefined(args.websocketURL))
-        this.websocketURL = <string>args.websocketURL
+      if (utils.isDefined(args.websocketURL)) this.websocketURL = <string>args.websocketURL
     }
     if (!utils.isDefined(this.baseURL))
       this.baseURL = this.isTestnet
@@ -68,6 +64,7 @@ export class Configuration {
 export class HeatSDK {
   public api: HeatApi
   public subscriber: HeatSubscriber
+  public rpc: HeatRpc
   public utils = utils
   public crypto = crypto
   public converters = converters
@@ -80,6 +77,7 @@ export class HeatSDK {
     this.config = config_
     this.api = new HeatApi({ baseURL: this.config.baseURL })
     this.subscriber = new HeatSubscriber(this.config.websocketURL)
+    this.rpc = new HeatRpc(this.config.websocketURL)
   }
 
   public parseTransactionBytes(transactionBytesHex: string) {
@@ -110,10 +108,7 @@ export class HeatSDK {
     )
   }
 
-  public arbitraryMessage(
-    recipientOrRecipientPublicKey: string,
-    message: string
-  ) {
+  public arbitraryMessage(recipientOrRecipientPublicKey: string, message: string) {
     return new Transaction(
       this,
       recipientOrRecipientPublicKey,
@@ -157,13 +152,7 @@ export class HeatSDK {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
       .attachment(
-        new AssetIssuance().init(
-          descriptionUrl,
-          descriptionHash,
-          quantity,
-          decimals,
-          dillutable
-        )
+        new AssetIssuance().init(descriptionUrl, descriptionHash, quantity, decimals, dillutable)
       )
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ASSET_ISSUANCE_FEE)
@@ -194,13 +183,7 @@ export class HeatSDK {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
       .attachment(
-        new ColoredCoinsAskOrderPlacement().init(
-          currencyId,
-          assetId,
-          quantity,
-          price,
-          expiration
-        )
+        new ColoredCoinsAskOrderPlacement().init(currencyId, assetId, quantity, price, expiration)
       )
       .amountHQT("0")
       .feeHQT("1000000")
