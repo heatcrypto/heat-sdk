@@ -1,3 +1,4 @@
+///<reference path="../node_modules/@types/jest/index.d.ts"/>
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.
@@ -20,16 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import { HeatSDK, Configuration } from "../src/heat-sdk"
-import {
-  BroadcastRequest,
-  BroadcastRequestType,
-  BroadcastResponse,
-  BroadcastResponseType,
-  Transaction
-} from "../src/types"
+import { Configuration, HeatSDK } from "../src/heat-sdk"
+import { BroadcastRequestType, Transaction, TransactionType } from "../src/types"
 import { Type } from "../src/avro"
+import { Builder } from "../src/builder"
+import { ORDINARY_PAYMENT } from "../src/attachment"
+
 const Long = require("long")
+
+function handleResult(promise: Promise<any>) {
+  return promise
+    .then(response => {
+      console.log(response)
+      expect(response).toBeDefined()
+    })
+    .catch(reason => console.log(reason))
+}
 
 describe("avro", () => {
   it("can create a schema", () => {
@@ -60,10 +67,9 @@ describe("avro", () => {
 
 describe("heat-rpc", () => {
   const config = new Configuration({
-    isTestnet: true,
-    baseURL: "http://localhost:7733/api/v1",
-    websocketURL: "ws://localhost:7755/ws/"
+    isTestnet: true
   })
+
   const heatsdk = new HeatSDK(config)
 
   let transaction: Transaction = {
@@ -75,7 +81,7 @@ describe("heat-rpc", () => {
     senderPublicKey: new Buffer(new Uint8Array(32)),
     recipientId: Long.fromString("1"),
     amountHQT: Long.fromString("2"),
-    feeHQT: Long.fromString("3"),
+    feeHQT: Long.fromString("1000000"),
     signature: new Buffer(new Uint8Array(64)),
     flags: 0,
     ecBlockHeight: 0,
@@ -83,6 +89,24 @@ describe("heat-rpc", () => {
     attachmentBytes: new Buffer(new Uint8Array(0)),
     appendixBytes: new Buffer(new Uint8Array(0))
   }
+
+  it("can use TransactionType", () => {
+    let builder = new Builder()
+      .attachment(ORDINARY_PAYMENT)
+      .amountHQT("10000")
+      .timestamp(10000000)
+      .deadline(1440)
+      .feeHQT("1000000")
+      .ecBlockHeight(1000)
+      .ecBlockId("5555566666")
+      .recipientId("33333")
+      .isTestnet(true)
+    let transaction = builder.build("hello").getRaw()
+    let buffer = TransactionType.toBuffer(transaction)
+    expect(buffer).toBeDefined()
+    let val = TransactionType.fromBuffer(buffer)
+    expect(val).toEqual(transaction)
+  })
 
   it("can use BroadcastRequestType", () => {
     let object = { transaction: transaction }
@@ -92,32 +116,23 @@ describe("heat-rpc", () => {
     expect(val).toEqual(object)
   })
 
-  // it("can invoke stuff", () => {
-  //   return heatsdk.rpc.broadcast({transaction:transaction})
-  //     .then(response => {
-  //       console.log(response)
-  //       expect(response).toBeDefined()
-  //     })
-  //     .catch(err => {
-  //       console.log(err)
-  //     })
-  //     .then(() => {})
-  // })
+  it("can broadcast a payment", () => {
+    let promise = heatsdk
+      .payment("2068178321230336428", "0.02")
+      .publicMessage("Hello world")
+      .sign("heat sdk test secret phrase")
+      .then(t => heatsdk.rpc.broadcast({ transaction: t.getTransaction().getRaw() }))
+    handleResult(promise)
+  })
 
-  // it("can create a payment", () => {
-  //   return heatsdk
-  //     .payment("1111", "10")
-  //     .publicMessage("Hello world")
-  //     .sign("secret-phrase")
-  //     .then(t => {
-  //       let transaction = t.getTransaction()
-  //       return heatsdk.rpc.broadcast2(transaction)
-  //         .then(response => {
-  //           console.log(response)
-  //           expect(response).toBeDefined()
-  //         })
-  //     })
-  // })
+  it("can broadcast a payment 2", () => {
+    let promise = heatsdk
+      .payment("2068178321230336428", "0.02")
+      .publicMessage("Hello world")
+      .sign("heat sdk test secret phrase")
+      .then(t => heatsdk.rpc.broadcast2(t.getTransaction()))
+    return handleResult(promise)
+  })
 
   // it("can create multi payments", () => {
   //   var count = 200

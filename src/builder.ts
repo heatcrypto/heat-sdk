@@ -30,6 +30,7 @@ import * as converters from "./converters"
 import * as crypto from "./crypto"
 import Long from "long"
 import ByteBuffer from "bytebuffer"
+import { Transaction } from "./types"
 
 export class Builder {
   public _deadline = 1440
@@ -319,35 +320,39 @@ export class TransactionImpl {
     return buffer.toHex()
   }
 
-  public getRaw() {
-    let raw: any = {}
-    raw["type"] = this.type.getType()
-    raw["subtype"] = this.type.getSubtype()
-    raw["version"] = this.version
-    raw["timestamp"] = this.timestamp
-    raw["deadline"] = this.deadline
-    raw["senderPublicKey"] = new Buffer(this.senderPublicKey)
-    raw["recipientId"] = Long.fromString(this.recipientId, true)
-    raw["amountHQT"] = Long.fromString(this.amountHQT)
-    raw["feeHQT"] = Long.fromString(this.feeHQT)
-    raw["signature"] = new Buffer(this.signature)
-    raw["flags"] = this.getFlags()
-    raw["ecBlockHeight"] = this.ecBlockHeight
-    raw["ecBlockId"] = Long.fromString(this.ecBlockId, true)
+  public getRaw(): Transaction {
     let attachment = this.appendages[0]
     let attachmentBytes = ByteBuffer.allocate(attachment.getSize()).order(ByteBuffer.LITTLE_ENDIAN)
     attachment.putBytes(attachmentBytes)
-    raw["attachmentBytes"] = new Buffer(attachmentBytes.buffer)
+    let attachmentBuffer = new Buffer(attachmentBytes.buffer)
     let totalSize = 0
     for (let i = 1; i < this.appendages.length; i++) totalSize += this.appendages[i].getSize()
+    let appendixBuffer
     if (totalSize > 0) {
       let appendixBytes = ByteBuffer.allocate(totalSize).order(ByteBuffer.LITTLE_ENDIAN)
       for (let i = 1; i < this.appendages.length; i++) this.appendages[i].putBytes(appendixBytes)
-      raw["appendixBytes"] = new Buffer(appendixBytes.buffer)
+      appendixBuffer = new Buffer(appendixBytes.buffer)
     } else {
-      raw["appendixBytes"] = new Buffer(0)
+      appendixBuffer = new Buffer(0)
     }
-    return raw
+
+    return {
+      type: this.type.getType(),
+      subtype: this.type.getSubtype(),
+      version: this.version,
+      timestamp: this.timestamp,
+      deadline: this.deadline,
+      senderPublicKey: new Buffer(this.senderPublicKey),
+      recipientId: Long.fromString(this.recipientId),
+      amountHQT: Long.fromString(this.amountHQT),
+      feeHQT: Long.fromString(this.feeHQT),
+      signature: new Buffer(this.signature),
+      flags: this.getFlags(),
+      ecBlockHeight: this.ecBlockHeight,
+      ecBlockId: Long.fromString(this.ecBlockId),
+      attachmentBytes: attachmentBuffer,
+      appendixBytes: appendixBuffer
+    }
   }
 
   public getJSONObject() {
