@@ -75,12 +75,7 @@ export interface BroadcastRequest {
 }
 export let BroadcastRequestType = Type.forSchema({
   type: "record",
-  fields: [
-    {
-      name: "transaction",
-      type: TransactionType.schema()
-    }
-  ]
+  fields: [{ name: "transaction", type: TransactionType.schema() }]
 })
 
 export interface BroadcastResponse {
@@ -88,10 +83,5 @@ export interface BroadcastResponse {
 }
 export let BroadcastResponseType = Type.forSchema({
   type: "record",
-  fields: [
-    {
-      name: "transaction",
-      type: "long"
-    }
-  ]
+  fields: [{ name: "transaction", type: "long" }]
 })

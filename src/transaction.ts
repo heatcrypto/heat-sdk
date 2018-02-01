@@ -26,6 +26,8 @@ import * as appendix from "./appendix"
 import * as converters from "./converters"
 import * as crypto from "./crypto"
 import { HeatSDK } from "./heat-sdk"
+import { HeatApiError } from "./heat-api"
+import { BroadcastResponse } from "./types"
 
 export interface IBroadcastOutput {
   /**
@@ -60,8 +62,16 @@ export class Transaction {
   }
 
   public broadcast<T>(): Promise<T> {
-    if (!utils.isDefined(this.transaction_))
-      throw new Error("Must call sign() first")
+    if (!utils.isDefined(this.transaction_)) throw new Error("Must call sign() first")
+
+    if (this.heatsdk.config.useWebsocket)
+      return new Promise<any>((resolve, reject) => {
+        this.heatsdk.rpc
+          .broadcast2(this.transaction_)
+          .then(response => resolve(response) /*todo handle error? */)
+          .catch(reason => reject(reason))
+      })
+
     return this.heatsdk.api.post("/tx/broadcast", {
       transactionBytes: this.transaction_.getBytesAsHex()
     })
@@ -71,8 +81,7 @@ export class Transaction {
    * Return signed transaction
    */
   public getTransaction() {
-    if (!utils.isDefined(this.transaction_))
-      throw new Error("Must call sign() first")
+    if (!utils.isDefined(this.transaction_)) throw new Error("Must call sign() first")
     return this.transaction_
   }
 
@@ -89,9 +98,7 @@ export class Transaction {
         recipientPublicKeyHex = crypto.secretPhraseToPublicKey(secretPhrase)
 
       if (!recipientPublicKeyHex)
-        recipientPublicKeyHex = utils.isPublicKey(
-          this.recipientOrRecipientPublicKey
-        )
+        recipientPublicKeyHex = utils.isPublicKey(this.recipientOrRecipientPublicKey)
           ? this.recipientOrRecipientPublicKey
           : null
 
@@ -119,8 +126,7 @@ export class Transaction {
         let isPrivate = utils.isDefined(this.privateMessage_)
         let isPrivateToSelf = utils.isDefined(this.privateMessageToSelf_)
         if (isPrivate || isPrivateToSelf) {
-          if (!recipientPublicKeyHex)
-            throw new Error("Recipient public key not provided")
+          if (!recipientPublicKeyHex) throw new Error("Recipient public key not provided")
           crypto
             .encryptMessage(
               isPrivate ? this.privateMessage_ : this.privateMessageToSelf_,

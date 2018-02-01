@@ -36,23 +36,19 @@ import {
   ColoredCoinsWhitelistMarket,
   ORDINARY_PAYMENT
 } from "../src/attachment"
-import {
-  byteArrayToHexString,
-  hexStringToByteArray,
-  stringToHexString
-} from "../src/converters"
+import { byteArrayToHexString, hexStringToByteArray, stringToHexString } from "../src/converters"
 import * as crypto from "../src/crypto"
 import { HeatSDK, Configuration } from "../src/heat-sdk"
 
 const heatsdk = new HeatSDK(new Configuration({ isTestnet: true }))
 
-function handleApiResponse(response) {
+function handleApiResponse(response: any) {
   console.log(response)
   expect(response).toBeDefined()
   expect(response.errorCode).toBeUndefined()
 }
 
-function handleCatchApiResponse(response) {
+function handleCatchApiResponse(response: any) {
   console.log(response)
   expect(response).toBeDefined()
   expect(response.errorCode).toBeDefined()
@@ -129,8 +125,7 @@ describe("Transaction builder", () => {
           subtype: 0,
           timestamp: expect.any(Number),
           deadline: 1440,
-          senderPublicKey:
-            "9f349432381a0803cfe795b9e9df645d4b9b990f98d0e545c46ae801dd329d3f",
+          senderPublicKey: "9f349432381a0803cfe795b9e9df645d4b9b990f98d0e545c46ae801dd329d3f",
           recipient: "12345",
           amount: "10020000000",
           fee: "1000000",
@@ -577,10 +572,7 @@ describe("Transaction builder", () => {
     let secretPhrase =
       "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
     let unsignedHex = byteArrayToHexString(bytes)
-    let signatureHex = crypto.signBytes(
-      unsignedHex,
-      stringToHexString(secretPhrase)
-    )
+    let signatureHex = crypto.signBytes(unsignedHex, stringToHexString(secretPhrase))
     let signature = hexStringToByteArray(signatureHex)
 
     let expectedSignature = [

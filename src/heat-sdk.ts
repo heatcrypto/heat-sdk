@@ -24,31 +24,47 @@ import * as converters from "./converters"
 import * as crypto from "./crypto"
 import * as utils from "./utils"
 import * as attachment from "./attachment"
+import {
+  AccountControlEffectiveBalanceLeasing,
+  AssetIssuance,
+  AssetIssueMore,
+  AssetTransfer,
+  ColoredCoinsAskOrderCancellation,
+  ColoredCoinsAskOrderPlacement,
+  ColoredCoinsBidOrderCancellation,
+  ColoredCoinsBidOrderPlacement,
+  ColoredCoinsWhitelistAccountRemoval,
+  ColoredCoinsWhitelistMarket
+} from "./attachment"
 import { Builder, TransactionImpl } from "./builder"
 import { Transaction } from "./transaction"
 import { HeatApi } from "./heat-api"
 import { HeatSubscriber } from "./heat-subscriber"
 import { SecretGenerator } from "./secret-generator"
-import { AssetIssuance, AssetTransfer, ColoredCoinsAskOrderPlacement } from "./attachment"
 import { Fee } from "./fee"
 import { setRandomSource } from "./random-bytes"
 import { HeatRpc } from "./heat-rpc"
+import { WhitelistAccountAddition } from "./transaction-type"
+import { ColoredCoinsWhitelistAccountAddition } from "./attachment"
 
 export interface ConfigArgs {
   isTestnet?: boolean
   baseURL?: string
   websocketURL?: string
+  useWebsocket?: boolean
 }
 
 export class Configuration {
   isTestnet = false
   baseURL: string
   websocketURL: string
+  useWebsocket = false
   constructor(args?: ConfigArgs) {
     if (args) {
       if (utils.isDefined(args.isTestnet)) this.isTestnet = !!args.isTestnet
       if (utils.isDefined(args.baseURL)) this.baseURL = <string>args.baseURL
       if (utils.isDefined(args.websocketURL)) this.websocketURL = <string>args.websocketURL
+      if (utils.isDefined(args.useWebsocket)) this.useWebsocket = !!args.useWebsocket
     }
     if (!utils.isDefined(this.baseURL))
       this.baseURL = this.isTestnet
@@ -58,6 +74,8 @@ export class Configuration {
       this.websocketURL = this.isTestnet
         ? "wss://alpha.heatledger.com:7755/ws/"
         : "wss://heatwallet.com:7755/ws/"
+    if (this.useWebsocket && !this.websocketURL)
+      throw new Error("Websocket URL in Configuration is not defined")
   }
 }
 
@@ -159,6 +177,15 @@ export class HeatSDK {
     return new Transaction(this, "0", builder)
   }
 
+  public assetIssueMore(assetId: string, quantity: string, feeHQT?: string) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(new AssetIssueMore().init(assetId, quantity))
+      .amountHQT("0")
+      .feeHQT(feeHQT ? feeHQT : Fee.ASSET_ISSUE_MORE_FEE)
+    return new Transaction(this, "0", builder)
+  }
+
   public assetTransfer(
     recipientOrRecipientPublicKey: string,
     assetId: string,
@@ -180,13 +207,105 @@ export class HeatSDK {
     price: string,
     expiration: number
   ) {
+    return this.placeOrder(true, currencyId, assetId, quantity, price, expiration)
+  }
+
+  public placeBidOrder(
+    currencyId: string,
+    assetId: string,
+    quantity: string,
+    price: string,
+    expiration: number
+  ) {
+    return this.placeOrder(false, currencyId, assetId, quantity, price, expiration)
+  }
+
+  public cancelAskOrder(orderId: string) {
+    return this.cancelOrder(true, orderId)
+  }
+
+  public cancelBidOrder(orderId: string) {
+    return this.cancelOrder(false, orderId)
+  }
+
+  public whitelistAccountAddition(assetId: string, accountId: string, endHeight: number) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(new ColoredCoinsWhitelistAccountAddition().init(assetId, accountId, endHeight))
+      .amountHQT("0")
+      .feeHQT(Fee.WHITELIST_ACCOUNT_FEE)
+    return new Transaction(this, "0", builder)
+  }
+
+  public whitelistAccountRemoval(assetId: string, accountId: string) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(new ColoredCoinsWhitelistAccountRemoval().init(assetId, accountId))
+      .amountHQT("0")
+      .feeHQT(Fee.WHITELIST_ACCOUNT_FEE)
+    return new Transaction(this, "0", builder)
+  }
+
+  public whitelistMarket(currencyId: string, assetId: string) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(new ColoredCoinsWhitelistMarket().init(currencyId, assetId))
+      .amountHQT("0")
+      .feeHQT(Fee.WHITELIST_MARKET_FEE)
+    return new Transaction(this, "0", builder)
+  }
+
+  public effectiveBalanceLeasing(period: number) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(new AccountControlEffectiveBalanceLeasing().init(period))
+      .amountHQT("0")
+      .feeHQT(Fee.EFFECTIVE_BALANCE_LEASING_FEE)
+    return new Transaction(this, "0", builder)
+  }
+
+  private placeOrder(
+    ask: boolean,
+    currencyId: string,
+    assetId: string,
+    quantity: string,
+    price: string,
+    expiration: number
+  ) {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
       .attachment(
-        new ColoredCoinsAskOrderPlacement().init(currencyId, assetId, quantity, price, expiration)
+        ask
+          ? new ColoredCoinsAskOrderPlacement().init(
+              currencyId,
+              assetId,
+              quantity,
+              price,
+              expiration
+            )
+          : new ColoredCoinsBidOrderPlacement().init(
+              currencyId,
+              assetId,
+              quantity,
+              price,
+              expiration
+            )
       )
       .amountHQT("0")
-      .feeHQT("1000000")
+      .feeHQT(Fee.ORDER_PLACEMENT_FEE)
+    return new Transaction(this, "0", builder)
+  }
+
+  private cancelOrder(ask: boolean, orderId: string) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(
+        ask
+          ? new ColoredCoinsAskOrderCancellation().init(orderId)
+          : new ColoredCoinsBidOrderCancellation().init(orderId)
+      )
+      .amountHQT("0")
+      .feeHQT(Fee.ORDER_PLACEMENT_FEE)
     return new Transaction(this, "0", builder)
   }
 }

@@ -1,3 +1,4 @@
+///<reference path="../node_modules/@types/jest/index.d.ts"/>
 /*
  * The MIT License (MIT)
  * Copyright (c) 2017 Heat Ledger Ltd.
@@ -28,8 +29,6 @@ describe("Export default test", () => {
     expect(heatsdk).toBeTruthy()
   })
   it("has a crypto property with exported methods", () => {
-    expect(heatsdk.crypto.getAccountId("secret phrase")).toBe(
-      "7567221445300685906"
-    )
+    expect(heatsdk.crypto.getAccountId("secret phrase")).toBe("7567221445300685906")
   })
 })
