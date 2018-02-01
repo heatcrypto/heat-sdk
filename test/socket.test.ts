@@ -24,19 +24,11 @@
 import { Configuration, HeatSDK } from "../src/heat-sdk"
 import { BroadcastRequestType, Transaction, TransactionType } from "../src/types"
 import { Type } from "../src/avro"
-import { Builder } from "../src/builder"
+import { Builder, TransactionImpl } from "../src/builder"
 import { ORDINARY_PAYMENT } from "../src/attachment"
+import * as crypto from "../src/crypto"
 
 const Long = require("long")
-
-function handleResult(promise: Promise<any>) {
-  return promise
-    .then(response => {
-      console.log(response)
-      expect(response).toBeDefined()
-    })
-    .catch(reason => console.log(reason))
-}
 
 describe("avro", () => {
   it("can create a schema", () => {
@@ -67,7 +59,9 @@ describe("avro", () => {
 
 describe("heat-rpc", () => {
   const config = new Configuration({
-    isTestnet: true
+    isTestnet: true,
+    baseURL: "http://localhost:7733/api/v1",
+    websocketURL: "ws://localhost:7755/ws/"
   })
 
   const heatsdk = new HeatSDK(config)
@@ -90,24 +84,6 @@ describe("heat-rpc", () => {
     appendixBytes: new Buffer(new Uint8Array(0))
   }
 
-  it("can use TransactionType", () => {
-    let builder = new Builder()
-      .attachment(ORDINARY_PAYMENT)
-      .amountHQT("10000")
-      .timestamp(10000000)
-      .deadline(1440)
-      .feeHQT("1000000")
-      .ecBlockHeight(1000)
-      .ecBlockId("5555566666")
-      .recipientId("33333")
-      .isTestnet(true)
-    let transaction = builder.build("hello").getRaw()
-    let buffer = TransactionType.toBuffer(transaction)
-    expect(buffer).toBeDefined()
-    let val = TransactionType.fromBuffer(buffer)
-    expect(val).toEqual(transaction)
-  })
-
   it("can use BroadcastRequestType", () => {
     let object = { transaction: transaction }
     let buffer = BroadcastRequestType.toBuffer(object)
@@ -122,7 +98,7 @@ describe("heat-rpc", () => {
       .publicMessage("Hello world")
       .sign("heat sdk test secret phrase")
       .then(t => heatsdk.rpc.broadcast({ transaction: t.getTransaction().getRaw() }))
-    handleResult(promise)
+    return handleResult(promise)
   })
 
   it("can broadcast a payment 2", () => {
@@ -130,47 +106,169 @@ describe("heat-rpc", () => {
       .payment("2068178321230336428", "0.02")
       .publicMessage("Hello world")
       .sign("heat sdk test secret phrase")
-      .then(t => heatsdk.rpc.broadcast2(t.getTransaction()))
+      .then(t => {
+        heatsdk.rpc.broadcast2(t.getTransaction())
+      })
     return handleResult(promise)
   })
 
-  // it("can create multi payments", () => {
-  //   var count = 200
-  //   console.log("Generate " + count + " transactions")
-  //   return createTransactions(heatsdk, 100)
-  //     .then(transactions => {
-  //       console.log("Done generating " + count + " transactions")
-  //       var promises = []
-  //       transactions.forEach(t => {
-  //         promises.push(
-  //           heatsdk.rpc.broadcast2(t).then(resp => {
-  //             //console.log(t. resp)
-  //           })
-  //         )
-  //       })
-  //       console.log("Done broadcasting " + count + " transactions")
-  //       return Promise.all(promises)
-  //     })
-  //     .then(() => {
-  //       console.log("Received back all callbacks")
-  //     })
-  // })
+  it("can create multi payments", () => {
+    let count = 3
+    console.log("Generate " + count + " transactions")
+    return createTransactions(heatsdk, count)
+      .then(transactions => {
+        console.log("Done generating " + count + " transactions")
+        let promises: any[] = []
+        transactions.forEach(t => {
+          promises.push(
+            heatsdk.rpc.broadcast2(t)
+            /*heatsdk.rpc.broadcast2(t).then(resp => {
+              //console.log(t. resp)
+            })*/
+          )
+        })
+        console.log("Done broadcasting " + count + " transactions")
+        return Promise.all(promises)
+      })
+      .then(() => {
+        console.log("Received back all callbacks")
+      })
+  })
+
+  it("can use TransactionType for ORDINARY_PAYMENT", () => {
+    let builder = new Builder()
+      .attachment(ORDINARY_PAYMENT)
+      .amountHQT("10000")
+      .timestamp(10000000)
+      .deadline(1440)
+      .feeHQT("1000000")
+      .ecBlockHeight(1000)
+      .ecBlockId("5555566666")
+      .recipientId("33333")
+      .isTestnet(true)
+    testType(builder.build("hello"))
+  })
+
+  it("can use TransactionType for ARBITRARY_MESSAGE", () => {
+    let promise = heatsdk
+      .arbitraryMessage(account2, "Qwerty Йцукен")
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Private Message", () => {
+    let promise = heatsdk
+      .privateMessage(crypto.secretPhraseToPublicKey(secretPhrase1), "Private Info")
+      .sign(secretPhrase2)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Private Message to self", () => {
+    let promise = heatsdk
+      .privateMessageToSelf("Private message to self")
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Asset Issuance", () => {
+    heatsdk
+      .assetIssuance("https://heatsdktest/assetN01", null, "1000", 0, true)
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Asset Issue More", () => {
+    heatsdk
+      .assetIssueMore("123456789", "100500")
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Asset Transfer", () => {
+    heatsdk
+      .assetTransfer(account2, "3829083721650641771", "4")
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Ask Placing", () => {
+    heatsdk
+      .placeAskOrder("0", "1284030860920393989", "2", "700000000", 3600)
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Bid Placing", () => {
+    heatsdk
+      .placeBidOrder("0", "1284030860920393989", "2", "700000000", 3600)
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Ask Cancellation", () => {
+    heatsdk
+      .cancelAskOrder("1234567890123456789")
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Bid Cancellation", () => {
+    heatsdk
+      .cancelBidOrder("1234567890123456789")
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Whitelist Account Addition", () => {
+    heatsdk
+      .whitelistAccountAddition(asset1, account1, 1000000000)
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Whitelist Account Removal", () => {
+    heatsdk
+      .whitelistAccountRemoval(asset1, account1)
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Whitelist Market", () => {
+    heatsdk
+      .whitelistMarket(currency1, asset1)
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
+
+  it("can use TransactionType for Effective Balance Leasing", () => {
+    heatsdk
+      .effectiveBalanceLeasing(12345)
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
+  })
 })
 
-function pad(num, size) {
-  var s = "00000000" + num
+let secretPhrase1 = "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
+let account1 = "2068178321230336428"
+let secretPhrase2 = "heat sdk test secret phrase"
+let account2 = "5056413637982060108"
+let asset1 = "1234567890123456789"
+let currency0 = "0"
+let currency1 = "1111111111111"
+
+function pad(num: number, size: number) {
+  let s = "00000000" + num
   return s.substr(s.length - size)
 }
 
-function createTransactions(heatsdk, count) {
-  var promises = []
-  var transactions = []
+function createTransactions(heatsdk: HeatSDK, count: number) {
+  let promises = []
+  let transactions: TransactionImpl[] = []
   for (let i = 0; i < count; i++) {
     promises.push(
       heatsdk
-        .payment("4729421738299387565", "1." + pad(i, 5))
-        //.publicMessage("Hello world")
-        .sign("secret-phrase")
+        .payment("2068178321230336428", "1." + pad(i, 5))
+        .sign(secretPhrase2)
         .then(t => {
           transactions.push(t.getTransaction())
         })
@@ -179,4 +277,17 @@ function createTransactions(heatsdk, count) {
   return Promise.all(promises).then(function() {
     return transactions
   })
+}
+
+function handleResult(promise: Promise<any>) {
+  return promise.then(v => expect(v).toBeDefined()).catch(reason => console.log(reason))
+}
+
+function testType(t: TransactionImpl) {
+  let transaction = t.getRaw()
+  let buffer = TransactionType.toBuffer(transaction)
+  expect(buffer).toBeDefined()
+  let val = TransactionType.fromBuffer(buffer)
+  expect(val).toEqual(transaction)
+  return transaction
 }
