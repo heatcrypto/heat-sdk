@@ -59,9 +59,7 @@ describe("avro", () => {
 
 describe("heat-rpc", () => {
   const config = new Configuration({
-    isTestnet: true,
-    baseURL: "http://localhost:7733/api/v1",
-    websocketURL: "ws://localhost:7755/ws/"
+    isTestnet: true
   })
 
   const heatsdk = new HeatSDK(config)
@@ -93,7 +91,7 @@ describe("heat-rpc", () => {
   })
 
   it("can broadcast a payment", () => {
-    let promise = heatsdk
+    let promise: Promise<any> = heatsdk
       .payment("2068178321230336428", "0.02")
       .publicMessage("Hello world")
       .sign("heat sdk test secret phrase")
@@ -102,13 +100,11 @@ describe("heat-rpc", () => {
   })
 
   it("can broadcast a payment 2", () => {
-    let promise = heatsdk
+    let promise: Promise<any> = heatsdk
       .payment("2068178321230336428", "0.02")
-      .publicMessage("Hello world")
-      .sign("heat sdk test secret phrase")
-      .then(t => {
-        heatsdk.rpc.broadcast2(t.getTransaction())
-      })
+      .publicMessage("Hello world 2")
+      .sign("secretPhrase2 scswdcwse")
+      .then(t => heatsdk.rpc.broadcast2(t.getTransaction()))
     return handleResult(promise)
   })
 
@@ -147,101 +143,106 @@ describe("heat-rpc", () => {
       .recipientId("33333")
       .isTestnet(true)
     testType(builder.build("hello"))
+
+    return heatsdk
+      .payment(account2, "100.25")
+      .sign(secretPhrase1)
+      .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for ARBITRARY_MESSAGE", () => {
-    let promise = heatsdk
+    return heatsdk
       .arbitraryMessage(account2, "Qwerty Йцукен")
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Private Message", () => {
-    let promise = heatsdk
+    return heatsdk
       .privateMessage(crypto.secretPhraseToPublicKey(secretPhrase1), "Private Info")
       .sign(secretPhrase2)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Private Message to self", () => {
-    let promise = heatsdk
+    return heatsdk
       .privateMessageToSelf("Private message to self")
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Asset Issuance", () => {
-    heatsdk
+    return heatsdk
       .assetIssuance("https://heatsdktest/assetN01", null, "1000", 0, true)
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Asset Issue More", () => {
-    heatsdk
+    return heatsdk
       .assetIssueMore("123456789", "100500")
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Asset Transfer", () => {
-    heatsdk
+    return heatsdk
       .assetTransfer(account2, "3829083721650641771", "4")
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Ask Placing", () => {
-    heatsdk
+    return heatsdk
       .placeAskOrder("0", "1284030860920393989", "2", "700000000", 3600)
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Bid Placing", () => {
-    heatsdk
+    return heatsdk
       .placeBidOrder("0", "1284030860920393989", "2", "700000000", 3600)
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Ask Cancellation", () => {
-    heatsdk
+    return heatsdk
       .cancelAskOrder("1234567890123456789")
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Bid Cancellation", () => {
-    heatsdk
+    return heatsdk
       .cancelBidOrder("1234567890123456789")
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Whitelist Account Addition", () => {
-    heatsdk
+    return heatsdk
       .whitelistAccountAddition(asset1, account1, 1000000000)
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Whitelist Account Removal", () => {
-    heatsdk
+    return heatsdk
       .whitelistAccountRemoval(asset1, account1)
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Whitelist Market", () => {
-    heatsdk
+    return heatsdk
       .whitelistMarket(currency1, asset1)
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
   })
 
   it("can use TransactionType for Effective Balance Leasing", () => {
-    heatsdk
+    return heatsdk
       .effectiveBalanceLeasing(12345)
       .sign(secretPhrase1)
       .then(t => testType(t.getTransaction()))
@@ -280,7 +281,11 @@ function createTransactions(heatsdk: HeatSDK, count: number) {
 }
 
 function handleResult(promise: Promise<any>) {
-  return promise.then(v => expect(v).toBeDefined()).catch(reason => console.log(reason))
+  return promise.then(response => {
+    expect(response).toBeDefined()
+    expect(response.exceptionClass).toBeUndefined()
+    expect(response.errorCode).toBeUndefined()
+  })
 }
 
 function testType(t: TransactionImpl) {

@@ -12,8 +12,12 @@ let currency0 = "0"
 let currency1 = "1122"
 
 function handleResult(promise: Promise<any>) {
-  //todo. Now just print heat api response
-  promise.then(data => console.log(data)).catch(reason => console.log(reason))
+  return promise.then(response => {
+    console.log(response)
+    expect(response).toBeDefined()
+    expect(response.exceptionClass).toBeUndefined()
+    expect(response.errorCode).toBeUndefined()
+  })
 }
 
 /* the tests passes until the account balance has the money */
@@ -22,9 +26,7 @@ describe("Transaction API", () => {
   const heatsdk = new HeatSDK(
     new Configuration({
       isTestnet: true,
-      useWebsocket: true,
-      baseURL: "http://localhost:7733/api/v1",
-      websocketURL: "ws://localhost:7755/ws/"
+      useWebsocket: false
     })
   )
 
@@ -35,7 +37,7 @@ describe("Transaction API", () => {
       .publicMessage("Happy birthday!")
       .sign(secretPhrase1)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    return handleResult(promise)
   })
 
   it("broadcast arbitrary message", () => {
@@ -43,15 +45,15 @@ describe("Transaction API", () => {
       .arbitraryMessage("4644748344150906433", "Qwerty Йцукен")
       .sign(secretPhrase1)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    return handleResult(promise)
   })
 
   it("broadcast private message", () => {
     let promise = heatsdk
-      .privateMessage(crypto.secretPhraseToPublicKey("user1"), "Private Info")
+      .privateMessage(crypto.secretPhraseToPublicKey(secretPhrase2), "Private Info")
       .sign(secretPhrase1)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    return handleResult(promise)
   })
 
   it("broadcast private message to self", () => {
@@ -59,7 +61,7 @@ describe("Transaction API", () => {
       .privateMessageToSelf("Private message to self")
       .sign(secretPhrase1)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    return handleResult(promise)
   })
 
   it("Asset Issuance", () => {
@@ -67,7 +69,7 @@ describe("Transaction API", () => {
       .assetIssuance("https://heatsdktest/assetN01", null, "1000", 0, true)
       .sign(secretPhrase1)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    return handleResult(promise)
   })
 
   it("Asset Transfer", () => {
@@ -75,13 +77,7 @@ describe("Transaction API", () => {
       .assetTransfer(account2, "1047478663291988214", "4")
       .sign(secretPhrase1)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
-    //transfer back
-    promise = heatsdk
-      .assetTransfer(account1, "1047478663291988214", "4")
-      .sign(secretPhrase2)
-      .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    return handleResult(promise)
   })
 
   it("Whitelist Account Addition", () => {
