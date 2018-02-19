@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>HEAT-SDK Showcase</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>  
+  <script src="../../dist/heat-sdk.umd.js"></script>
+  <script src="utils.js"></script>  
+  <script src="index.js"></script>
+  <style>
+    html, body { width: 100%; }
+    body { font-family: Arial, Helvetica, sans-serif }
+    small { color: gray }
+    textarea { width: 100%; height: 40px; font-family: Courier New, Courier, monospace; color: gray; }
+    .section { padding: 12px }
+    .label { min-width: 230px }
+    .mono { font-family: Courier New, Courier, monospace; color: gray; }
+    input[type="text"] { font-family: Courier New, Courier, monospace; color: gray; }
+  </style>
+</head>
+<body>
+  <h1>HEAT Speed Test</h1>
+  <h4>See how many transactions we can broadcast per second</h4>  
+  <div id="settings" class="section">
+    <div>
+      <span class="label">Secret phrase</span>
+      <input type="text" id="secret" value="user3"></input>
+    </div>
+  </div>
+  <div id="settings" class="section">
+    <div>
+      <div>Total blocks <span id="numberOfBlocks"></span></div>
+      <div>Total transactions <span id="numberOfTransactions"></span></div>
+      <div>Unconfirmed transactions <span id="numberOfUnconfirmedTransactions"></span></div>      
+      <div>Account <span id="account"></span></div>
+      <div>Balance <span id="balance"></span></div>
+    </div>
+  </div>  
+  <div id="settings" class="section">
+    <div>
+      <div>Transaction Pool <span id="pool-size"></span></div>
+      <input type="button" id="btn-pool-start" value="Start"></input>
+      <input type="button" id="btn-pool-stop" value="Stop"></input>      
+    </div>
+  </div>
+  <div id="settings" class="section">
+    <div>
+      <span class="label">Transactions per second</span>
+      <input type="text" id="tps" value="1"></input>
+      <input type="button" id="btn-broadcast-start" value="Start"></input>
+      <input type="button" id="btn-broadcast-stop" value="Stop"></input>     
+      <div>Real tps <span id="realTps"></span></div>    
+    </div>
+  </div>
+</body>
+</html>
