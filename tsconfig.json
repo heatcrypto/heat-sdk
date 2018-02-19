@@ -20,7 +20,9 @@
       "node_modules/@types"
     ],
     "noImplicitThis": false,
-    "declaration": true
+    "noImplicitAny": false,
+    "declaration": true,
+    "allowJs": true
   },
   "files": [
     "src/appendix.ts",
