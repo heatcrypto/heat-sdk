@@ -32,6 +32,7 @@ import {
 } from "./types"
 import { Socket, SocketResponse } from "./socket"
 import { TransactionImpl } from "./builder"
+import { Buffer } from "buffer"
 
 let TYPE_RESP = 0
 let TYPE_ERR = 33

@@ -64,11 +64,11 @@ function simpleHash(message: any) {
 }
 
 /**
-* Calculates a SHA256 hash from a string.
-*
-* @param inputString String (regular UTF-8 string)
-* @returns Hash as HEX String
-*/
+ * Calculates a SHA256 hash from a string.
+ *
+ * @param inputString String (regular UTF-8 string)
+ * @returns Hash as HEX String
+ */
 export function calculateStringHash(inputString: string) {
   var hexString = stringToHexString(inputString)
   var bytes = hexStringToByteArray(hexString)
@@ -76,12 +76,18 @@ export function calculateStringHash(inputString: string) {
   return byteArrayToHexString(hashBytes)
 }
 
+export function calculateHashBytes(bytes: ArrayBuffer[]) {
+  _hash.init()
+  bytes.forEach(b => _hash.update(b))
+  return _hash.getBytes()
+}
+
 /**
-* @param byteArray ByteArray
-* @param startIndex Int
-* @returns Big
-*/
-function byteArrayToBigInteger(byteArray: any, startIndex?: number) {
+ * @param byteArray ByteArray
+ * @param startIndex Int
+ * @returns Big
+ */
+export function byteArrayToBigInteger(byteArray: any, startIndex?: number) {
   var value = new Big("0")
   var temp1, temp2
   for (var i = byteArray.length - 1; i >= 0; i--) {
@@ -93,14 +99,11 @@ function byteArrayToBigInteger(byteArray: any, startIndex?: number) {
 }
 
 /**
-* @param unsignedTransaction hex-string
-* @param signature hex-string
-* @returns hex-string
-*/
-export function calculateFullHash(
-  unsignedTransaction: string,
-  signature: string
-): string {
+ * @param unsignedTransaction hex-string
+ * @param signature hex-string
+ * @returns hex-string
+ */
+export function calculateFullHash(unsignedTransaction: string, signature: string): string {
   var unsignedTransactionBytes = hexStringToByteArray(unsignedTransaction)
   var signatureBytes = hexStringToByteArray(signature)
   var signatureHash = simpleHash(signatureBytes)
@@ -113,9 +116,9 @@ export function calculateFullHash(
 }
 
 /**
-* @param fullnameUTF8 UTF-8 user name
-* @returns hex-string
-*/
+ * @param fullnameUTF8 UTF-8 user name
+ * @returns hex-string
+ */
 export function fullNameToHash(fullNameUTF8: string): string {
   return _fullNameToBigInteger(stringToByteArray(fullNameUTF8))
 }
@@ -127,16 +130,14 @@ export function fullNameToLong(fullName: number[]): Long {
 function _fullNameToBigInteger(fullName: number[]): string {
   _hash.init()
   _hash.update(fullName)
-  var slice = hexStringToByteArray(
-    byteArrayToHexString(_hash.getBytes())
-  ).slice(0, 8)
+  var slice = hexStringToByteArray(byteArrayToHexString(_hash.getBytes())).slice(0, 8)
   return byteArrayToBigInteger(slice).toString()
 }
 
 /**
-* @param fullHashHex hex-string
-* @returns string
-*/
+ * @param fullHashHex hex-string
+ * @returns string
+ */
 export function calculateTransactionId(fullHashHex: string): string {
   var slice = hexStringToByteArray(fullHashHex).slice(0, 8)
   var transactionId = byteArrayToBigInteger(slice).toString()
@@ -144,10 +145,10 @@ export function calculateTransactionId(fullHashHex: string): string {
 }
 
 /**
-* Turns a secretphrase into a public key
-* @param secretPhrase String
-* @returns HEX string
-*/
+ * Turns a secretphrase into a public key
+ * @param secretPhrase String
+ * @returns HEX string
+ */
 export function secretPhraseToPublicKey(secretPhrase: string): string {
   var secretHex = stringToHexString(secretPhrase)
   var secretPhraseBytes = hexStringToByteArray(secretHex)
@@ -156,31 +157,29 @@ export function secretPhraseToPublicKey(secretPhrase: string): string {
 }
 
 /**
-* ..
-* @param secretPhrase Ascii String
-* @returns hex-string
-*/
+ * ..
+ * @param secretPhrase Ascii String
+ * @returns hex-string
+ */
 export function getPrivateKey(secretPhrase: string) {
   SHA256_init()
   SHA256_write(stringToByteArray(secretPhrase))
-  return shortArrayToHexString(
-    curve25519_clamp(byteArrayToShortArray(SHA256_finalize()))
-  )
+  return shortArrayToHexString(curve25519_clamp(byteArrayToShortArray(SHA256_finalize())))
 }
 
 /**
-* @param secretPhrase Ascii String
-* @returns String
-*/
+ * @param secretPhrase Ascii String
+ * @returns String
+ */
 export function getAccountId(secretPhrase: string) {
   var publicKey = this.secretPhraseToPublicKey(secretPhrase)
   return this.getAccountIdFromPublicKey(publicKey)
 }
 
 /**
-* @param secretPhrase Hex String
-* @returns String
-*/
+ * @param secretPhrase Hex String
+ * @returns String
+ */
 export function getAccountIdFromPublicKey(publicKey: string) {
   _hash.init()
   _hash.update(hexStringToByteArray(publicKey))
@@ -191,13 +190,13 @@ export function getAccountIdFromPublicKey(publicKey: string) {
 }
 
 /**
-* TODO pass secretphrase as string instead of HEX string, convert to
-* hex string ourselves.
-*
-* @param message HEX String
-* @param secretPhrase Hex String
-* @returns Hex String
-*/
+ * TODO pass secretphrase as string instead of HEX string, convert to
+ * hex string ourselves.
+ *
+ * @param message HEX String
+ * @param secretPhrase Hex String
+ * @returns Hex String
+ */
 export function signBytes(message: string, secretPhrase: string) {
   var messageBytes = hexStringToByteArray(message)
   var secretPhraseBytes = hexStringToByteArray(secretPhrase)
@@ -223,17 +222,13 @@ export function signBytes(message: string, secretPhrase: string) {
 }
 
 /**
-* ...
-* @param signature     Hex String
-* @param message       Hex String
-* @param publicKey     Hex String
-* @returns Boolean
-*/
-export function verifyBytes(
-  signature: string,
-  message: string,
-  publicKey: string
-): boolean {
+ * ...
+ * @param signature     Hex String
+ * @param message       Hex String
+ * @param publicKey     Hex String
+ * @returns Boolean
+ */
+export function verifyBytes(signature: string, message: string, publicKey: string): boolean {
   var signatureBytes = hexStringToByteArray(signature)
   var messageBytes = hexStringToByteArray(message)
   var publicKeyBytes = hexStringToByteArray(publicKey)
@@ -251,10 +246,7 @@ export function verifyBytes(
   return areByteArraysEqual(h, h2)
 }
 
-function areByteArraysEqual(
-  bytes1: Array<number>,
-  bytes2: Array<number>
-): boolean {
+function areByteArraysEqual(bytes1: Array<number>, bytes2: Array<number>): boolean {
   if (bytes1.length !== bytes2.length) {
     return false
   }
@@ -282,14 +274,14 @@ export interface IEncryptOptions {
 }
 
 /**
-* @param message String
-* @param options Object {
-*    account: String,    // recipient account id
-*    publicKey: String,  // recipient public key
-* }
-* @param secretPhrase String
-* @returns { message: String, nonce: String }
-*/
+ * @param message String
+ * @param options Object {
+ *    account: String,    // recipient account id
+ *    publicKey: String,  // recipient public key
+ * }
+ * @param secretPhrase String
+ * @returns { message: String, nonce: String }
+ */
 export function encryptNote(
   message: string,
   options: IEncryptOptions,
@@ -304,11 +296,7 @@ export function encryptNote(
       throw new Error("Missing publicKey argument")
     }
   }
-  return encryptData(
-    stringToByteArray(message),
-    options,
-    uncompressed
-  ).then(encrypted => {
+  return encryptData(stringToByteArray(message), options, uncompressed).then(encrypted => {
     return {
       message: byteArrayToHexString(encrypted.data),
       nonce: byteArrayToHexString(<any>encrypted.nonce)
@@ -317,14 +305,14 @@ export function encryptNote(
 }
 
 /**
-* @param message Byte Array
-* @param options Object {
-*    account: String,    // recipient account id
-*    publicKey: String,  // recipient public key
-* }
-* @param secretPhrase String
-* @returns { message: String, nonce: String }
-*/
+ * @param message Byte Array
+ * @param options Object {
+ *    account: String,    // recipient account id
+ *    publicKey: String,  // recipient public key
+ * }
+ * @param secretPhrase String
+ * @returns { message: String, nonce: String }
+ */
 export function encryptBinaryNote(
   message: Array<number>,
   options: IEncryptOptions,
@@ -348,10 +336,10 @@ export function encryptBinaryNote(
 }
 
 /**
-* @param key1 ByteArray
-* @param key2 ByteArray
-* @returns ByteArray
-*/
+ * @param key1 ByteArray
+ * @param key2 ByteArray
+ * @returns ByteArray
+ */
 function getSharedKey(key1: any, key2: any) {
   return shortArrayToByteArray(
     curve25519_(byteArrayToShortArray(key1), byteArrayToShortArray(key2), null)
@@ -384,10 +372,7 @@ function encryptData(
     })
 }
 
-function aesEncrypt(
-  plaintext: Array<number>,
-  options: IEncryptOptions
-): Promise<number[]> {
+function aesEncrypt(plaintext: Array<number>, options: IEncryptOptions): Promise<number[]> {
   return randomBytes(16).then(bytes => {
     var text = byteArrayToWordArray(plaintext)
     var sharedKey = options.sharedKey
@@ -427,12 +412,7 @@ export function encryptMessage(
     account: getAccountIdFromPublicKey(publicKey),
     publicKey: hexStringToByteArray(publicKey)
   }
-  return encryptNote(
-    message,
-    options,
-    secretPhrase,
-    uncompressed
-  ).then(encrypted => {
+  return encryptNote(message, options, secretPhrase, uncompressed).then(encrypted => {
     return {
       isText: true,
       data: encrypted.message,
@@ -538,10 +518,7 @@ export class PassphraseEncryptedMessage {
   }
 }
 
-export function passphraseEncrypt(
-  message: string,
-  passphrase: string
-): PassphraseEncryptedMessage {
+export function passphraseEncrypt(message: string, passphrase: string): PassphraseEncryptedMessage {
   var salt = CryptoJS.lib.WordArray.random(256 / 8)
   var key = CryptoJS.PBKDF2(passphrase, salt, {
     iterations: 10,
@@ -787,14 +764,7 @@ var curve25519_cpy32 = function(a: any) {
   return b
 }
 
-var curve25519_mula_small = function(
-  p: any,
-  q: any,
-  m: any,
-  x: any,
-  n: any,
-  z: any
-) {
+var curve25519_mula_small = function(p: any, q: any, m: any, x: any, n: any, z: any) {
   var v = 0
   for (var j = 0; j < n; ++j) {
     v += (q[j + m] & 0xff) + z * (x[j] & 0xff)
@@ -809,10 +779,7 @@ var curve25519_mula32 = function(p: any, x: any, y: any, t: any, z: any) {
   var w = 0
   for (var i = 0; i < t; i++) {
     var zy = z * (y[i] & 0xff)
-    w +=
-      curve25519_mula_small(p, p, i, x, n, zy) +
-      (p[i + n] & 0xff) +
-      zy * (x[n] & 0xff)
+    w += curve25519_mula_small(p, p, i, x, n, zy) + (p[i + n] & 0xff) + zy * (x[n] & 0xff)
     p[i + n] = w & 0xff
     w >>= 8
   }
@@ -890,8 +857,8 @@ var curve25519_cpy16 = function(a: any) {
 }
 
 /***
-* BloodyRookie: odd numbers are negativ
-*/
+ * BloodyRookie: odd numbers are negativ
+ */
 var curve25519_isNegative = function(x: any) {
   return x[0] & 1
 }
@@ -913,20 +880,11 @@ var curve25519_sqr8h = function(
   r[2] = (v = ~~(v / 0x10000) + 2 * a0 * a2 + a1 * a1) & 0xffff
   r[3] = (v = ~~(v / 0x10000) + 2 * a0 * a3 + 2 * a1 * a2) & 0xffff
   r[4] = (v = ~~(v / 0x10000) + 2 * a0 * a4 + 2 * a1 * a3 + a2 * a2) & 0xffff
-  r[5] =
-    (v = ~~(v / 0x10000) + 2 * a0 * a5 + 2 * a1 * a4 + 2 * a2 * a3) & 0xffff
-  r[6] =
-    (v = ~~(v / 0x10000) + 2 * a0 * a6 + 2 * a1 * a5 + 2 * a2 * a4 + a3 * a3) &
-    0xffff
-  r[7] =
-    (v =
-      ~~(v / 0x10000) + 2 * a0 * a7 + 2 * a1 * a6 + 2 * a2 * a5 + 2 * a3 * a4) &
-    0xffff
-  r[8] =
-    (v = ~~(v / 0x10000) + 2 * a1 * a7 + 2 * a2 * a6 + 2 * a3 * a5 + a4 * a4) &
-    0xffff
-  r[9] =
-    (v = ~~(v / 0x10000) + 2 * a2 * a7 + 2 * a3 * a6 + 2 * a4 * a5) & 0xffff
+  r[5] = (v = ~~(v / 0x10000) + 2 * a0 * a5 + 2 * a1 * a4 + 2 * a2 * a3) & 0xffff
+  r[6] = (v = ~~(v / 0x10000) + 2 * a0 * a6 + 2 * a1 * a5 + 2 * a2 * a4 + a3 * a3) & 0xffff
+  r[7] = (v = ~~(v / 0x10000) + 2 * a0 * a7 + 2 * a1 * a6 + 2 * a2 * a5 + 2 * a3 * a4) & 0xffff
+  r[8] = (v = ~~(v / 0x10000) + 2 * a1 * a7 + 2 * a2 * a6 + 2 * a3 * a5 + a4 * a4) & 0xffff
+  r[9] = (v = ~~(v / 0x10000) + 2 * a2 * a7 + 2 * a3 * a6 + 2 * a4 * a5) & 0xffff
   r[10] = (v = ~~(v / 0x10000) + 2 * a3 * a7 + 2 * a4 * a6 + a5 * a5) & 0xffff
   r[11] = (v = ~~(v / 0x10000) + 2 * a4 * a7 + 2 * a5 * a6) & 0xffff
   r[12] = (v = ~~(v / 0x10000) + 2 * a5 * a7 + a6 * a6) & 0xffff
@@ -953,56 +911,21 @@ var curve25519_sqrmodp = function(r: any, a: any) {
     a[8] + a[0]
   )
   var v = 0
-  r[0] =
-    (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xffff
-  r[1] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[1] + (y[9] - x[9] - z[9] + x[1]) * 38) &
-    0xffff
-  r[2] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[2] + (y[10] - x[10] - z[10] + x[2]) * 38) &
-    0xffff
-  r[3] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[3] + (y[11] - x[11] - z[11] + x[3]) * 38) &
-    0xffff
-  r[4] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[4] + (y[12] - x[12] - z[12] + x[4]) * 38) &
-    0xffff
-  r[5] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[5] + (y[13] - x[13] - z[13] + x[5]) * 38) &
-    0xffff
-  r[6] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[6] + (y[14] - x[14] - z[14] + x[6]) * 38) &
-    0xffff
-  r[7] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[7] + (y[15] - x[15] - z[15] + x[7]) * 38) &
-    0xffff
-  r[8] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[8] + y[0] - x[0] - z[0] + x[8] * 38) &
-    0xffff
-  r[9] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[9] + y[1] - x[1] - z[1] + x[9] * 38) &
-    0xffff
-  r[10] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[10] + y[2] - x[2] - z[2] + x[10] * 38) &
-    0xffff
-  r[11] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[11] + y[3] - x[3] - z[3] + x[11] * 38) &
-    0xffff
-  r[12] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[12] + y[4] - x[4] - z[4] + x[12] * 38) &
-    0xffff
-  r[13] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[13] + y[5] - x[5] - z[5] + x[13] * 38) &
-    0xffff
-  r[14] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[14] + y[6] - x[6] - z[6] + x[14] * 38) &
-    0xffff
+  r[0] = (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xffff
+  r[1] = (v = 0x7fff80 + ~~(v / 0x10000) + z[1] + (y[9] - x[9] - z[9] + x[1]) * 38) & 0xffff
+  r[2] = (v = 0x7fff80 + ~~(v / 0x10000) + z[2] + (y[10] - x[10] - z[10] + x[2]) * 38) & 0xffff
+  r[3] = (v = 0x7fff80 + ~~(v / 0x10000) + z[3] + (y[11] - x[11] - z[11] + x[3]) * 38) & 0xffff
+  r[4] = (v = 0x7fff80 + ~~(v / 0x10000) + z[4] + (y[12] - x[12] - z[12] + x[4]) * 38) & 0xffff
+  r[5] = (v = 0x7fff80 + ~~(v / 0x10000) + z[5] + (y[13] - x[13] - z[13] + x[5]) * 38) & 0xffff
+  r[6] = (v = 0x7fff80 + ~~(v / 0x10000) + z[6] + (y[14] - x[14] - z[14] + x[6]) * 38) & 0xffff
+  r[7] = (v = 0x7fff80 + ~~(v / 0x10000) + z[7] + (y[15] - x[15] - z[15] + x[7]) * 38) & 0xffff
+  r[8] = (v = 0x7fff80 + ~~(v / 0x10000) + z[8] + y[0] - x[0] - z[0] + x[8] * 38) & 0xffff
+  r[9] = (v = 0x7fff80 + ~~(v / 0x10000) + z[9] + y[1] - x[1] - z[1] + x[9] * 38) & 0xffff
+  r[10] = (v = 0x7fff80 + ~~(v / 0x10000) + z[10] + y[2] - x[2] - z[2] + x[10] * 38) & 0xffff
+  r[11] = (v = 0x7fff80 + ~~(v / 0x10000) + z[11] + y[3] - x[3] - z[3] + x[11] * 38) & 0xffff
+  r[12] = (v = 0x7fff80 + ~~(v / 0x10000) + z[12] + y[4] - x[4] - z[4] + x[12] * 38) & 0xffff
+  r[13] = (v = 0x7fff80 + ~~(v / 0x10000) + z[13] + y[5] - x[5] - z[5] + x[13] * 38) & 0xffff
+  r[14] = (v = 0x7fff80 + ~~(v / 0x10000) + z[14] + y[6] - x[6] - z[6] + x[14] * 38) & 0xffff
   r[15] = 0x7fff80 + ~~(v / 0x10000) + z[15] + y[7] - x[7] - z[7] + x[15] * 38
   curve25519_reduce(r)
 }
@@ -1031,28 +954,11 @@ var curve25519_mul8h = function(
   r[1] = (v = ~~(v / 0x10000) + a0 * b1 + a1 * b0) & 0xffff
   r[2] = (v = ~~(v / 0x10000) + a0 * b2 + a1 * b1 + a2 * b0) & 0xffff
   r[3] = (v = ~~(v / 0x10000) + a0 * b3 + a1 * b2 + a2 * b1 + a3 * b0) & 0xffff
-  r[4] =
-    (v = ~~(v / 0x10000) + a0 * b4 + a1 * b3 + a2 * b2 + a3 * b1 + a4 * b0) &
-    0xffff
-  r[5] =
-    (v =
-      ~~(v / 0x10000) +
-      a0 * b5 +
-      a1 * b4 +
-      a2 * b3 +
-      a3 * b2 +
-      a4 * b1 +
-      a5 * b0) & 0xffff
+  r[4] = (v = ~~(v / 0x10000) + a0 * b4 + a1 * b3 + a2 * b2 + a3 * b1 + a4 * b0) & 0xffff
+  r[5] = (v = ~~(v / 0x10000) + a0 * b5 + a1 * b4 + a2 * b3 + a3 * b2 + a4 * b1 + a5 * b0) & 0xffff
   r[6] =
-    (v =
-      ~~(v / 0x10000) +
-      a0 * b6 +
-      a1 * b5 +
-      a2 * b4 +
-      a3 * b3 +
-      a4 * b2 +
-      a5 * b1 +
-      a6 * b0) & 0xffff
+    (v = ~~(v / 0x10000) + a0 * b6 + a1 * b5 + a2 * b4 + a3 * b3 + a4 * b2 + a5 * b1 + a6 * b0) &
+    0xffff
   r[7] =
     (v =
       ~~(v / 0x10000) +
@@ -1065,27 +971,10 @@ var curve25519_mul8h = function(
       a6 * b1 +
       a7 * b0) & 0xffff
   r[8] =
-    (v =
-      ~~(v / 0x10000) +
-      a1 * b7 +
-      a2 * b6 +
-      a3 * b5 +
-      a4 * b4 +
-      a5 * b3 +
-      a6 * b2 +
-      a7 * b1) & 0xffff
-  r[9] =
-    (v =
-      ~~(v / 0x10000) +
-      a2 * b7 +
-      a3 * b6 +
-      a4 * b5 +
-      a5 * b4 +
-      a6 * b3 +
-      a7 * b2) & 0xffff
-  r[10] =
-    (v = ~~(v / 0x10000) + a3 * b7 + a4 * b6 + a5 * b5 + a6 * b4 + a7 * b3) &
+    (v = ~~(v / 0x10000) + a1 * b7 + a2 * b6 + a3 * b5 + a4 * b4 + a5 * b3 + a6 * b2 + a7 * b1) &
     0xffff
+  r[9] = (v = ~~(v / 0x10000) + a2 * b7 + a3 * b6 + a4 * b5 + a5 * b4 + a6 * b3 + a7 * b2) & 0xffff
+  r[10] = (v = ~~(v / 0x10000) + a3 * b7 + a4 * b6 + a5 * b5 + a6 * b4 + a7 * b3) & 0xffff
   r[11] = (v = ~~(v / 0x10000) + a4 * b7 + a5 * b6 + a6 * b5 + a7 * b4) & 0xffff
   r[12] = (v = ~~(v / 0x10000) + a5 * b7 + a6 * b6 + a7 * b5) & 0xffff
   r[13] = (v = ~~(v / 0x10000) + a6 * b7 + a7 * b6) & 0xffff
@@ -1155,56 +1044,21 @@ var curve25519_mulmodp = function(r: any, a: any, b: any) {
     b[8] + b[0]
   )
   var v = 0
-  r[0] =
-    (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xffff
-  r[1] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[1] + (y[9] - x[9] - z[9] + x[1]) * 38) &
-    0xffff
-  r[2] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[2] + (y[10] - x[10] - z[10] + x[2]) * 38) &
-    0xffff
-  r[3] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[3] + (y[11] - x[11] - z[11] + x[3]) * 38) &
-    0xffff
-  r[4] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[4] + (y[12] - x[12] - z[12] + x[4]) * 38) &
-    0xffff
-  r[5] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[5] + (y[13] - x[13] - z[13] + x[5]) * 38) &
-    0xffff
-  r[6] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[6] + (y[14] - x[14] - z[14] + x[6]) * 38) &
-    0xffff
-  r[7] =
-    (v =
-      0x7fff80 + ~~(v / 0x10000) + z[7] + (y[15] - x[15] - z[15] + x[7]) * 38) &
-    0xffff
-  r[8] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[8] + y[0] - x[0] - z[0] + x[8] * 38) &
-    0xffff
-  r[9] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[9] + y[1] - x[1] - z[1] + x[9] * 38) &
-    0xffff
-  r[10] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[10] + y[2] - x[2] - z[2] + x[10] * 38) &
-    0xffff
-  r[11] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[11] + y[3] - x[3] - z[3] + x[11] * 38) &
-    0xffff
-  r[12] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[12] + y[4] - x[4] - z[4] + x[12] * 38) &
-    0xffff
-  r[13] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[13] + y[5] - x[5] - z[5] + x[13] * 38) &
-    0xffff
-  r[14] =
-    (v = 0x7fff80 + ~~(v / 0x10000) + z[14] + y[6] - x[6] - z[6] + x[14] * 38) &
-    0xffff
+  r[0] = (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xffff
+  r[1] = (v = 0x7fff80 + ~~(v / 0x10000) + z[1] + (y[9] - x[9] - z[9] + x[1]) * 38) & 0xffff
+  r[2] = (v = 0x7fff80 + ~~(v / 0x10000) + z[2] + (y[10] - x[10] - z[10] + x[2]) * 38) & 0xffff
+  r[3] = (v = 0x7fff80 + ~~(v / 0x10000) + z[3] + (y[11] - x[11] - z[11] + x[3]) * 38) & 0xffff
+  r[4] = (v = 0x7fff80 + ~~(v / 0x10000) + z[4] + (y[12] - x[12] - z[12] + x[4]) * 38) & 0xffff
+  r[5] = (v = 0x7fff80 + ~~(v / 0x10000) + z[5] + (y[13] - x[13] - z[13] + x[5]) * 38) & 0xffff
+  r[6] = (v = 0x7fff80 + ~~(v / 0x10000) + z[6] + (y[14] - x[14] - z[14] + x[6]) * 38) & 0xffff
+  r[7] = (v = 0x7fff80 + ~~(v / 0x10000) + z[7] + (y[15] - x[15] - z[15] + x[7]) * 38) & 0xffff
+  r[8] = (v = 0x7fff80 + ~~(v / 0x10000) + z[8] + y[0] - x[0] - z[0] + x[8] * 38) & 0xffff
+  r[9] = (v = 0x7fff80 + ~~(v / 0x10000) + z[9] + y[1] - x[1] - z[1] + x[9] * 38) & 0xffff
+  r[10] = (v = 0x7fff80 + ~~(v / 0x10000) + z[10] + y[2] - x[2] - z[2] + x[10] * 38) & 0xffff
+  r[11] = (v = 0x7fff80 + ~~(v / 0x10000) + z[11] + y[3] - x[3] - z[3] + x[11] * 38) & 0xffff
+  r[12] = (v = 0x7fff80 + ~~(v / 0x10000) + z[12] + y[4] - x[4] - z[4] + x[12] * 38) & 0xffff
+  r[13] = (v = 0x7fff80 + ~~(v / 0x10000) + z[13] + y[5] - x[5] - z[5] + x[13] * 38) & 0xffff
+  r[14] = (v = 0x7fff80 + ~~(v / 0x10000) + z[14] + y[6] - x[6] - z[6] + x[14] * 38) & 0xffff
   r[15] = 0x7fff80 + ~~(v / 0x10000) + z[15] + y[7] - x[7] - z[7] + x[15] * 38
   curve25519_reduce(r)
 }
@@ -1232,8 +1086,7 @@ var curve25519_mulasmall = function(r: any, a: any, m: any) {
 
 var curve25519_addmodp = function(r: any, a: any, b: any) {
   var v = 0
-  r[0] =
-    (v = (~~(a[15] / 0x8000) + ~~(b[15] / 0x8000)) * 19 + a[0] + b[0]) & 0xffff
+  r[0] = (v = (~~(a[15] / 0x8000) + ~~(b[15] / 0x8000)) * 19 + a[0] + b[0]) & 0xffff
   r[1] = (v = ~~(v / 0x10000) + a[1] + b[1]) & 0xffff
   r[2] = (v = ~~(v / 0x10000) + a[2] + b[2]) & 0xffff
   r[3] = (v = ~~(v / 0x10000) + a[3] + b[3]) & 0xffff
@@ -1253,12 +1106,7 @@ var curve25519_addmodp = function(r: any, a: any, b: any) {
 
 var curve25519_submodp = function(r: any, a: any, b: any) {
   var v = 0
-  r[0] =
-    (v =
-      0x80000 +
-      (~~(a[15] / 0x8000) - ~~(b[15] / 0x8000) - 1) * 19 +
-      a[0] -
-      b[0]) & 0xffff
+  r[0] = (v = 0x80000 + (~~(a[15] / 0x8000) - ~~(b[15] / 0x8000) - 1) * 19 + a[0] - b[0]) & 0xffff
   r[1] = (v = ~~(v / 0x10000) + 0x7fff8 + a[1] - b[1]) & 0xffff
   r[2] = (v = ~~(v / 0x10000) + 0x7fff8 + a[2] - b[2]) & 0xffff
   r[3] = (v = ~~(v / 0x10000) + 0x7fff8 + a[3] - b[3]) & 0xffff
@@ -1276,9 +1124,9 @@ var curve25519_submodp = function(r: any, a: any, b: any) {
   r[15] = ~~(v / 0x10000) + 0x7ff8 + a[15] % 0x8000 - b[15] % 0x8000
 }
 /****
-* BloodyRookie: a^-1 is found via Fermats little theorem:
-* a^p congruent a mod p and therefore a^(p-2) congruent a^-1 mod p
-*/
+ * BloodyRookie: a^-1 is found via Fermats little theorem:
+ * a^p congruent a mod p and therefore a^(p-2) congruent a^-1 mod p
+ */
 var curve25519_invmodp = function(r: any, a: any, sqrtassist: any) {
   var r1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   var r2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -1354,8 +1202,8 @@ var curve25519_reduce = function(a: any) {
   curve25519_reduce2(a)
 
   /**
-  * BloodyRookie: special case for p <= a < 2^255
-  */
+   * BloodyRookie: special case for p <= a < 2^255
+   */
   if (
     a[15] != 0x7fff ||
     a[14] != 0xffff ||
@@ -1422,8 +1270,8 @@ var curve25519_reduce2 = function(a: any) {
 }
 
 /**
-* Montgomery curve with A=486662 and B=1
-*/
+ * Montgomery curve with A=486662 and B=1
+ */
 var curve25519_x_to_y2 = function(r: any, x: any) {
   var r1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   var r2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -1440,14 +1288,14 @@ var curve25519_prep = function(r: any, s: any, a: any, b: any) {
 }
 
 /****
-* BloodyRookie: Doubling a point on a Montgomery curve:
-* Point is given in projective coordinates p=x/z
-* 2*P = r/s,
-* r = (x+z)^2 * (x-z)^2
-* s = ((((x+z)^2 - (x-z)^2) * 121665) + (x+z)^2) * ((x+z)^2 - (x-z)^2)
-*   = 4*x*z * (x^2 + 486662*x*z + z^2)
-*   = 4*x*z * ((x-z)^2 + ((486662+2)/4)(4*x*z))
-*/
+ * BloodyRookie: Doubling a point on a Montgomery curve:
+ * Point is given in projective coordinates p=x/z
+ * 2*P = r/s,
+ * r = (x+z)^2 * (x-z)^2
+ * s = ((((x+z)^2 - (x-z)^2) * 121665) + (x+z)^2) * ((x+z)^2 - (x-z)^2)
+ *   = 4*x*z * (x^2 + 486662*x*z + z^2)
+ *   = 4*x*z * ((x-z)^2 + ((486662+2)/4)(4*x*z))
+ */
 var curve25519_dbl = function(r: any, s: any, t1: any, t2: any) {
   var r1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   var r2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -1463,21 +1311,13 @@ var curve25519_dbl = function(r: any, s: any, t1: any, t2: any) {
 }
 
 /****
-* BloodyRookie: Adding 2 points on a Montgomery curve:
-* R = Q + P = r/s when given
-* Q = x/z, P = x_p/z_p, P-Q = x_1/1
-* r = ((x-z)*(x_p+z_p) + (x+z)*(x_p-z_p))^2
-* s = x_1*((x-z)*(x_p+z_p) - (x+z)*(x_p-z_p))^2
-*/
-function curve25519_sum(
-  r: any,
-  s: any,
-  t1: any,
-  t2: any,
-  t3: any,
-  t4: any,
-  x_1: any
-) {
+ * BloodyRookie: Adding 2 points on a Montgomery curve:
+ * R = Q + P = r/s when given
+ * Q = x/z, P = x_p/z_p, P-Q = x_1/1
+ * r = ((x-z)*(x_p+z_p) + (x+z)*(x_p-z_p))^2
+ * s = x_1*((x-z)*(x_p+z_p) - (x+z)*(x_p-z_p))^2
+ */
+function curve25519_sum(r: any, s: any, t1: any, t2: any, t3: any, t4: any, x_1: any) {
   var r1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   var r2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   var r3 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -1511,21 +1351,21 @@ function curve25519_(f: any, c: any, s: any) {
   var n = 255
 
   /**********************************************************************
-  * BloodyRookie:                                                      *
-  * Given f = f0*2^0 + f1*2^1 + ... + f255*2^255 and Basepoint a=9/1   *
-  * calculate f*a by applying the Montgomery ladder (const time algo): *
-  * r0 := 0 (point at infinity)                                        *
-  * r1 := a                                                            *
-  * for i from 255 to 0 do                                             *
-  *   if fi = 0 then                                                   *
-  *      r1 := r0 + r1                                                 *
-  *      r0 := 2r0                                                     *
-  *   else                                                             *
-  *      r0 := r0 + r1                                                 *
-  *      r1 := 2r1                                                     *
-  *                                                                    *
-  * Result: r0 = x-coordinate of f*a                                   *
-  **********************************************************************/
+   * BloodyRookie:                                                      *
+   * Given f = f0*2^0 + f1*2^1 + ... + f255*2^255 and Basepoint a=9/1   *
+   * calculate f*a by applying the Montgomery ladder (const time algo): *
+   * r0 := 0 (point at infinity)                                        *
+   * r1 := a                                                            *
+   * for i from 255 to 0 do                                             *
+   *   if fi = 0 then                                                   *
+   *      r1 := r0 + r1                                                 *
+   *      r0 := 2r0                                                     *
+   *   else                                                             *
+   *      r0 := r0 + r1                                                 *
+   *      r1 := 2r1                                                     *
+   *                                                                    *
+   * Result: r0 = x-coordinate of f*a                                   *
+   **********************************************************************/
   var r0 = new Array(new Array(16), new Array(16))
   var r1 = new Array(new Array(16), new Array(16))
   var t1 = new Array(16),
@@ -1559,17 +1399,17 @@ function curve25519_(f: any, c: any, s: any) {
   // a = q + G = P + G
   if (s != null) {
     /*************************************************************************
-    * BloodyRookie: Recovery of the y-coordinate of point P:                *
-    *                                                                       *
-    * If P=(x,y), P1=(x1, y1), P2=(x2,y2) and P2 = P1 + P then              *
-    *                                                                       *
-    * y1 = ((x1 * x + 1)(x1 + x + 2A) - 2A - (x1 - x)^2 * x2)/2y            *
-    *                                                                       *
-    * Setting P2=Q, P1=P and P=G in the above formula we get                *
-    *                                                                       *
-    * Py =  ((Px * Gx + 1) * (Px + Gx + 2A) - 2A - (Px - Gx)^2 * Qx)/(2*Gy) *
-    *    = -((Qx + Px + Gx + A) * (Px - Gx)^2 - Py^2 - Gy^2)/(2*Gy)         *
-    *************************************************************************/
+     * BloodyRookie: Recovery of the y-coordinate of point P:                *
+     *                                                                       *
+     * If P=(x,y), P1=(x1, y1), P2=(x2,y2) and P2 = P1 + P then              *
+     *                                                                       *
+     * y1 = ((x1 * x + 1)(x1 + x + 2A) - 2A - (x1 - x)^2 * x2)/2y            *
+     *                                                                       *
+     * Setting P2=Q, P1=P and P=G in the above formula we get                *
+     *                                                                       *
+     * Py =  ((Px * Gx + 1) * (Px + Gx + 2A) - 2A - (Px - Gx)^2 * Qx)/(2*Gy) *
+     *    = -((Qx + Px + Gx + A) * (Px - Gx)^2 - Py^2 - Gy^2)/(2*Gy)         *
+     *************************************************************************/
     t = curve25519_cpy16(q[0])
     curve25519_x_to_y2(t1, t) // t1 = Py^2
     curve25519_invmodp(t3, a[1], 0)
@@ -1586,14 +1426,14 @@ function curve25519_(f: any, c: any, s: any) {
     j = curve25519_isNegative(t1)
     if (j != 0) {
       /***
-      * Py is positiv, so just copy
-      */
+       * Py is positiv, so just copy
+       */
       sb = curve25519_cpy32(fb)
     } else {
       /***
-      * Py is negative:
-      * We will take s = -f^-1 mod q instead of s=f^-1 mod q
-      */
+       * Py is negative:
+       * We will take s = -f^-1 mod q instead of s=f^-1 mod q
+       */
       curve25519_mula_small(sb, curve25519_order_times_8, 0, fb, 32, -1)
     }
 
@@ -1809,8 +1649,7 @@ var curve25519 = (function() {
     var i = 0
     for (; i < t; i++) {
       var zy = z * (y[i] & 0xff)
-      w +=
-        mula_small(p, p, i, x, n, zy) + (p[i + n] & 0xff) + zy * (x[n] & 0xff)
+      w += mula_small(p, p, i, x, n, zy) + (p[i + n] & 0xff) + zy * (x[n] & 0xff)
       p[i + n] = w & 0xff
       w >>= 8
     }
@@ -1891,8 +1730,7 @@ var curve25519 = (function() {
 
   /* Convert to internal format from little-endian byte format */
   function unpack(x: any, m: any) {
-    for (var i = 0; i < KEY_SIZE; i += 2)
-      x[i / 2] = (m[i] & 0xff) | ((m[i + 1] & 0xff) << 8)
+    for (var i = 0; i < KEY_SIZE; i += 2) x[i / 2] = (m[i] & 0xff) | ((m[i + 1] & 0xff) << 8)
   }
 
   /* Check if reduced-form input >= 2^255-19 */
@@ -2052,53 +1890,21 @@ var curve25519 = (function() {
 
   //region JavaScript Fast Math
 
-  function c255lsqr8h(
-    a7: any,
-    a6: any,
-    a5: any,
-    a4: any,
-    a3: any,
-    a2: any,
-    a1: any,
-    a0: any
-  ) {
+  function c255lsqr8h(a7: any, a6: any, a5: any, a4: any, a3: any, a2: any, a1: any, a0: any) {
     var r = []
     var v
     r[0] = (v = a0 * a0) & 0xffff
     r[1] = (v = ((v / 0x10000) | 0) + 2 * a0 * a1) & 0xffff
     r[2] = (v = ((v / 0x10000) | 0) + 2 * a0 * a2 + a1 * a1) & 0xffff
     r[3] = (v = ((v / 0x10000) | 0) + 2 * a0 * a3 + 2 * a1 * a2) & 0xffff
-    r[4] =
-      (v = ((v / 0x10000) | 0) + 2 * a0 * a4 + 2 * a1 * a3 + a2 * a2) & 0xffff
-    r[5] =
-      (v = ((v / 0x10000) | 0) + 2 * a0 * a5 + 2 * a1 * a4 + 2 * a2 * a3) &
-      0xffff
-    r[6] =
-      (v =
-        ((v / 0x10000) | 0) +
-        2 * a0 * a6 +
-        2 * a1 * a5 +
-        2 * a2 * a4 +
-        a3 * a3) & 0xffff
+    r[4] = (v = ((v / 0x10000) | 0) + 2 * a0 * a4 + 2 * a1 * a3 + a2 * a2) & 0xffff
+    r[5] = (v = ((v / 0x10000) | 0) + 2 * a0 * a5 + 2 * a1 * a4 + 2 * a2 * a3) & 0xffff
+    r[6] = (v = ((v / 0x10000) | 0) + 2 * a0 * a6 + 2 * a1 * a5 + 2 * a2 * a4 + a3 * a3) & 0xffff
     r[7] =
-      (v =
-        ((v / 0x10000) | 0) +
-        2 * a0 * a7 +
-        2 * a1 * a6 +
-        2 * a2 * a5 +
-        2 * a3 * a4) & 0xffff
-    r[8] =
-      (v =
-        ((v / 0x10000) | 0) +
-        2 * a1 * a7 +
-        2 * a2 * a6 +
-        2 * a3 * a5 +
-        a4 * a4) & 0xffff
-    r[9] =
-      (v = ((v / 0x10000) | 0) + 2 * a2 * a7 + 2 * a3 * a6 + 2 * a4 * a5) &
-      0xffff
-    r[10] =
-      (v = ((v / 0x10000) | 0) + 2 * a3 * a7 + 2 * a4 * a6 + a5 * a5) & 0xffff
+      (v = ((v / 0x10000) | 0) + 2 * a0 * a7 + 2 * a1 * a6 + 2 * a2 * a5 + 2 * a3 * a4) & 0xffff
+    r[8] = (v = ((v / 0x10000) | 0) + 2 * a1 * a7 + 2 * a2 * a6 + 2 * a3 * a5 + a4 * a4) & 0xffff
+    r[9] = (v = ((v / 0x10000) | 0) + 2 * a2 * a7 + 2 * a3 * a6 + 2 * a4 * a5) & 0xffff
+    r[10] = (v = ((v / 0x10000) | 0) + 2 * a3 * a7 + 2 * a4 * a6 + a5 * a5) & 0xffff
     r[11] = (v = ((v / 0x10000) | 0) + 2 * a4 * a7 + 2 * a5 * a6) & 0xffff
     r[12] = (v = ((v / 0x10000) | 0) + 2 * a5 * a7 + a6 * a6) & 0xffff
     r[13] = (v = ((v / 0x10000) | 0) + 2 * a6 * a7) & 0xffff
@@ -2122,115 +1928,28 @@ var curve25519 = (function() {
     )
 
     var v
-    r[0] =
-      (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xffff
-    r[1] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[1] +
-        (y[9] - x[9] - z[9] + x[1]) * 38) & 0xffff
+    r[0] = (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xffff
+    r[1] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[1] + (y[9] - x[9] - z[9] + x[1]) * 38) & 0xffff
     r[2] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[2] +
-        (y[10] - x[10] - z[10] + x[2]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[2] + (y[10] - x[10] - z[10] + x[2]) * 38) & 0xffff
     r[3] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[3] +
-        (y[11] - x[11] - z[11] + x[3]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[3] + (y[11] - x[11] - z[11] + x[3]) * 38) & 0xffff
     r[4] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[4] +
-        (y[12] - x[12] - z[12] + x[4]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[4] + (y[12] - x[12] - z[12] + x[4]) * 38) & 0xffff
     r[5] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[5] +
-        (y[13] - x[13] - z[13] + x[5]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[5] + (y[13] - x[13] - z[13] + x[5]) * 38) & 0xffff
     r[6] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[6] +
-        (y[14] - x[14] - z[14] + x[6]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[6] + (y[14] - x[14] - z[14] + x[6]) * 38) & 0xffff
     r[7] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[7] +
-        (y[15] - x[15] - z[15] + x[7]) * 38) & 0xffff
-    r[8] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[8] +
-        y[0] -
-        x[0] -
-        z[0] +
-        x[8] * 38) & 0xffff
-    r[9] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[9] +
-        y[1] -
-        x[1] -
-        z[1] +
-        x[9] * 38) & 0xffff
-    r[10] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[10] +
-        y[2] -
-        x[2] -
-        z[2] +
-        x[10] * 38) & 0xffff
-    r[11] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[11] +
-        y[3] -
-        x[3] -
-        z[3] +
-        x[11] * 38) & 0xffff
-    r[12] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[12] +
-        y[4] -
-        x[4] -
-        z[4] +
-        x[12] * 38) & 0xffff
-    r[13] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[13] +
-        y[5] -
-        x[5] -
-        z[5] +
-        x[13] * 38) & 0xffff
-    r[14] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[14] +
-        y[6] -
-        x[6] -
-        z[6] +
-        x[14] * 38) & 0xffff
-    var r15 =
-      0x7fff80 + ((v / 0x10000) | 0) + z[15] + y[7] - x[7] - z[7] + x[15] * 38
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[7] + (y[15] - x[15] - z[15] + x[7]) * 38) & 0xffff
+    r[8] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[8] + y[0] - x[0] - z[0] + x[8] * 38) & 0xffff
+    r[9] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[9] + y[1] - x[1] - z[1] + x[9] * 38) & 0xffff
+    r[10] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[10] + y[2] - x[2] - z[2] + x[10] * 38) & 0xffff
+    r[11] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[11] + y[3] - x[3] - z[3] + x[11] * 38) & 0xffff
+    r[12] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[12] + y[4] - x[4] - z[4] + x[12] * 38) & 0xffff
+    r[13] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[13] + y[5] - x[5] - z[5] + x[13] * 38) & 0xffff
+    r[14] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[14] + y[6] - x[6] - z[6] + x[14] * 38) & 0xffff
+    var r15 = 0x7fff80 + ((v / 0x10000) | 0) + z[15] + y[7] - x[7] - z[7] + x[15] * 38
     c255lreduce(r, r15)
   }
 
@@ -2257,31 +1976,14 @@ var curve25519 = (function() {
     r[0] = (v = a0 * b0) & 0xffff
     r[1] = (v = ((v / 0x10000) | 0) + a0 * b1 + a1 * b0) & 0xffff
     r[2] = (v = ((v / 0x10000) | 0) + a0 * b2 + a1 * b1 + a2 * b0) & 0xffff
-    r[3] =
-      (v = ((v / 0x10000) | 0) + a0 * b3 + a1 * b2 + a2 * b1 + a3 * b0) & 0xffff
-    r[4] =
-      (v =
-        ((v / 0x10000) | 0) + a0 * b4 + a1 * b3 + a2 * b2 + a3 * b1 + a4 * b0) &
-      0xffff
+    r[3] = (v = ((v / 0x10000) | 0) + a0 * b3 + a1 * b2 + a2 * b1 + a3 * b0) & 0xffff
+    r[4] = (v = ((v / 0x10000) | 0) + a0 * b4 + a1 * b3 + a2 * b2 + a3 * b1 + a4 * b0) & 0xffff
     r[5] =
-      (v =
-        ((v / 0x10000) | 0) +
-        a0 * b5 +
-        a1 * b4 +
-        a2 * b3 +
-        a3 * b2 +
-        a4 * b1 +
-        a5 * b0) & 0xffff
+      (v = ((v / 0x10000) | 0) + a0 * b5 + a1 * b4 + a2 * b3 + a3 * b2 + a4 * b1 + a5 * b0) & 0xffff
     r[6] =
       (v =
-        ((v / 0x10000) | 0) +
-        a0 * b6 +
-        a1 * b5 +
-        a2 * b4 +
-        a3 * b3 +
-        a4 * b2 +
-        a5 * b1 +
-        a6 * b0) & 0xffff
+        ((v / 0x10000) | 0) + a0 * b6 + a1 * b5 + a2 * b4 + a3 * b3 + a4 * b2 + a5 * b1 + a6 * b0) &
+      0xffff
     r[7] =
       (v =
         ((v / 0x10000) | 0) +
@@ -2295,29 +1997,12 @@ var curve25519 = (function() {
         a7 * b0) & 0xffff
     r[8] =
       (v =
-        ((v / 0x10000) | 0) +
-        a1 * b7 +
-        a2 * b6 +
-        a3 * b5 +
-        a4 * b4 +
-        a5 * b3 +
-        a6 * b2 +
-        a7 * b1) & 0xffff
-    r[9] =
-      (v =
-        ((v / 0x10000) | 0) +
-        a2 * b7 +
-        a3 * b6 +
-        a4 * b5 +
-        a5 * b4 +
-        a6 * b3 +
-        a7 * b2) & 0xffff
-    r[10] =
-      (v =
-        ((v / 0x10000) | 0) + a3 * b7 + a4 * b6 + a5 * b5 + a6 * b4 + a7 * b3) &
+        ((v / 0x10000) | 0) + a1 * b7 + a2 * b6 + a3 * b5 + a4 * b4 + a5 * b3 + a6 * b2 + a7 * b1) &
       0xffff
-    r[11] =
-      (v = ((v / 0x10000) | 0) + a4 * b7 + a5 * b6 + a6 * b5 + a7 * b4) & 0xffff
+    r[9] =
+      (v = ((v / 0x10000) | 0) + a2 * b7 + a3 * b6 + a4 * b5 + a5 * b4 + a6 * b3 + a7 * b2) & 0xffff
+    r[10] = (v = ((v / 0x10000) | 0) + a3 * b7 + a4 * b6 + a5 * b5 + a6 * b4 + a7 * b3) & 0xffff
+    r[11] = (v = ((v / 0x10000) | 0) + a4 * b7 + a5 * b6 + a6 * b5 + a7 * b4) & 0xffff
     r[12] = (v = ((v / 0x10000) | 0) + a5 * b7 + a6 * b6 + a7 * b5) & 0xffff
     r[13] = (v = ((v / 0x10000) | 0) + a6 * b7 + a7 * b6) & 0xffff
     r[14] = (v = ((v / 0x10000) | 0) + a7 * b7) & 0xffff
@@ -2383,115 +2068,28 @@ var curve25519 = (function() {
     )
 
     var v
-    r[0] =
-      (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xffff
-    r[1] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[1] +
-        (y[9] - x[9] - z[9] + x[1]) * 38) & 0xffff
+    r[0] = (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xffff
+    r[1] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[1] + (y[9] - x[9] - z[9] + x[1]) * 38) & 0xffff
     r[2] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[2] +
-        (y[10] - x[10] - z[10] + x[2]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[2] + (y[10] - x[10] - z[10] + x[2]) * 38) & 0xffff
     r[3] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[3] +
-        (y[11] - x[11] - z[11] + x[3]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[3] + (y[11] - x[11] - z[11] + x[3]) * 38) & 0xffff
     r[4] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[4] +
-        (y[12] - x[12] - z[12] + x[4]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[4] + (y[12] - x[12] - z[12] + x[4]) * 38) & 0xffff
     r[5] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[5] +
-        (y[13] - x[13] - z[13] + x[5]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[5] + (y[13] - x[13] - z[13] + x[5]) * 38) & 0xffff
     r[6] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[6] +
-        (y[14] - x[14] - z[14] + x[6]) * 38) & 0xffff
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[6] + (y[14] - x[14] - z[14] + x[6]) * 38) & 0xffff
     r[7] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[7] +
-        (y[15] - x[15] - z[15] + x[7]) * 38) & 0xffff
-    r[8] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[8] +
-        y[0] -
-        x[0] -
-        z[0] +
-        x[8] * 38) & 0xffff
-    r[9] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[9] +
-        y[1] -
-        x[1] -
-        z[1] +
-        x[9] * 38) & 0xffff
-    r[10] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[10] +
-        y[2] -
-        x[2] -
-        z[2] +
-        x[10] * 38) & 0xffff
-    r[11] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[11] +
-        y[3] -
-        x[3] -
-        z[3] +
-        x[11] * 38) & 0xffff
-    r[12] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[12] +
-        y[4] -
-        x[4] -
-        z[4] +
-        x[12] * 38) & 0xffff
-    r[13] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[13] +
-        y[5] -
-        x[5] -
-        z[5] +
-        x[13] * 38) & 0xffff
-    r[14] =
-      (v =
-        0x7fff80 +
-        ((v / 0x10000) | 0) +
-        z[14] +
-        y[6] -
-        x[6] -
-        z[6] +
-        x[14] * 38) & 0xffff
-    var r15 =
-      0x7fff80 + ((v / 0x10000) | 0) + z[15] + y[7] - x[7] - z[7] + x[15] * 38
+      (v = 0x7fff80 + ((v / 0x10000) | 0) + z[7] + (y[15] - x[15] - z[15] + x[7]) * 38) & 0xffff
+    r[8] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[8] + y[0] - x[0] - z[0] + x[8] * 38) & 0xffff
+    r[9] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[9] + y[1] - x[1] - z[1] + x[9] * 38) & 0xffff
+    r[10] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[10] + y[2] - x[2] - z[2] + x[10] * 38) & 0xffff
+    r[11] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[11] + y[3] - x[3] - z[3] + x[11] * 38) & 0xffff
+    r[12] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[12] + y[4] - x[4] - z[4] + x[12] * 38) & 0xffff
+    r[13] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[13] + y[5] - x[5] - z[5] + x[13] * 38) & 0xffff
+    r[14] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[14] + y[6] - x[6] - z[6] + x[14] * 38) & 0xffff
+    var r15 = 0x7fff80 + ((v / 0x10000) | 0) + z[15] + y[7] - x[7] - z[7] + x[15] * 38
     c255lreduce(r, r15)
   }
 
@@ -2509,12 +2107,8 @@ var curve25519 = (function() {
 
   function c255laddmodp(r: any, a: any, b: any) {
     var v
-    r[0] =
-      (v =
-        (((a[15] / 0x8000) | 0) + ((b[15] / 0x8000) | 0)) * 19 + a[0] + b[0]) &
-      0xffff
-    for (var i = 1; i <= 14; ++i)
-      r[i] = (v = ((v / 0x10000) | 0) + a[i] + b[i]) & 0xffff
+    r[0] = (v = (((a[15] / 0x8000) | 0) + ((b[15] / 0x8000) | 0)) * 19 + a[0] + b[0]) & 0xffff
+    for (var i = 1; i <= 14; ++i) r[i] = (v = ((v / 0x10000) | 0) + a[i] + b[i]) & 0xffff
 
     r[15] = ((v / 0x10000) | 0) + (a[15] & 0x7fff) + (b[15] & 0x7fff)
   }
@@ -2522,13 +2116,9 @@ var curve25519 = (function() {
   function c255lsubmodp(r: any, a: any, b: any) {
     var v
     r[0] =
-      (v =
-        0x80000 +
-        (((a[15] / 0x8000) | 0) - ((b[15] / 0x8000) | 0) - 1) * 19 +
-        a[0] -
-        b[0]) & 0xffff
-    for (var i = 1; i <= 14; ++i)
-      r[i] = (v = ((v / 0x10000) | 0) + 0x7fff8 + a[i] - b[i]) & 0xffff
+      (v = 0x80000 + (((a[15] / 0x8000) | 0) - ((b[15] / 0x8000) | 0) - 1) * 19 + a[0] - b[0]) &
+      0xffff
+    for (var i = 1; i <= 14; ++i) r[i] = (v = ((v / 0x10000) | 0) + 0x7fff8 + a[i] - b[i]) & 0xffff
 
     r[15] = ((v / 0x10000) | 0) + 0x7ff8 + (a[15] & 0x7fff) - (b[15] & 0x7fff)
   }
@@ -2536,8 +2126,7 @@ var curve25519 = (function() {
   function c255lmulasmall(r: any, a: any, m: any) {
     var v
     r[0] = (v = a[0] * m) & 0xffff
-    for (var i = 1; i <= 14; ++i)
-      r[i] = (v = ((v / 0x10000) | 0) + a[i] * m) & 0xffff
+    for (var i = 1; i <= 14; ++i) r[i] = (v = ((v / 0x10000) | 0) + a[i] * m) & 0xffff
 
     var r15 = ((v / 0x10000) | 0) + a[15] * m
     c255lreduce(r, r15)
@@ -2562,15 +2151,7 @@ var curve25519 = (function() {
   *  X(Q) = (t3+t4)/(t3-t4)
   *  X(P-Q) = dx
   * clobbers t1 and t2, preserves t3 and t4  */
-  function mont_add(
-    t1: any,
-    t2: any,
-    t3: any,
-    t4: any,
-    ax: any,
-    az: any,
-    dx: any
-  ) {
+  function mont_add(t1: any, t2: any, t3: any, t4: any, ax: any, az: any, dx: any) {
     mul(ax, t2, t3)
     mul(az, t1, t4)
     add(t1, ax, az)
@@ -2773,26 +2354,10 @@ var curve25519 = (function() {
     var d = new Array(32)
     var p = [createUnpackedArray(), createUnpackedArray()]
     var s = [createUnpackedArray(), createUnpackedArray()]
-    var yx = [
-      createUnpackedArray(),
-      createUnpackedArray(),
-      createUnpackedArray()
-    ]
-    var yz = [
-      createUnpackedArray(),
-      createUnpackedArray(),
-      createUnpackedArray()
-    ]
-    var t1 = [
-      createUnpackedArray(),
-      createUnpackedArray(),
-      createUnpackedArray()
-    ]
-    var t2 = [
-      createUnpackedArray(),
-      createUnpackedArray(),
-      createUnpackedArray()
-    ]
+    var yx = [createUnpackedArray(), createUnpackedArray(), createUnpackedArray()]
+    var yz = [createUnpackedArray(), createUnpackedArray(), createUnpackedArray()]
+    var t1 = [createUnpackedArray(), createUnpackedArray(), createUnpackedArray()]
+    var t2 = [createUnpackedArray(), createUnpackedArray(), createUnpackedArray()]
 
     var vi = 0,
       hi = 0,
@@ -2884,15 +2449,7 @@ var curve25519 = (function() {
         k = ((di >> j) & 2) ^ (((di >> j) & 1) << 1)
         mont_add(t1[1], t2[1], t1[k], t2[k], yx[1], yz[1], p[(di >> j) & 1])
 
-        mont_add(
-          t1[2],
-          t2[2],
-          t1[0],
-          t2[0],
-          yx[2],
-          yz[2],
-          s[(((vi ^ hi) >> j) & 2) >> 1]
-        )
+        mont_add(t1[2], t2[2], t1[0], t2[0], yx[2], yz[2], s[(((vi ^ hi) >> j) & 2) >> 1])
       }
     }
 
@@ -3047,8 +2604,7 @@ SHA256_write: add a message fragment to the hash function's internal state.
 */
 
 function SHA256_write(msg: any) {
-  if (typeof msg == "string")
-    SHA256_buf = SHA256_buf.concat(string_to_array(msg))
+  if (typeof msg == "string") SHA256_buf = SHA256_buf.concat(string_to_array(msg))
   else SHA256_buf = SHA256_buf.concat(msg)
 
   for (var i = 0; i + 64 <= SHA256_buf.length; i += 64)
@@ -3248,17 +2804,11 @@ function SHA256_sigma1(x: any) {
 }
 
 function SHA256_Sigma0(x: any) {
-  return (
-    ((x >>> 2) | (x << 30)) ^
-    ((x >>> 13) | (x << 19)) ^
-    ((x >>> 22) | (x << 10))
-  )
+  return ((x >>> 2) | (x << 30)) ^ ((x >>> 13) | (x << 19)) ^ ((x >>> 22) | (x << 10))
 }
 
 function SHA256_Sigma1(x: any) {
-  return (
-    ((x >>> 6) | (x << 26)) ^ ((x >>> 11) | (x << 21)) ^ ((x >>> 25) | (x << 7))
-  )
+  return ((x >>> 6) | (x << 26)) ^ ((x >>> 11) | (x << 21)) ^ ((x >>> 25) | (x << 7))
 }
 
 function SHA256_Ch(x: any, y: any, z: any) {
@@ -3271,12 +2821,7 @@ function SHA256_Maj(x: any, y: any, z: any) {
 
 function SHA256_Hash_Word_Block(H: any, W: any) {
   for (var i = 16; i < 64; i++)
-    W[i] =
-      (SHA256_sigma1(W[i - 2]) +
-        W[i - 7] +
-        SHA256_sigma0(W[i - 15]) +
-        W[i - 16]) &
-      0xffffffff
+    W[i] = (SHA256_sigma1(W[i - 2]) + W[i - 7] + SHA256_sigma0(W[i - 15]) + W[i - 16]) & 0xffffffff
   var state = new Array().concat(H)
 
   for (var i = 0; i < 64; i++) {
@@ -3298,11 +2843,7 @@ function SHA256_Hash_Word_Block(H: any, W: any) {
 function SHA256_Hash_Byte_Block(H: any, w: any) {
   var W = new Array(16)
   for (var i = 0; i < 16; i++)
-    W[i] =
-      (w[4 * i + 0] << 24) |
-      (w[4 * i + 1] << 16) |
-      (w[4 * i + 2] << 8) |
-      w[4 * i + 3]
+    W[i] = (w[4 * i + 0] << 24) | (w[4 * i + 1] << 16) | (w[4 * i + 2] << 8) | w[4 * i + 3]
 
   SHA256_Hash_Word_Block(H, W)
 }
@@ -3372,10 +2913,8 @@ var CryptoJS = (function(u?: any, p?: any) {
         if (j % 4)
           for (var k = 0; k < a; k++)
             c[(j + k) >>> 2] |=
-              ((e[k >>> 2] >>> (24 - 8 * (k % 4))) & 255) <<
-              (24 - 8 * ((j + k) % 4))
-        else if (65535 < e.length)
-          for (k = 0; k < a; k += 4) c[(j + k) >>> 2] = e[k >>> 2]
+              ((e[k >>> 2] >>> (24 - 8 * (k % 4))) & 255) << (24 - 8 * ((j + k) % 4))
+        else if (65535 < e.length) for (k = 0; k < a; k += 4) c[(j + k) >>> 2] = e[k >>> 2]
         else c.push.apply(c, e)
         this.sigBytes += a
         return this
@@ -3392,8 +2931,7 @@ var CryptoJS = (function(u?: any, p?: any) {
         return a
       },
       random: function(a: any) {
-        for (var c = [], e = 0; e < a; e += 4)
-          c.push((4294967296 * u.random()) | 0)
+        for (var c = [], e = 0; e < a; e += 4) c.push((4294967296 * u.random()) | 0)
         return new r.init(c, a)
       }
     })),
@@ -3574,13 +3112,7 @@ var CryptoJS = (function(u?: any, p?: any) {
     return ((b << j) | (b >>> (32 - j))) + n
   }
   for (
-    var t = CryptoJS,
-      r = t.lib,
-      w = r.WordArray,
-      v = r.Hasher,
-      r = t.algo,
-      b: any[] = [],
-      x = 0;
+    var t = CryptoJS, r = t.lib, w = r.WordArray, v = r.Hasher, r = t.algo, b: any[] = [], x = 0;
     64 > x;
     x++
   )
@@ -3593,9 +3125,7 @@ var CryptoJS = (function(u?: any, p?: any) {
       for (let a = 0; 16 > a; a++) {
         var c = n + a,
           e = q[c]
-        q[c] =
-          (((e << 8) | (e >>> 24)) & 16711935) |
-          (((e << 24) | (e >>> 8)) & 4278255360)
+        q[c] = (((e << 8) | (e >>> 24)) & 16711935) | (((e << 24) | (e >>> 8)) & 4278255360)
       }
       var a = this._hash.words,
         c = q[n + 0],
@@ -3695,20 +3225,16 @@ var CryptoJS = (function(u?: any, p?: any) {
       n[c >>> 5] |= 128 << (24 - c % 32)
       var e = u.floor(a / 4294967296)
       n[(((c + 64) >>> 9) << 4) + 15] =
-        (((e << 8) | (e >>> 24)) & 16711935) |
-        (((e << 24) | (e >>> 8)) & 4278255360)
+        (((e << 8) | (e >>> 24)) & 16711935) | (((e << 24) | (e >>> 8)) & 4278255360)
       n[(((c + 64) >>> 9) << 4) + 14] =
-        (((a << 8) | (a >>> 24)) & 16711935) |
-        (((a << 24) | (a >>> 8)) & 4278255360)
+        (((a << 8) | (a >>> 24)) & 16711935) | (((a << 24) | (a >>> 8)) & 4278255360)
       b.sigBytes = 4 * (n.length + 1)
       this._process()
       b = this._hash
       n = b.words
       for (a = 0; 4 > a; a++)
         (c = n[a]),
-          (n[a] =
-            (((c << 8) | (c >>> 24)) & 16711935) |
-            (((c << 24) | (c >>> 8)) & 4278255360))
+          (n[a] = (((c << 8) | (c >>> 24)) & 16711935) | (((c << 24) | (c >>> 8)) & 4278255360))
       return b
     },
     clone: function() {
@@ -4082,10 +3608,7 @@ CryptoJS.lib.Cipher ||
             (c[d] =
               4 > d || 4 >= j
                 ? k
-                : b[l[k >>> 24]] ^
-                  x[l[(k >>> 16) & 255]] ^
-                  q[l[(k >>> 8) & 255]] ^
-                  n[l[k & 255]])
+                : b[l[k >>> 24]] ^ x[l[(k >>> 16) & 255]] ^ q[l[(k >>> 8) & 255]] ^ n[l[k & 255]])
       },
       encryptBlock: function(a: any, b: any) {
         this._doCryptBlock(a, b, this._keySchedule, t, r, w, v, l)
@@ -4099,16 +3622,7 @@ CryptoJS.lib.Cipher ||
         a[c + 1] = a[c + 3]
         a[c + 3] = d
       },
-      _doCryptBlock: function(
-        a: any,
-        b: any,
-        c: any,
-        d: any,
-        e: any,
-        j: any,
-        l: any,
-        f: any
-      ) {
+      _doCryptBlock: function(a: any, b: any, c: any, d: any, e: any, j: any, l: any, f: any) {
         for (
           var m = this._nRounds,
             g = a[b] ^ c[0],
@@ -4120,30 +3634,10 @@ CryptoJS.lib.Cipher ||
           r < m;
           r++
         )
-          var q =
-              d[g >>> 24] ^
-              e[(h >>> 16) & 255] ^
-              j[(k >>> 8) & 255] ^
-              l[n & 255] ^
-              c[p++],
-            s =
-              d[h >>> 24] ^
-              e[(k >>> 16) & 255] ^
-              j[(n >>> 8) & 255] ^
-              l[g & 255] ^
-              c[p++],
-            t =
-              d[k >>> 24] ^
-              e[(n >>> 16) & 255] ^
-              j[(g >>> 8) & 255] ^
-              l[h & 255] ^
-              c[p++],
-            n =
-              d[n >>> 24] ^
-              e[(g >>> 16) & 255] ^
-              j[(h >>> 8) & 255] ^
-              l[k & 255] ^
-              c[p++],
+          var q = d[g >>> 24] ^ e[(h >>> 16) & 255] ^ j[(k >>> 8) & 255] ^ l[n & 255] ^ c[p++],
+            s = d[h >>> 24] ^ e[(k >>> 16) & 255] ^ j[(n >>> 8) & 255] ^ l[g & 255] ^ c[p++],
+            t = d[k >>> 24] ^ e[(n >>> 16) & 255] ^ j[(g >>> 8) & 255] ^ l[h & 255] ^ c[p++],
+            n = d[n >>> 24] ^ e[(g >>> 16) & 255] ^ j[(h >>> 8) & 255] ^ l[k & 255] ^ c[p++],
             g = q,
             h = s,
             k = t
@@ -4339,8 +3833,8 @@ code.google.com/p/crypto-js/wiki/License
   var HMAC = C_algo.HMAC
 
   /**
-  * Password-Based Key Derivation Function 2 algorithm.
-  */
+   * Password-Based Key Derivation Function 2 algorithm.
+   */
   var PBKDF2 = (C_algo.PBKDF2 = Base.extend({
     /**
      * Configuration options.
@@ -4433,22 +3927,22 @@ code.google.com/p/crypto-js/wiki/License
   }))
 
   /**
-  * Computes the Password-Based Key Derivation Function 2.
-  *
-  * @param {WordArray|string} password The password.
-  * @param {WordArray|string} salt A salt.
-  * @param {Object} cfg (Optional) The configuration options to use for this computation.
-  *
-  * @return {WordArray} The derived key.
-  *
-  * @static
-  *
-  * @example
-  *
-  *     var key = CryptoJS.PBKDF2(password, salt);
-  *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8 });
-  *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8, iterations: 1000 });
-  */
+   * Computes the Password-Based Key Derivation Function 2.
+   *
+   * @param {WordArray|string} password The password.
+   * @param {WordArray|string} salt A salt.
+   * @param {Object} cfg (Optional) The configuration options to use for this computation.
+   *
+   * @return {WordArray} The derived key.
+   *
+   * @static
+   *
+   * @example
+   *
+   *     var key = CryptoJS.PBKDF2(password, salt);
+   *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8 });
+   *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8, iterations: 1000 });
+   */
   C.PBKDF2 = function(password: any, salt: any, cfg: any) {
     return PBKDF2.create(cfg).compute(password, salt)
   }
@@ -4518,23 +4012,17 @@ code.google.com/p/crypto-js/wiki/License
             a[n] =
               (((r << 25) | (r >>> 7)) ^ ((r << 14) | (r >>> 18)) ^ (r >>> 3)) +
               a[n - 7] +
-              (((g << 15) | (g >>> 17)) ^
-                ((g << 13) | (g >>> 19)) ^
-                (g >>> 10)) +
+              (((g << 15) | (g >>> 17)) ^ ((g << 13) | (g >>> 19)) ^ (g >>> 10)) +
               a[n - 16]
           }
           r =
             l +
-            (((p << 26) | (p >>> 6)) ^
-              ((p << 21) | (p >>> 11)) ^
-              ((p << 7) | (p >>> 25))) +
+            (((p << 26) | (p >>> 6)) ^ ((p << 21) | (p >>> 11)) ^ ((p << 7) | (p >>> 25))) +
             ((p & j) ^ (~p & k)) +
             q[n] +
             a[n]
           g =
-            (((e << 30) | (e >>> 2)) ^
-              ((e << 19) | (e >>> 13)) ^
-              ((e << 10) | (e >>> 22))) +
+            (((e << 30) | (e >>> 2)) ^ ((e << 19) | (e >>> 13)) ^ ((e << 10) | (e >>> 22))) +
             ((e & f) ^ (e & m) ^ (f & m))
           l = k
           k = j

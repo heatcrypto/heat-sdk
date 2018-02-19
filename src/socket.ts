@@ -25,6 +25,8 @@ import WebSocket from "ws"
 import Long from "long"
 import ByteBuffer from "bytebuffer"
 import * as utils from "./utils"
+import { Buffer } from "buffer"
+import { callbackify } from "util"
 
 let MAGIC_NUM = 22102010
 
@@ -36,7 +38,7 @@ export interface SocketResponse {
 export class Socket {
   private connectedSocketPromise: Promise<any> = null
   private callIdIncr = 0
-  private callbacks: { [key: number]: Function } = {}
+  private callbacks: { [key: number]: any } = {}
 
   constructor(private url: string) {}
 
@@ -46,25 +48,30 @@ export class Socket {
    * --------------------------------------------
    * |field | magic | callid | method | payload |
    * |-------------------------------------------
-   * |size  | 4     | 4      | 4      | N       |
+   * |size  | 4     | 4      | 2      | N       |
    * --------------------------------------------
    */
   public invoke(method: number, request: ArrayBuffer): Promise<SocketResponse> {
     let promise = new Promise((resolve, reject) => {
       let callId = this.callIdIncr++
-      this.callbacks[callId] = resolve
-      this.getConnectedSocket().then(websocket => {
-        let buffer = ByteBuffer.allocate(4 + 4 + 2 + request.byteLength).order(
-          ByteBuffer.LITTLE_ENDIAN
-        )
-        buffer.writeInt32(MAGIC_NUM)
-        buffer.writeInt32(callId)
-        buffer.writeInt16(method)
-        buffer.append(request)
-        websocket.send(buffer.buffer)
-      })
+      this.callbacks[callId] = {
+        resolve: resolve,
+        reject: reject
+      }
+      this.getConnectedSocket()
+        .then(websocket => {
+          let buffer = ByteBuffer.allocate(4 + 4 + 2 + request.byteLength).order(
+            ByteBuffer.LITTLE_ENDIAN
+          )
+          buffer.writeInt32(MAGIC_NUM)
+          buffer.writeInt32(callId)
+          buffer.writeInt16(method)
+          buffer.append(request)
+          websocket.send(buffer.buffer)
+        })
+        .catch(reject)
     })
-    return utils.setPromiseTimeout(5000, promise)
+    return utils.setPromiseTimeout(10 * 1000, promise)
   }
 
   /**
@@ -90,16 +97,21 @@ export class Socket {
       console.log("Wrong magic number")
       return
     }
-    let resolve = this.callbacks[callId]
-    if (!resolve) {
+    let cb = this.callbacks[callId]
+    if (!cb) {
       console.log(`No such callback callId=${callId}`)
       return
     }
-    let response: SocketResponse = {
-      type: type,
-      buffer: new Buffer(message.slice(9))
+    try {
+      let response: SocketResponse = {
+        type: type,
+        buffer: Buffer.from(message, 9)
+      }
+      cb.resolve(response)
+    } catch (e) {
+      console.error(e)
+      cb.reject(e)
     }
-    resolve(response)
   }
 
   private getConnectedSocket() {
@@ -122,8 +134,9 @@ export class Socket {
         resolve(websocket)
       }
       var onmessage = (message: any) => {
-        var buffer = new Uint8Array(message.data)
-        this.onMessage(buffer)
+        // var buffer = new Uint8Array(message.data)
+        // this.onMessage(buffer)
+        this.onMessage(message.data)
       }
       websocket.onclose = onclose
       websocket.onopen = onopen

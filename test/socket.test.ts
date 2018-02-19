@@ -60,9 +60,9 @@ describe("avro", () => {
 
 describe("heat-rpc", () => {
   const config = new Configuration({
-    isTestnet: true,
-    baseURL: "http://localhost:7733/api/v1",
-    websocketURL: "ws://localhost:7755/ws/"
+    isTestnet: true
+    // baseURL: "http://localhost:7733/api/v1",
+    // websocketURL: "ws://localhost:7755/ws/"
   })
   const heatsdk = new HeatSDK(config)
 
@@ -104,42 +104,46 @@ describe("heat-rpc", () => {
   //     .then(() => {})
   // })
 
-  // it("can create a payment", () => {
-  //   return heatsdk
-  //     .payment("1111", "10")
-  //     .publicMessage("Hello world")
-  //     .sign("secret-phrase")
-  //     .then(t => {
-  //       let transaction = t.getTransaction()
-  //       return heatsdk.rpc.broadcast2(transaction)
-  //         .then(response => {
-  //           console.log(response)
-  //           expect(response).toBeDefined()
-  //         })
-  //     })
-  // })
+  it("can create a payment", () => {
+    return heatsdk
+      .payment("1111", "10")
+      .publicMessage("Hello world")
+      .sign("user1")
+      .then(t => {
+        let transaction = t.getTransaction()
+        return heatsdk.rpc.broadcast2(transaction).then(response => {
+          //console.log(response)
+          expect(response).toBeDefined()
+        })
+      })
+  })
 
-  // it("can create multi payments", () => {
-  //   var count = 200
-  //   console.log("Generate " + count + " transactions")
-  //   return createTransactions(heatsdk, 100)
-  //     .then(transactions => {
-  //       console.log("Done generating " + count + " transactions")
-  //       var promises = []
-  //       transactions.forEach(t => {
-  //         promises.push(
-  //           heatsdk.rpc.broadcast2(t).then(resp => {
-  //             //console.log(t. resp)
-  //           })
-  //         )
-  //       })
-  //       console.log("Done broadcasting " + count + " transactions")
-  //       return Promise.all(promises)
-  //     })
-  //     .then(() => {
-  //       console.log("Received back all callbacks")
-  //     })
-  // })
+  it("can create multi payments", done => {
+    var start = Date.now()
+    var count = 10
+    //console.log("Generate " + count + " transactions " + (Date.now() - start))
+    createTransactions(heatsdk, count)
+      .then(transactions => {
+        //console.log("Done generating " + count + " transactions " + (Date.now() - start))
+        var promises = []
+        transactions.forEach(t => {
+          let p = heatsdk.rpc.broadcast2(t)
+          p.then(resp => {
+            //console.log(t.amountHQT, resp,  (Date.now() - start), new Date())
+          })
+          promises.push(p)
+        })
+        //console.log("Done broadcasting " + count + " transactions" + (Date.now() - start))
+        return Promise.all(promises)
+      })
+      .then(() => {
+        //console.log("Received back all callbacks" + (Date.now() - start))
+        done()
+      })
+      .catch(() => {
+        done()
+      })
+  })
 })
 
 function pad(num, size) {
@@ -150,12 +154,12 @@ function pad(num, size) {
 function createTransactions(heatsdk, count) {
   var promises = []
   var transactions = []
-  for (let i = 0; i < count; i++) {
+  for (let i = 1; i < count; i++) {
     promises.push(
       heatsdk
         .payment("4729421738299387565", "1." + pad(i, 5))
         //.publicMessage("Hello world")
-        .sign("secret-phrase")
+        .sign("user2")
         .then(t => {
           transactions.push(t.getTransaction())
         })

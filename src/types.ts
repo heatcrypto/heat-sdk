@@ -22,12 +22,13 @@
  * */
 
 import { Type } from "./avro"
+import { Buffer } from "buffer"
 
 export interface RpcError {
   exceptionClass: string
   message: string
 }
-export let RpcErrorType = Type.forSchema({
+export const RpcErrorType = Type.forSchema({
   type: "record",
   fields: [{ name: "exceptionClass", type: "string" }, { name: "message", type: "string" }]
 })
@@ -38,18 +39,18 @@ export interface Transaction {
   version: number
   timestamp: number
   deadline: number
-  senderPublicKey: Uint8Array
+  senderPublicKey: Buffer
   recipientId: Long
   amountHQT: Long
   feeHQT: Long
-  signature: Uint8Array
+  signature: Buffer
   flags: number
   ecBlockHeight: number
   ecBlockId: Long
-  attachmentBytes: Uint8Array
-  appendixBytes: Uint8Array
+  attachmentBytes: Buffer
+  appendixBytes: Buffer
 }
-export let TransactionType = Type.forSchema({
+export const TransactionType = Type.forSchema({
   type: "record",
   fields: [
     { name: "type", type: "int" },
@@ -73,7 +74,7 @@ export let TransactionType = Type.forSchema({
 export interface BroadcastRequest {
   transaction: Transaction
 }
-export let BroadcastRequestType = Type.forSchema({
+export const BroadcastRequestType = Type.forSchema({
   type: "record",
   fields: [
     {
@@ -86,7 +87,7 @@ export let BroadcastRequestType = Type.forSchema({
 export interface BroadcastResponse {
   transaction: Long
 }
-export let BroadcastResponseType = Type.forSchema({
+export const BroadcastResponseType = Type.forSchema({
   type: "record",
   fields: [
     {

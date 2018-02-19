@@ -30,6 +30,7 @@ import * as converters from "./converters"
 import * as crypto from "./crypto"
 import Long from "long"
 import ByteBuffer from "bytebuffer"
+import { Buffer } from "buffer"
 
 export class Builder {
   public _deadline = 1440
@@ -273,7 +274,7 @@ export class TransactionImpl {
     return bytes
   }
 
-  public getBytesAsHex() {
+  public getByteBuffer() {
     let size = this.getSize()
     if (this.isTestnet) size += 8
 
@@ -316,7 +317,15 @@ export class TransactionImpl {
     }
 
     buffer.flip()
-    return buffer.toHex()
+    return buffer
+  }
+
+  public getBytes(): ArrayBuffer {
+    return this.getByteBuffer().buffer
+  }
+
+  public getBytesAsHex() {
+    return this.getByteBuffer().toHex()
   }
 
   public getRaw() {
@@ -326,20 +335,28 @@ export class TransactionImpl {
     raw["version"] = this.version
     raw["timestamp"] = this.timestamp
     raw["deadline"] = this.deadline
-    raw["senderPublicKey"] = new Buffer(this.senderPublicKey)
+    raw["senderPublicKey"] = this.senderPublicKey ? new Buffer(this.senderPublicKey) : new Buffer(0)
     raw["recipientId"] = Long.fromString(this.recipientId, true)
     raw["amountHQT"] = Long.fromString(this.amountHQT)
     raw["feeHQT"] = Long.fromString(this.feeHQT)
-    raw["signature"] = new Buffer(this.signature)
+    raw["signature"] = this.signature ? new Buffer(this.signature) : new Buffer(0)
     raw["flags"] = this.getFlags()
     raw["ecBlockHeight"] = this.ecBlockHeight
     raw["ecBlockId"] = Long.fromString(this.ecBlockId, true)
     let attachment = this.appendages[0]
-    let attachmentBytes = ByteBuffer.allocate(attachment.getSize()).order(ByteBuffer.LITTLE_ENDIAN)
-    attachment.putBytes(attachmentBytes)
-    raw["attachmentBytes"] = new Buffer(attachmentBytes.buffer)
+    if (attachment.getSize() > 0) {
+      let attachmentBytes = ByteBuffer.allocate(attachment.getSize()).order(
+        ByteBuffer.LITTLE_ENDIAN
+      )
+      attachment.putBytes(attachmentBytes)
+      raw["attachmentBytes"] = new Buffer(attachmentBytes.buffer)
+    } else {
+      raw["attachmentBytes"] = new Buffer(0)
+    }
     let totalSize = 0
-    for (let i = 1; i < this.appendages.length; i++) totalSize += this.appendages[i].getSize()
+    for (let i = 1; i < this.appendages.length; i++) {
+      totalSize += this.appendages[i].getSize()
+    }
     if (totalSize > 0) {
       let appendixBytes = ByteBuffer.allocate(totalSize).order(ByteBuffer.LITTLE_ENDIAN)
       for (let i = 1; i < this.appendages.length; i++) this.appendages[i].putBytes(appendixBytes)
