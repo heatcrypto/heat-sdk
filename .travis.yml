@@ -11,7 +11,8 @@ notifications:
 node_js:
   - node
 script:
-  - npm run test && npm run build
+  - travis_wait 30 npm run test
+  - travis_wait 30 npm run build
   #- npm run test:prod && npm run build
 after_success:
   - travis_wait 30 npm run report-coverage
