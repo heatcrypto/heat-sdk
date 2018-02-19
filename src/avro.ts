@@ -20,8 +20,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-const avro = require("./avro-types.js")
-const Long = require("long")
+import Long from "long"
+import { Buffer } from "buffer"
+import avro from "./avro-types/avro-types"
+// import a_ from './avro-types'
+// const avro:any = a_
 
 export const Type = {
   forSchema(schema: any) {
@@ -29,13 +32,14 @@ export const Type = {
   }
 }
 
-const longType = avro.builtins.LongType.__with({
+const longType = avro.types.LongType.__with({
   fromBuffer: (buf: any) => {
-    return new Long(buf.readInt32LE(), buf.readInt32LE(4))
+    return new Long(buf.readInt32LE(0), buf.readInt32LE(4))
   },
   toBuffer: (n: any) => {
-    const buf: any = Buffer.alloc(8)
-    buf.writeInt32LE(n.getLowBits())
+    //const buf: any = Buffer.alloc(8)
+    const buf: any = new Buffer(8)
+    buf.writeInt32LE(n.getLowBits(), 0)
     buf.writeInt32LE(n.getHighBits(), 4)
     return buf
   },

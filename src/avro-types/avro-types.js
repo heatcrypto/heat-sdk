@@ -3228,7 +3228,6 @@ function combineObjects(types, opts) {
   return Type.forSchema(schema, opts);
 }
 
-
 module.exports = {
   Type: Type,
   getTypeBucket: getTypeBucket,
@@ -3236,7 +3235,7 @@ module.exports = {
   isPrimitive: isPrimitive,
   isValidName: isValidName,
   qualify: qualify,
-  builtins: (function () {
+  types: (function () {
     var types = {
       LogicalType: LogicalType,
       UnwrappedUnionType: UnwrappedUnionType,
@@ -3250,4 +3249,4 @@ module.exports = {
     }
     return types;
   })()
-};
+}
