@@ -17,7 +17,7 @@
   ],
   "main": "./dist/heat-sdk",
   "browser": "./dist/heat-sdk.umd.js",
-  "types": "./dist/types/heat-sdk.d.ts",
+  "types": "./dist/heat-sdk.d.ts",
   "files": [
     "dist"
   ],
