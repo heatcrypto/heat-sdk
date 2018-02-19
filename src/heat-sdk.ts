@@ -23,9 +23,9 @@
 import * as converters from "./converters"
 import * as crypto from "./crypto"
 import * as utils from "./utils"
-import * as attachment from "./attachment"
-import { Builder, TransactionImpl } from "./builder"
-import { Transaction } from "./transaction"
+import * as _attachment from "./attachment"
+import * as builder from "./builder"
+import * as transaction from "./transaction"
 import { HeatApi } from "./heat-api"
 import { HeatSubscriber } from "./heat-subscriber"
 import { SecretGenerator } from "./secret-generator"
@@ -33,6 +33,12 @@ import { AssetIssuance, AssetTransfer, ColoredCoinsAskOrderPlacement } from "./a
 import { Fee } from "./fee"
 import { setRandomSource } from "./random-bytes"
 import { HeatRpc } from "./heat-rpc"
+import * as types from "./types"
+
+export const attachment = _attachment
+export const Builder = builder.Builder
+export const TransactionImpl = builder.TransactionImpl
+export const Transaction = transaction.Transaction
 
 export interface ConfigArgs {
   isTestnet?: boolean
@@ -65,6 +71,7 @@ export class HeatSDK {
   public api: HeatApi
   public subscriber: HeatSubscriber
   public rpc: HeatRpc
+  public types = types
   public utils = utils
   public crypto = crypto
   public converters = converters
