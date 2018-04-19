@@ -320,7 +320,7 @@ export class TransactionImpl {
     return buffer
   }
 
-  public getBytes(): ArrayBuffer {
+  public getBytes(): Buffer {
     return this.getByteBuffer().buffer
   }
 
