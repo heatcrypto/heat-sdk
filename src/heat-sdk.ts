@@ -29,7 +29,14 @@ import * as transaction from "./transaction"
 import { HeatApi } from "./heat-api"
 import { HeatSubscriber } from "./heat-subscriber"
 import { SecretGenerator } from "./secret-generator"
-import { AssetIssuance, AssetTransfer, ColoredCoinsAskOrderPlacement } from "./attachment"
+import {
+  AssetIssuance,
+  AssetTransfer,
+  ColoredCoinsAskOrderPlacement,
+  ColoredCoinsBidOrderPlacement,
+  ColoredCoinsAskOrderCancellation,
+  ColoredCoinsBidOrderCancellation
+} from "./attachment"
 import { Fee } from "./fee"
 import { setRandomSource } from "./random-bytes"
 import { HeatRpc } from "./heat-rpc"
@@ -192,6 +199,41 @@ export class HeatSDK {
       .attachment(
         new ColoredCoinsAskOrderPlacement().init(currencyId, assetId, quantity, price, expiration)
       )
+      .amountHQT("0")
+      .feeHQT("1000000")
+    return new Transaction(this, "0", builder)
+  }
+
+  public placeBidOrder(
+    currencyId: string,
+    assetId: string,
+    quantity: string,
+    price: string,
+    expiration: number
+  ) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(
+        new ColoredCoinsBidOrderPlacement().init(currencyId, assetId, quantity, price, expiration)
+      )
+      .amountHQT("0")
+      .feeHQT("1000000")
+    return new Transaction(this, "0", builder)
+  }
+
+  public cancelAskOrder(orderId: string) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(new ColoredCoinsAskOrderCancellation().init(orderId))
+      .amountHQT("0")
+      .feeHQT("1000000")
+    return new Transaction(this, "0", builder)
+  }
+
+  public cancelBidOrder(orderId: string) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .attachment(new ColoredCoinsBidOrderCancellation().init(orderId))
       .amountHQT("0")
       .feeHQT("1000000")
     return new Transaction(this, "0", builder)
