@@ -20,6 +20,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
+
+///<reference path="../node_modules/@types/jest/index.d.ts"/>
+///<reference path="testnet.ts"/>
+
+import { testnet } from "./testnet"
 import { Builder, TransactionImpl } from "../src/builder"
 import { Transaction } from "../src/transaction"
 import {
@@ -36,13 +41,9 @@ import {
   ColoredCoinsWhitelistMarket,
   ORDINARY_PAYMENT
 } from "../src/attachment"
-import {
-  byteArrayToHexString,
-  hexStringToByteArray,
-  stringToHexString
-} from "../src/converters"
+import { byteArrayToHexString, hexStringToByteArray, stringToHexString } from "../src/converters"
 import * as crypto from "../src/crypto"
-import { HeatSDK, Configuration } from "../src/heat-sdk"
+import { Configuration, HeatSDK } from "../src/heat-sdk"
 
 const heatsdk = new HeatSDK(new Configuration({ isTestnet: true }))
 
@@ -58,8 +59,7 @@ function handleCatchApiResponse(response) {
   expect(response.errorCode).toBeDefined()
 }
 
-function testServerParsing(builder: Builder, recipient: string): Promise<any> {
-  let txn = new Transaction(heatsdk, recipient, builder)
+function testServerParsing(txn: Transaction): Promise<any> {
   return txn.sign("hello").then(t => {
     let transaction = t.getTransaction()
     let bytes = transaction.getBytesAsHex()
@@ -129,8 +129,7 @@ describe("Transaction builder", () => {
           subtype: 0,
           timestamp: expect.any(Number),
           deadline: 1440,
-          senderPublicKey:
-            "9f349432381a0803cfe795b9e9df645d4b9b990f98d0e545c46ae801dd329d3f",
+          senderPublicKey: "9f349432381a0803cfe795b9e9df645d4b9b990f98d0e545c46ae801dd329d3f",
           recipient: "12345",
           amount: "10020000000",
           fee: "1000000",
@@ -148,41 +147,6 @@ describe("Transaction builder", () => {
       })
   })
 
-  it("can parse transaction bytes", () => {
-    return heatsdk
-      .payment("12345", "100.2")
-      .publicMessage("Hello world")
-      .sign("secret phrase")
-      .then(t => {
-        let transaction = t.getTransaction()
-        let bytes = transaction.getBytesAsHex()
-        let t2 = TransactionImpl.parse(bytes)
-        expect(t2).toBeInstanceOf(TransactionImpl)
-        return expect(t2.getJSONObject()).toEqual(transaction.getJSONObject())
-      })
-  })
-
-  // it("can parse transaction bytes on the server", () => {
-  //   let txn = heatsdk
-  //     .payment("4644748344150906433", "4.0003")
-  //     .publicMessage("Happy birthday!")
-  //   txn.sign(
-  //     "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
-  //   )
-  //   let bytes = txn.getTransaction().getBytesAsHex()
-  //   txn.broadcast()
-  //   let transaction = txn.getTransaction()
-  //   bytes = transaction.getBytesAsHex()
-  //   return heatsdk.api
-  //     .post("/tx/parse", { transactionBytes: bytes })
-  //     .then(response => {
-  //       handleApiResponse(response)
-  //     })
-  //     .catch(response => {
-  //       handleApiResponse(response)
-  //     })
-  // })
-
   it("low level build transaction", () => {
     let builder = new Builder()
       .attachment(ORDINARY_PAYMENT)
@@ -194,7 +158,7 @@ describe("Transaction builder", () => {
       .ecBlockId("5555566666")
       .recipientId("33333")
       .isTestnet(true)
-    let txn = new Transaction(heatsdk, "33333", builder)
+    let txn = new Transaction(heatsdk, builder, "33333")
     let transaction = builder.build("hello")
     txn.sign("hello")
     let unsignedBytes = transaction.getUnsignedBytes()
@@ -577,10 +541,7 @@ describe("Transaction builder", () => {
     let secretPhrase =
       "floor battle paper consider stranger blind alter blur bless wrote prove cloud"
     let unsignedHex = byteArrayToHexString(bytes)
-    let signatureHex = crypto.signBytes(
-      unsignedHex,
-      stringToHexString(secretPhrase)
-    )
+    let signatureHex = crypto.signBytes(unsignedHex, stringToHexString(secretPhrase))
     let signature = hexStringToByteArray(signatureHex)
 
     let expectedSignature = [
@@ -653,196 +614,190 @@ describe("Transaction builder", () => {
     expect(expectedSignatureHex).toEqual(signatureHex)
   })
 
-  // it("can parse 'Asset Issuance' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(
-  //       new AssetIssuance().init("https://abcd", null, "100", 0, true)
-  //     )
-  //     .amountHQT("0")
-  //     .feeHQT("50000000000")
-  //   testServerParsing(builder, "0").then(response => {
-  //     expect(response).toEqual(
-  //       expect.objectContaining({
-  //         fee: "50000000000",
-  //         type: 2,
-  //         subtype: 0
-  //       })
-  //     )
-  //     done()
-  //   })
-  // })
+  it("can parse transaction bytes", () => {
+    return heatsdk
+      .payment("12345", "100.2")
+      .publicMessage("Hello world")
+      .sign("secret phrase")
+      .then(t => {
+        let transaction = t.getTransaction()
+        let bytes = transaction.getBytesAsHex()
+        let parsedTxn = TransactionImpl.parse(bytes)
+        expect(parsedTxn).toBeInstanceOf(TransactionImpl)
+        return expect(parsedTxn.getJSONObject()).toEqual(transaction.getJSONObject())
+      })
+  })
 
-  // it("can parse 'Asset Issuance more' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(new AssetIssueMore().init("1284030860920393989", "100"))
-  //     .amountHQT("0")
-  //     .feeHQT("50000000000")
-  //   testServerParsing(builder, "33333").then(response => {
-  //     expect(
-  //       response.errorDescription.indexOf("NotYetEnabledException")
-  //     ).toBeGreaterThanOrEqual(0)
-  //     done()
-  //   })
-  // })
+  it("can parse 'Asset Issuance' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(new AssetIssuance().init("https://abcd", null, "100", 0, true))
+      .amountHQT("0")
+      .feeHQT("50000000000")
+    testServerParsing(new Transaction(heatsdk, builder)).then(response => {
+      expect(response).toEqual(
+        expect.objectContaining({
+          fee: "50000000000",
+          type: 2,
+          subtype: 0
+        })
+      )
+      done()
+    })
+  })
 
-  // it("can parse 'Asset Transfer' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(new AssetTransfer().init("1284030860920393989", "100"))
-  //     .amountHQT("0")
-  //     .feeHQT("50000000000")
-  //   testServerParsing(builder, "33333").then(response => {
-  //     expect(response).toEqual(
-  //       expect.objectContaining({
-  //         fee: "50000000000",
-  //         type: 2,
-  //         subtype: 2
-  //       })
-  //     )
-  //     done()
-  //   })
-  // })
+  it("can parse 'Asset Issuance more' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(new AssetIssueMore().init(testnet.ASSET_1.ID, "100"))
+      .amountHQT("0")
+      .feeHQT("50000000000")
+    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+      expect(response.errorDescription.indexOf("NotYetEnabledException")).toBeGreaterThanOrEqual(0)
+      done()
+    })
+  })
 
-  // it("can parse 'Ask Order Placement' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(
-  //       new ColoredCoinsAskOrderPlacement().init(
-  //         "0",
-  //         "1284030860920393989",
-  //         "100",
-  //         "700000000",
-  //         3600
-  //       )
-  //     )
-  //     .amountHQT("0")
-  //     .feeHQT("1000000")
-  //   testServerParsing(builder, "0").then(response => {
-  //     expect(response).toEqual(
-  //       expect.objectContaining({
-  //         fee: "1000000",
-  //         type: 2,
-  //         subtype: 3
-  //       })
-  //     )
-  //     done()
-  //   })
-  // })
+  it("can parse 'Asset Transfer' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(new AssetTransfer().init(testnet.ASSET_1.ID, "100"))
+      .amountHQT("0")
+      .feeHQT("50000000000")
+    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+      expect(response).toEqual(
+        expect.objectContaining({
+          fee: "50000000000",
+          type: 2,
+          subtype: 2
+        })
+      )
+      done()
+    })
+  })
 
-  // it("can parse 'Bid Order Placement' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(
-  //       new ColoredCoinsBidOrderPlacement().init(
-  //         "0",
-  //         "1284030860920393989",
-  //         "100",
-  //         "700000000",
-  //         3600
-  //       )
-  //     )
-  //     .amountHQT("0")
-  //     .feeHQT("1000000")
-  //   testServerParsing(builder, "0").then(response => {
-  //     expect(response).toEqual(
-  //       expect.objectContaining({
-  //         fee: "1000000",
-  //         type: 2,
-  //         subtype: 4
-  //       })
-  //     )
-  //     done()
-  //   })
-  // })
+  it("can parse 'Ask Order Placement' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(
+        new ColoredCoinsAskOrderPlacement().init(
+          testnet.ASSET_1.ID,
+          testnet.ASSET_2.ID,
+          "100",
+          "700000000",
+          3600
+        )
+      )
+      .amountHQT("0")
+      .feeHQT("1000000")
+    testServerParsing(new Transaction(heatsdk, builder)).then(response => {
+      expect(response).toEqual(
+        expect.objectContaining({
+          fee: "1000000",
+          type: 2,
+          subtype: 3
+        })
+      )
+      done()
+    })
+  })
 
-  // it("can parse 'Ask Order Cancellation' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(new ColoredCoinsAskOrderCancellation().init("1234567"))
-  //     .amountHQT("0")
-  //     .feeHQT("1000000")
-  //   //todo make the real Ask Order and then cancel it
-  //   testServerParsing(builder, "33333").then(response => {
-  //     expect(
-  //       response.errorDescription.indexOf("Invalid ask order cancellation")
-  //     ).toBeGreaterThanOrEqual(0)
-  //     done()
-  //   })
-  // })
+  // market pair testnet.ASSET_1.ID - testnet.ASSET_2.ID must be white listed
+  it("can parse 'Bid Order Placement' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(
+        new ColoredCoinsBidOrderPlacement().init(
+          testnet.ASSET_1.ID,
+          testnet.ASSET_2.ID,
+          "100",
+          "700000000",
+          3600
+        )
+      )
+      .amountHQT("0")
+      .feeHQT("1000000")
+    testServerParsing(new Transaction(heatsdk, builder)).then(response => {
+      expect(response).toEqual(
+        expect.objectContaining({
+          fee: "1000000",
+          type: 2,
+          subtype: 4
+        })
+      )
+      done()
+    })
+  })
 
-  // it("can parse 'Bid Order Cancellation' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(new ColoredCoinsBidOrderCancellation().init("1234567"))
-  //     .amountHQT("0")
-  //     .feeHQT("1000000")
-  //   testServerParsing(builder, "33333").then(response => {
-  //     expect(
-  //       response.errorDescription.indexOf("Invalid bid order cancellation")
-  //     ).toBeGreaterThanOrEqual(0)
-  //     done()
-  //   })
-  // })
+  it("can parse 'Ask Order Cancellation' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(new ColoredCoinsAskOrderCancellation().init("1234567"))
+      .amountHQT("0")
+      .feeHQT("1000000")
+    //todo make the real Ask Order and then cancel it
+    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+      expect(response.errorDescription).toMatch("Invalid ask order cancellation")
+      done()
+    })
+  })
 
-  // it("can parse 'Whitelist Account Addition' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(
-  //       new ColoredCoinsWhitelistAccountAddition().init(
-  //         "1234567",
-  //         "93837377383839034",
-  //         11223344
-  //       )
-  //     )
-  //     .amountHQT("0")
-  //     .feeHQT("1000000")
-  //   testServerParsing(builder, "33333").then(response => {
-  //     expect(
-  //       response.errorDescription.indexOf("NotYetEnabledException")
-  //     ).toBeGreaterThanOrEqual(0)
-  //     done()
-  //   })
-  // })
+  it("can parse 'Bid Order Cancellation' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(new ColoredCoinsBidOrderCancellation().init("1234567"))
+      .amountHQT("0")
+      .feeHQT("1000000")
+    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+      expect(response.errorDescription).toMatch("Invalid bid order cancellation")
+      done()
+    })
+  })
 
-  // it("can parse 'Whitelist Account Removal' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(
-  //       new ColoredCoinsWhitelistAccountRemoval().init(
-  //         "1234567",
-  //         "93837377383839034"
-  //       )
-  //     )
-  //     .amountHQT("0")
-  //     .feeHQT("1000000")
-  //   testServerParsing(builder, "33333").then(response => {
-  //     expect(
-  //       response.errorDescription.indexOf("NotYetEnabledException")
-  //     ).toBeGreaterThanOrEqual(0)
-  //     done()
-  //   })
-  // })
+  it("can parse 'Whitelist Account Addition' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(
+        new ColoredCoinsWhitelistAccountAddition().init(
+          testnet.ASSET_1.ID,
+          testnet.ACCOUNT_21.ID,
+          11223344
+        )
+      )
+      .amountHQT("0")
+      .feeHQT("1000000")
+    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+      expect(response.errorDescription).toMatch("NotYetEnabledException")
+      done()
+    })
+  })
 
-  // it("can parse 'Whitelist Market' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(
-  //       new ColoredCoinsWhitelistMarket().init("0", "1284030860920393989")
-  //     )
-  //     .amountHQT("0")
-  //     .feeHQT("1000000000")
-  //   testServerParsing(builder, "33333").then(response => {
-  //     expect(
-  //       response.errorDescription.indexOf(
-  //         "Only asset issuer can allow a market"
-  //       )
-  //     ).toBeGreaterThanOrEqual(0)
-  //     done()
-  //   })
-  // })
+  it("can parse 'Whitelist Account Removal' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(
+        new ColoredCoinsWhitelistAccountRemoval().init(testnet.ASSET_1.ID, testnet.ACCOUNT_21.ID)
+      )
+      .amountHQT("0")
+      .feeHQT("1000000")
+    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+      expect(response.errorDescription).toMatch("NotYetEnabledException")
+      done()
+    })
+  })
 
-  // it("can parse 'Account Control Effective Balance Leasing' transaction bytes on the server", done => {
-  //   let builder = new Builder()
-  //     .attachment(new AccountControlEffectiveBalanceLeasing().init(2))
-  //     .amountHQT("0")
-  //     .feeHQT("1000000")
-  //   testServerParsing(builder, "33333").then(response => {
-  //     expect(
-  //       response.errorDescription.indexOf("Invalid effective balance leasing")
-  //     ).toBeGreaterThanOrEqual(0)
-  //     done()
-  //   })
-  // })
+  it("can parse 'Whitelist Market' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(new ColoredCoinsWhitelistMarket().init("0", testnet.ASSET_1.ID))
+      .amountHQT("0")
+      .feeHQT("1000000000")
+    testServerParsing(new Transaction(heatsdk, builder, testnet.ASSET_1.ISSUER.ID)).then(
+      response => {
+        expect(response.errorDescription).toMatch("Only asset issuer can allow a market")
+        done()
+      }
+    )
+  })
+
+  it("can parse 'Account Control Effective Balance Leasing' transaction bytes on the server", done => {
+    let builder = new Builder()
+      .attachment(new AccountControlEffectiveBalanceLeasing().init(2))
+      .amountHQT("0")
+      .feeHQT("1000000")
+    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+      expect(response.errorDescription).toMatch("Invalid effective balance leasing")
+      done()
+    })
+  })
 })

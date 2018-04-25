@@ -48,8 +48,8 @@ export class Transaction {
 
   constructor(
     private heatsdk: HeatSDK,
-    private recipientOrRecipientPublicKey: string,
-    private builder: Builder
+    private builder: Builder,
+    private recipientOrRecipientPublicKey?: string
   ) {}
 
   public sign(secretPhrase: string): Promise<Transaction> {
@@ -60,8 +60,7 @@ export class Transaction {
   }
 
   public broadcast<T>(): Promise<T> {
-    if (!utils.isDefined(this.transaction_))
-      throw new Error("Must call sign() first")
+    if (!utils.isDefined(this.transaction_)) throw new Error("Must call sign() first")
     return this.heatsdk.api.post("/tx/broadcast", {
       transactionBytes: this.transaction_.getBytesAsHex()
     })
@@ -71,8 +70,7 @@ export class Transaction {
    * Return signed transaction
    */
   public getTransaction() {
-    if (!utils.isDefined(this.transaction_))
-      throw new Error("Must call sign() first")
+    if (!utils.isDefined(this.transaction_)) throw new Error("Must call sign() first")
     return this.transaction_
   }
 
@@ -89,9 +87,7 @@ export class Transaction {
         recipientPublicKeyHex = crypto.secretPhraseToPublicKey(secretPhrase)
 
       if (!recipientPublicKeyHex)
-        recipientPublicKeyHex = utils.isPublicKey(
-          this.recipientOrRecipientPublicKey
-        )
+        recipientPublicKeyHex = utils.isPublicKey(this.recipientOrRecipientPublicKey)
           ? this.recipientOrRecipientPublicKey
           : null
 
@@ -119,8 +115,7 @@ export class Transaction {
         let isPrivate = utils.isDefined(this.privateMessage_)
         let isPrivateToSelf = utils.isDefined(this.privateMessageToSelf_)
         if (isPrivate || isPrivateToSelf) {
-          if (!recipientPublicKeyHex)
-            throw new Error("Recipient public key not provided")
+          if (!recipientPublicKeyHex) throw new Error("Recipient public key not provided")
           crypto
             .encryptMessage(
               isPrivate ? this.privateMessage_ : this.privateMessageToSelf_,
