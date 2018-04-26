@@ -24,6 +24,10 @@
 ///<reference path="../node_modules/@types/jest/index.d.ts"/>
 ///<reference path="testnet.ts"/>
 
+/*
+To run tests in the file  test/testnet.ts  must be actual values for Testnet
+ */
+
 import { testnet } from "./testnet"
 import { Builder, TransactionImpl } from "../src/builder"
 import { Transaction } from "../src/transaction"
@@ -48,13 +52,13 @@ import { Configuration, HeatSDK } from "../src/heat-sdk"
 const heatsdk = new HeatSDK(new Configuration({ isTestnet: true }))
 
 function handleApiResponse(response) {
-  console.log(response)
+  //console.log(response)
   expect(response).toBeDefined()
   expect(response.errorCode).toBeUndefined()
 }
 
 function handleCatchApiResponse(response) {
-  console.log(response)
+  //console.log(response)
   expect(response).toBeDefined()
   expect(response.errorCode).toBeDefined()
 }
@@ -64,7 +68,7 @@ function testServerParsing(txn: Transaction): Promise<any> {
     let transaction = t.getTransaction()
     let bytes = transaction.getBytesAsHex()
     let t2 = TransactionImpl.parse(bytes)
-    console.log(transaction.getJSONObject())
+    //console.log(transaction.getJSONObject())
     expect(t2).toBeInstanceOf(TransactionImpl)
     expect(t2.getJSONObject()).toEqual(transaction.getJSONObject())
 

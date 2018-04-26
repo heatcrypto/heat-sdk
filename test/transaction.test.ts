@@ -21,14 +21,28 @@
  * SOFTWARE.
  * */
 
+/*
+To run tests in the file  test/testnet.ts  must be actual values for Testnet.
+The tests passes until the account balance has the money.
+ */
+
 import { testnet } from "./testnet"
 import { Configuration, HeatSDK } from "../src/heat-sdk"
 import { IBroadcastOutput } from "../src/transaction"
 import * as crypto from "../src/crypto"
 
-function handleResult(promise: Promise<any>) {
-  //todo. Now just print heat api response
-  promise.then((data: IBroadcastOutput) => console.log(data)).catch(reason => console.log(reason))
+function handleResult(promise: Promise<any>, done: Function) {
+  promise
+    .then((data: IBroadcastOutput) => {
+      //console.log(data)
+      expect(data.fullHash).toBeDefined()
+      done()
+    })
+    .catch(reason => {
+      expect(reason).toBeUndefined()
+      console.log(reason)
+      done()
+    })
 }
 
 /* the tests passes until the account balance has the money */
@@ -36,59 +50,148 @@ function handleResult(promise: Promise<any>) {
 describe("Transaction API", () => {
   const heatsdk = new HeatSDK(new Configuration({ isTestnet: true }))
 
-  it("broadcast payment", () => {
+  it("broadcast payment", done => {
     /* the test passes until the account balance has the money */
     let promise = heatsdk
       .payment("4644748344150906433", "0.002")
-      .publicMessage("Happy birthday!")
+      .publicMessage("heat-sdk test")
       .sign(testnet.ACCOUNT_1.SECRET_PHRASE)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    handleResult(promise, done)
   })
 
-  it("broadcast arbitrary message", () => {
+  it("broadcast arbitrary message", done => {
     let promise = heatsdk
       .arbitraryMessage("4644748344150906433", "Qwerty Йцукен")
       .sign(testnet.ACCOUNT_1.SECRET_PHRASE)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    handleResult(promise, done)
   })
 
-  it("broadcast private message", () => {
+  it("broadcast private message", done => {
     let promise = heatsdk
       .privateMessage(crypto.secretPhraseToPublicKey("user1"), "Private Info")
       .sign(testnet.ACCOUNT_1.SECRET_PHRASE)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    handleResult(promise, done)
   })
 
-  it("broadcast private message to self", () => {
+  it("broadcast private message to self", done => {
     let promise = heatsdk
       .privateMessageToSelf("Private message to self")
       .sign(testnet.ACCOUNT_1.SECRET_PHRASE)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    handleResult(promise, done)
   })
 
-  it("Asset Issuance", () => {
+  it("Asset Issuance", done => {
     let promise = heatsdk
       .assetIssuance("https://heatsdktest/assetN01", null, "1000", 0, true)
-      .sign(testnet.ACCOUNT_1.SECRET_PHRASE)
+      .publicMessage("heat-sdk test")
+      .sign(testnet.ACCOUNT_2.SECRET_PHRASE)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    handleResult(promise, done)
   })
 
-  it("Asset Transfer", () => {
+  // it("Asset Issuance with properties", done => {
+  //   let promise = heatsdk
+  //     .assetIssuance("https://heatsdktest/assetN02", null, "1000000", 3, false)
+  //     /* todo createAssetProperties()
+  //     // create a asset properties bundle, pass asset=0 to have the bundle replicator
+  //     // take the asset id from the current transaction (since the asset does not exist yet)
+  //     .createAssetProperties({
+  //       asset: "0",
+  //       protocol: 1,
+  //       value: {symbol: "GLD", name: "Gold"}
+  //     })
+  //     */
+  //     .sign(testnet.ACCOUNT_1.SECRET_PHRASE)
+  //     .then(transaction => transaction.broadcast())
+  //   handleResult(promise, done)
+  // })
+
+  it("Asset Transfer", done => {
     let promise = heatsdk
       .assetTransfer(testnet.ASSET_2.ISSUER.ID, testnet.ASSET_1.ID, "4")
+      .publicMessage("heat-sdk test")
       .sign(testnet.ASSET_1.ISSUER.SECRET_PHRASE)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    handleResult(promise, done)
     //transfer back
     promise = heatsdk
       .assetTransfer(testnet.ASSET_1.ISSUER.ID, testnet.ASSET_1.ID, "4")
+      .publicMessage("heat-sdk test")
       .sign(testnet.ASSET_2.ISSUER.SECRET_PHRASE)
       .then(transaction => transaction.broadcast())
-    handleResult(promise)
+    handleResult(promise, done)
+  })
+
+  it("place Ask Order", done => {
+    let promise = heatsdk
+      .placeAskOrder(testnet.ASSET_1.ID, testnet.ASSET_2.ID, "400000", "2000000", 3600)
+      .publicMessage("heat-sdk test")
+      .sign(testnet.ACCOUNT_2.SECRET_PHRASE)
+      .then(transaction => transaction.broadcast())
+    promise = heatsdk
+      .placeAskOrder(testnet.ASSET_1.ID, testnet.ASSET_2.ID, "400000", "2000000", 3600)
+      .publicMessage("heat-sdk test")
+      .sign(testnet.ACCOUNT_2.SECRET_PHRASE)
+      .then(transaction => transaction.broadcast())
+    handleResult(promise, done)
+  })
+
+  it("place Bid Order", done => {
+    let promise = heatsdk
+      .placeBidOrder(testnet.ASSET_1.ID, testnet.ASSET_2.ID, "400000", "2000000", 3600)
+      .publicMessage("heat-sdk test")
+      .sign(testnet.ACCOUNT_1.SECRET_PHRASE)
+      .then(transaction => transaction.broadcast())
+    handleResult(promise, done)
+  })
+
+  it("cancel Ask Order", done => {
+    heatsdk.api.get("/order/asks/0/100").then((data: any) => {
+      if (data.length > 0) {
+        for (let i in data) {
+          let orderData = data[i]
+          //search order's account. Need an order for which the account is known,
+          // because the order can be cancelled by account that created it
+          let account = testnet.OBJECTS_BY_ID[orderData.account]
+          if (account) {
+            let promise = heatsdk
+              .cancelAskOrder(orderData.order)
+              .publicMessage("heat-sdk test")
+              .sign(account.SECRET_PHRASE)
+              .then(transaction => transaction.broadcast())
+            handleResult(promise, done)
+            break
+          }
+        }
+      }
+      done()
+    })
+  })
+
+  it("cancel Bid Order", done => {
+    heatsdk.api.get("/order/bids/0/100").then((data: any) => {
+      if (data.length > 0) {
+        for (let i in data) {
+          let orderData = data[i]
+          //search order's account. Need an order for which the account is known,
+          // because the order can be cancelled by account that created it
+          let account = testnet.OBJECTS_BY_ID[orderData.account]
+          if (account) {
+            let promise = heatsdk
+              .cancelBidOrder(orderData.order)
+              .publicMessage("heat-sdk test")
+              .sign(account.SECRET_PHRASE)
+              .then(transaction => transaction.broadcast())
+            handleResult(promise, done)
+            break
+          }
+        }
+      }
+      done()
+    })
   })
 })

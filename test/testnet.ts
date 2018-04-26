@@ -32,7 +32,8 @@ export const testnet = {
   ACCOUNT_22: { ID: "8072356497785662904", SECRET_PHRASE: "stresstest22" },
   ASSET_1: undefined,
   ASSET_2: undefined,
-  ASSET_3: undefined
+  ASSET_3: undefined,
+  OBJECTS_BY_ID: {}
 }
 
 // Asset ENE Energy q=1_000_000 decimals=6 dillutable=false
@@ -40,3 +41,9 @@ testnet.ASSET_1 = { ID: "9827585868724319515", ISSUER: testnet.ACCOUNT_1 }
 
 // Asset POW Power q=100_500 decimals=0 dillutable=true
 testnet.ASSET_2 = { ID: "3722848536705943191", ISSUER: testnet.ACCOUNT_2 }
+
+// map ID -> object_with_this_id
+for (let key in testnet) {
+  let item = testnet[key]
+  if (item && item.ID) testnet.OBJECTS_BY_ID[item.ID] = item
+}
