@@ -22,8 +22,8 @@
  * */
 
 import WebSocket from "ws"
-import Long from "long"
-import ByteBuffer from "bytebuffer"
+import * as Long from "long"
+import * as ByteBuffer from "bytebuffer"
 import * as utils from "./utils"
 import { Buffer } from "buffer"
 import { callbackify } from "util"

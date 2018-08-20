@@ -21,7 +21,7 @@
  * SOFTWARE.
  * */
 import * as attachment from "./attachment"
-import ByteBuffer from "bytebuffer"
+import * as ByteBuffer from "bytebuffer"
 
 export abstract class TransactionType {
   public static TYPE_PAYMENT = 0
@@ -45,9 +45,7 @@ export abstract class TransactionType {
   abstract getType(): number
   abstract getSubtype(): number
   abstract parseAttachment(buffer: ByteBuffer): attachment.Attachment
-  abstract parseAttachmentJSON(json: {
-    [key: string]: any
-  }): attachment.Attachment
+  abstract parseAttachmentJSON(json: { [key: string]: any }): attachment.Attachment
   abstract canHaveRecipient(): boolean
 
   public static findTransactionType(type: number, subtype: number) {
@@ -302,9 +300,7 @@ export class EffectiveBalanceLeasing extends AccountControl {
     return new attachment.AccountControlEffectiveBalanceLeasing().parse(buffer)
   }
   parseAttachmentJSON(json: { [key: string]: any }) {
-    return new attachment.AccountControlEffectiveBalanceLeasing().parseJSON(
-      json
-    )
+    return new attachment.AccountControlEffectiveBalanceLeasing().parseJSON(json)
   }
 }
 

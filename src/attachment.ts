@@ -25,15 +25,14 @@ import * as transactionType from "./transaction-type"
 import * as converters from "./converters"
 import * as utils from "./utils"
 import { Fee } from "./fee"
-import Long from "long"
-import ByteBuffer from "bytebuffer"
+import * as Long from "long"
+import * as ByteBuffer from "bytebuffer"
 
 export interface Attachment extends appendix.Appendix {
   getTransactionType(): transactionType.TransactionType
 }
 
-export abstract class EmptyAttachment extends appendix.AbstractAppendix
-  implements Attachment {
+export abstract class EmptyAttachment extends appendix.AbstractAppendix implements Attachment {
   constructor() {
     super()
     this.version = 0
@@ -85,8 +84,7 @@ export class Message extends EmptyAttachment {
 
 // ------------------- Asset ------------------------------------------------------------------------------------------
 
-export class AssetIssuance extends appendix.AbstractAppendix
-  implements Attachment {
+export class AssetIssuance extends appendix.AbstractAppendix implements Attachment {
   private descriptionUrl: string
   private descriptionHash: number[]
   private quantity: Long
@@ -101,8 +99,7 @@ export class AssetIssuance extends appendix.AbstractAppendix
     dillutable: boolean
   ) {
     this.descriptionUrl = descriptionUrl
-    this.descriptionHash =
-      descriptionHash == null ? new Array(32).fill(0) : descriptionHash
+    this.descriptionHash = descriptionHash == null ? new Array(32).fill(0) : descriptionHash
     this.quantity = Long.fromString(quantity)
     this.decimals = decimals
     this.dillutable = dillutable
@@ -110,21 +107,12 @@ export class AssetIssuance extends appendix.AbstractAppendix
   }
 
   getMySize(): number {
-    return (
-      1 +
-      converters.stringToByteArray(this.descriptionUrl).length +
-      32 +
-      8 +
-      1 +
-      1
-    )
+    return 1 + converters.stringToByteArray(this.descriptionUrl).length + 32 + 8 + 1 + 1
   }
 
   public parse(buffer: ByteBuffer) {
     super.parse(buffer)
-    this.descriptionUrl = converters.byteArrayToString(
-      utils.readBytes(buffer, buffer.readByte())
-    ) //need to check Constants.MAX_ASSET_DESCRIPTION_URL_LENGTH ?
+    this.descriptionUrl = converters.byteArrayToString(utils.readBytes(buffer, buffer.readByte())) //need to check Constants.MAX_ASSET_DESCRIPTION_URL_LENGTH ?
     this.descriptionHash = utils.readBytes(buffer, 32)
     this.quantity = buffer.readInt64()
     this.decimals = buffer.readByte()
@@ -147,9 +135,7 @@ export class AssetIssuance extends appendix.AbstractAppendix
   public parseJSON(json: { [key: string]: any }) {
     super.parseJSON(json)
     this.descriptionUrl = json["descriptionUrl"]
-    this.descriptionHash = <any>converters.hexStringToByteArray(
-      json["descriptionHash"]
-    )
+    this.descriptionHash = <any>converters.hexStringToByteArray(json["descriptionHash"])
     this.quantity = Long.fromString(json["quantity"])
     this.decimals = json["decimals"]
     this.dillutable = json["dillutable"]
@@ -158,9 +144,7 @@ export class AssetIssuance extends appendix.AbstractAppendix
 
   putMyJSON(json: { [key: string]: any }): void {
     json["descriptionUrl"] = this.descriptionUrl
-    json["descriptionHash"] = converters.byteArrayToHexString(
-      Array.from(this.descriptionHash)
-    )
+    json["descriptionHash"] = converters.byteArrayToHexString(Array.from(this.descriptionHash))
     json["quantity"] = this.quantity.toString()
     json["decimals"] = this.decimals
     json["dillutable"] = this.dillutable
@@ -283,13 +267,7 @@ export abstract class ColoredCoinsOrderPlacement extends appendix.AbstractAppend
   private price: Long
   private expiration: number
 
-  init(
-    currencyId: string,
-    assetId: string,
-    quantity: string,
-    price: string,
-    expiration: number
-  ) {
+  init(currencyId: string, assetId: string, quantity: string, price: string, expiration: number) {
     this.currencyId = Long.fromString(currencyId)
     this.assetId = Long.fromString(assetId)
     this.quantity = Long.fromString(quantity)
@@ -580,8 +558,7 @@ export class ColoredCoinsWhitelistAccountRemoval extends appendix.AbstractAppend
   }
 }
 
-export class ColoredCoinsWhitelistMarket extends appendix.AbstractAppendix
-  implements Attachment {
+export class ColoredCoinsWhitelistMarket extends appendix.AbstractAppendix implements Attachment {
   private currencyId: Long
   private assetId: Long
 
