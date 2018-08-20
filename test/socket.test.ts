@@ -85,7 +85,7 @@ describe("heat-rpc", () => {
   }
 
   it("can use BroadcastRequestType", () => {
-    let object = { transaction: transaction }
+    let object = { transaction: transaction, transactions: null }
     let buffer = BroadcastRequestType.toBuffer(object)
     expect(buffer).toBeDefined()
     let val = BroadcastRequestType.fromBuffer(buffer)
