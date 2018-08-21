@@ -20,25 +20,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
+import "./jasmine"
 import fetch, { Headers, Request, Response } from "node-fetch"
 
 /**
- * To access `fetch` in your tests and nodejs modules include 
+ * To access `fetch` in your tests and nodejs modules include
  * require('es6-promise').polyfill();require('isomorphic-fetch') at the top
- * of your module. 
+ * of your module.
  * To access `fetch` in a browser simply refer to the global `fetch` method.
- * 
+ *
  * Links:
- * 
+ *
  *    About async tests
  *    https://facebook.github.io/jest/docs/en/tutorial-async.html
- * 
+ *
  *    About using fetch
  *    https://developers.google.com/web/updates/2015/03/introduction-to-fetch
  *    https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
- * 
+ *
  *    About fetch
- *    Fetch is natively supported in both latest firefox and chrome and is meant 
+ *    Fetch is natively supported in both latest firefox and chrome and is meant
  *    as a native standardized follow up to XMLHttpRequest.
  */
 
@@ -47,8 +48,7 @@ import fetch, { Headers, Request, Response } from "node-fetch"
 function searchParams(params: { [key: string]: string }): string {
   let result: string[] = []
   for (var key in params) {
-    if (params.hasOwnProperty(key))
-      result.push(`${key}=${encodeURIComponent(params[key])}`)
+    if (params.hasOwnProperty(key)) result.push(`${key}=${encodeURIComponent(params[key])}`)
   }
   return result.join("&")
 }

@@ -1,3 +1,4 @@
+import "./jasmine"
 import { SecretGenerator } from "../src/secret-generator"
 
 describe("SecretGenerator.generate test", () => {
@@ -18,14 +19,12 @@ describe("SecretGenerator.generate test", () => {
   })
   it("returns unique secret phrases", () => {
     let generator = new SecretGenerator()
-    return Promise.all([
-      generator.generate(),
-      generator.generate(),
-      generator.generate()
-    ]).then(values => {
-      expect(values[0]).not.toEqual(values[1])
-      expect(values[1]).not.toEqual(values[2])
-      return expect(values[0]).not.toEqual(values[2])
-    })
+    return Promise.all([generator.generate(), generator.generate(), generator.generate()]).then(
+      values => {
+        expect(values[0]).not.toEqual(values[1])
+        expect(values[1]).not.toEqual(values[2])
+        return expect(values[0]).not.toEqual(values[2])
+      }
+    )
   })
 })

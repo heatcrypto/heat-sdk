@@ -20,27 +20,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
+import "./jasmine"
 import * as crypto from "../src/crypto"
 import { IEncryptOptions } from "../src/crypto"
 import { hexStringToByteArray, stringToByteArray } from "../src/converters"
 import * as Long from "long"
 
 let bob = {
-  secretPhrase:
-    "floor battle paper consider stranger blind alter blur bless wrote prove cloud",
-  publicKeyStr:
-    "ef9baf978860b56d6a0d15638c9af11be687f90230ec839fad762d085fc5651a",
-  privateKeyStr:
-    "d0b857ee906717f40917f3a2c2c7e3fa0ffb3bc46edd1606b83f80bccf89065e",
+  secretPhrase: "floor battle paper consider stranger blind alter blur bless wrote prove cloud",
+  publicKeyStr: "ef9baf978860b56d6a0d15638c9af11be687f90230ec839fad762d085fc5651a",
+  privateKeyStr: "d0b857ee906717f40917f3a2c2c7e3fa0ffb3bc46edd1606b83f80bccf89065e",
   account: "2068178321230336428"
 }
 
 let alice = {
   secretPhrase: "user3",
-  publicKeyStr:
-    "4376219788e7d1946ad377196fd7103958d3d6d6618dc93d2d0d6b4f717b641d", //???
-  privateKeyStr:
-    "5860faf02b6bc6222ba5aca523560f0e364ccd8b67bee486fe8bf7c01d492c4b",
+  publicKeyStr: "4376219788e7d1946ad377196fd7103958d3d6d6618dc93d2d0d6b4f717b641d", //???
+  privateKeyStr: "5860faf02b6bc6222ba5aca523560f0e364ccd8b67bee486fe8bf7c01d492c4b",
   account: "1522541402758811473"
 }
 
@@ -75,9 +71,7 @@ describe("crypto.fullNameToHash test", () => {
     expect(crypto.fullNameToHash).toBeInstanceOf(Function)
   })
   it("returns a full name hash", () => {
-    expect(crypto.fullNameToHash("oskol@heatwallet.com")).toBe(
-      "8932144534527668929"
-    )
+    expect(crypto.fullNameToHash("oskol@heatwallet.com")).toBe("8932144534527668929")
   })
 })
 
@@ -87,9 +81,7 @@ describe("crypto.fullNameToLong test", () => {
   })
   it("returns a full name hash", () => {
     let bytes = stringToByteArray("oskol@heatwallet.com")
-    expect(crypto.fullNameToLong(bytes)).toEqual(
-      Long.fromString("8932144534527668929")
-    )
+    expect(crypto.fullNameToLong(bytes)).toEqual(Long.fromString("8932144534527668929"))
   })
 })
 
@@ -111,12 +103,8 @@ describe("crypto.secretPhraseToPublicKey test", () => {
     expect(crypto.secretPhraseToPublicKey).toBeInstanceOf(Function)
   })
   it("returns public key of secret phrase", () => {
-    expect(crypto.secretPhraseToPublicKey(bob.secretPhrase)).toBe(
-      bob.publicKeyStr
-    )
-    expect(crypto.secretPhraseToPublicKey(alice.secretPhrase)).toBe(
-      alice.publicKeyStr
-    )
+    expect(crypto.secretPhraseToPublicKey(bob.secretPhrase)).toBe(bob.publicKeyStr)
+    expect(crypto.secretPhraseToPublicKey(alice.secretPhrase)).toBe(alice.publicKeyStr)
   })
 })
 
@@ -146,9 +134,7 @@ describe("crypto.getAccountIdFromPublicKey test", () => {
   })
   it("returns account id", () => {
     expect(crypto.getAccountIdFromPublicKey(bob.publicKeyStr)).toBe(bob.account)
-    expect(crypto.getAccountIdFromPublicKey(alice.publicKeyStr)).toBe(
-      alice.account
-    )
+    expect(crypto.getAccountIdFromPublicKey(alice.publicKeyStr)).toBe(alice.account)
   })
 })
 
@@ -222,11 +208,7 @@ describe("crypto.encryptBinaryNote test", () => {
     }
 
     return crypto
-      .encryptBinaryNote(
-        stringToByteArray(text),
-        options,
-        bob.secretPhrase /*todo with true*/
-      )
+      .encryptBinaryNote(stringToByteArray(text), options, bob.secretPhrase /*todo with true*/)
       .then(encrypted => {
         let decrypted = crypto.decryptMessage(
           encrypted.message,
@@ -246,18 +228,16 @@ describe("crypto.encryptMessage, crypto.decryptMessage test", () => {
   })
   it("encrypts, decrypts message", () => {
     let text = "qwerty ♠═~☺"
-    return crypto
-      .encryptMessage(text, bob.publicKeyStr, bob.secretPhrase)
-      .then(encrypted => {
-        let decrypted = crypto.decryptMessage(
-          encrypted.data,
-          encrypted.nonce,
-          bob.publicKeyStr,
-          bob.secretPhrase
-        )
-        expect(encrypted.isText).toBe(true)
-        return expect(decrypted).toBe(text)
-      })
+    return crypto.encryptMessage(text, bob.publicKeyStr, bob.secretPhrase).then(encrypted => {
+      let decrypted = crypto.decryptMessage(
+        encrypted.data,
+        encrypted.nonce,
+        bob.publicKeyStr,
+        bob.secretPhrase
+      )
+      expect(encrypted.isText).toBe(true)
+      return expect(decrypted).toBe(text)
+    })
   })
 })
 

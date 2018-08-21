@@ -1,3 +1,4 @@
+import "./jasmine"
 import * as utils from "../src/utils"
 
 describe("utils.unformat test", () => {

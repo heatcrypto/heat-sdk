@@ -20,6 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
+import "./jasmine"
 import { HeatSDK } from "../src/heat-sdk"
 
 describe("Export default test", () => {
@@ -28,8 +29,6 @@ describe("Export default test", () => {
     expect(heatsdk).toBeTruthy()
   })
   it("has a crypto property with exported methods", () => {
-    expect(heatsdk.crypto.getAccountId("secret phrase")).toBe(
-      "7567221445300685906"
-    )
+    expect(heatsdk.crypto.getAccountId("secret phrase")).toBe("7567221445300685906")
   })
 })

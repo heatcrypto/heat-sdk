@@ -27,7 +27,7 @@
 /*
 To run tests in the file  test/testnet.ts  must be actual values for Testnet
  */
-
+import "./jasmine"
 import { testnet } from "./testnet"
 import { Builder, TransactionImpl } from "../src/builder"
 import { Transaction } from "../src/transaction"

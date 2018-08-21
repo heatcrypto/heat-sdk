@@ -20,6 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
+import "./jasmine"
 import { randomBytes } from "../src/random-bytes"
 
 describe("randomBytes", () => {
@@ -39,11 +40,7 @@ describe("randomBytes", () => {
     ])
   })
   it("never returns the same bytes", () => {
-    return Promise.all([
-      randomBytes(10),
-      randomBytes(10),
-      randomBytes(10)
-    ]).then(values => {
+    return Promise.all([randomBytes(10), randomBytes(10), randomBytes(10)]).then(values => {
       expect(values[0]).not.toEqual(values[1])
       expect(values[1]).not.toEqual(values[2])
       return expect(values[0]).not.toEqual(values[2])

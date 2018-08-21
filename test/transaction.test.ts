@@ -25,7 +25,7 @@
 To run tests in the file  test/testnet.ts  must be actual values for Testnet.
 The tests passes until the account balance has the money.
  */
-
+import "./jasmine"
 import { testnet } from "./testnet"
 import { Configuration, HeatSDK } from "../src/heat-sdk"
 import { IBroadcastOutput } from "../src/transaction"
