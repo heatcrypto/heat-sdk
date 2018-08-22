@@ -27,7 +27,7 @@ export default [
       sourceMaps()
     ],
     sourcemap: true,
-    external: 'buffer,memcpy,url,http,https,zlib,stream,util'.split(','),
+    external: 'buffer,memcpy,url,http,https,zlib,stream,util,events,crypto,fs,path'.split(','),
     output: [
 			{ file: 'dist/heat-sdk.js', format: 'cjs' }
     ]

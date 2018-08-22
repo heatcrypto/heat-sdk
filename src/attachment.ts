@@ -25,7 +25,7 @@ import * as transactionType from "./transaction-type"
 import * as converters from "./converters"
 import * as utils from "./utils"
 import { Fee } from "./fee"
-import * as Long from "long"
+import Long from "long"
 import * as ByteBuffer from "bytebuffer"
 
 export interface Attachment extends appendix.Appendix {

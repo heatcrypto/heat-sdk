@@ -22,7 +22,8 @@
     "noImplicitThis": false,
     "noImplicitAny": false,
     "declaration": true,
-    "allowJs": true
+    "allowJs": true,
+    "esModuleInterop": true
   },
   "files": [
     "src/appendix.ts",

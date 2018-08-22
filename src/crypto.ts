@@ -34,7 +34,7 @@ import {
 } from "./converters"
 import Big from "big.js"
 import pako from "pako"
-import * as Long from "long"
+import Long from "long"
 import { randomBytes } from "./random-bytes"
 
 var _hash = {
@@ -2248,8 +2248,8 @@ var curve25519 = (function() {
 
       if (is_negative(t1) !== 0)
         /* sign is 1, so just copy  */
-        cpy32(s, k) /* sign is -1, so negate  */
-      else mula_small(s, ORDER_TIMES_8, 0, k, 32, -1)
+        cpy32(s, k)
+      /* sign is -1, so negate  */ else mula_small(s, ORDER_TIMES_8, 0, k, 32, -1)
 
       /* reduce s mod q
        * (is this needed?  do it just in case, it's fast anyway) */
