@@ -162,7 +162,7 @@ describe("Transaction builder", () => {
       .ecBlockId("5555566666")
       .recipientId("33333")
       .isTestnet(true)
-    let txn = new Transaction(heatsdk, builder, "33333")
+    let txn = new Transaction(heatsdk, "33333", builder)
     let transaction = builder.build("hello")
     txn.sign("hello")
     let unsignedBytes = transaction.getUnsignedBytes()
@@ -637,7 +637,7 @@ describe("Transaction builder", () => {
       .attachment(new AssetIssuance().init("https://abcd", null, "100", 0, true))
       .amountHQT("0")
       .feeHQT("50000000000")
-    testServerParsing(new Transaction(heatsdk, builder)).then(response => {
+    testServerParsing(new Transaction(heatsdk, "0", builder)).then(response => {
       expect(response).toEqual(
         expect.objectContaining({
           fee: "50000000000",
@@ -654,7 +654,7 @@ describe("Transaction builder", () => {
       .attachment(new AssetIssueMore().init(testnet.ASSET_1.ID, "100"))
       .amountHQT("0")
       .feeHQT("50000000000")
-    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
       expect(response.errorDescription.indexOf("NotYetEnabledException")).toBeGreaterThanOrEqual(0)
       done()
     })
@@ -665,7 +665,7 @@ describe("Transaction builder", () => {
       .attachment(new AssetTransfer().init(testnet.ASSET_1.ID, "100"))
       .amountHQT("0")
       .feeHQT("50000000000")
-    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
       expect(response).toEqual(
         expect.objectContaining({
           fee: "50000000000",
@@ -690,7 +690,7 @@ describe("Transaction builder", () => {
       )
       .amountHQT("0")
       .feeHQT("1000000")
-    testServerParsing(new Transaction(heatsdk, builder)).then(response => {
+    testServerParsing(new Transaction(heatsdk, "0", builder)).then(response => {
       expect(response).toEqual(
         expect.objectContaining({
           fee: "1000000",
@@ -716,7 +716,7 @@ describe("Transaction builder", () => {
       )
       .amountHQT("0")
       .feeHQT("1000000")
-    testServerParsing(new Transaction(heatsdk, builder)).then(response => {
+    testServerParsing(new Transaction(heatsdk, "0", builder)).then(response => {
       expect(response).toEqual(
         expect.objectContaining({
           fee: "1000000",
@@ -734,7 +734,7 @@ describe("Transaction builder", () => {
       .amountHQT("0")
       .feeHQT("1000000")
     //todo make the real Ask Order and then cancel it
-    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
       expect(response.errorDescription).toMatch("Invalid ask order cancellation")
       done()
     })
@@ -745,7 +745,7 @@ describe("Transaction builder", () => {
       .attachment(new ColoredCoinsBidOrderCancellation().init("1234567"))
       .amountHQT("0")
       .feeHQT("1000000")
-    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
       expect(response.errorDescription).toMatch("Invalid bid order cancellation")
       done()
     })
@@ -762,7 +762,7 @@ describe("Transaction builder", () => {
       )
       .amountHQT("0")
       .feeHQT("1000000")
-    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
       expect(response.errorDescription).toMatch("NotYetEnabledException")
       done()
     })
@@ -775,7 +775,7 @@ describe("Transaction builder", () => {
       )
       .amountHQT("0")
       .feeHQT("1000000")
-    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
       expect(response.errorDescription).toMatch("NotYetEnabledException")
       done()
     })
@@ -786,7 +786,7 @@ describe("Transaction builder", () => {
       .attachment(new ColoredCoinsWhitelistMarket().init("0", testnet.ASSET_1.ID))
       .amountHQT("0")
       .feeHQT("1000000000")
-    testServerParsing(new Transaction(heatsdk, builder, testnet.ASSET_1.ISSUER.ID)).then(
+    testServerParsing(new Transaction(heatsdk, testnet.ASSET_1.ISSUER.ID, builder)).then(
       response => {
         expect(response.errorDescription).toMatch("Only asset issuer can allow a market")
         done()
@@ -799,7 +799,7 @@ describe("Transaction builder", () => {
       .attachment(new AccountControlEffectiveBalanceLeasing().init(2))
       .amountHQT("0")
       .feeHQT("1000000")
-    testServerParsing(new Transaction(heatsdk, builder, "123")).then(response => {
+    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
       expect(response.errorDescription).toMatch("Invalid effective balance leasing")
       done()
     })

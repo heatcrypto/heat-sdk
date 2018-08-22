@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * */
-import * as Long from "long"
+import Long from "long"
 import { Buffer } from "buffer"
 import avro from "./avro-types/avro-types"
 // import a_ from './avro-types'
@@ -34,8 +34,8 @@ export const Type = {
 
 const longType = avro.types.LongType.__with({
   fromBuffer: (buf: any) => {
-    //return new Long(buf.readInt32LE(0), buf.readInt32LE(4))
-    return Long.fromBits(buf.readInt32LE(0), buf.readInt32LE(4))
+    return new Long(buf.readInt32LE(0), buf.readInt32LE(4))
+    //return Long.fromBits(buf.readInt32LE(0), buf.readInt32LE(4))
   },
   toBuffer: (n: any) => {
     //const buf: any = Buffer.alloc(8)

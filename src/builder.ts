@@ -28,7 +28,7 @@ import * as appendix from "./appendix"
 import * as utils from "./utils"
 import * as converters from "./converters"
 import * as crypto from "./crypto"
-import * as Long from "long"
+import Long from "long"
 import * as ByteBuffer from "bytebuffer"
 import { Buffer } from "buffer"
 

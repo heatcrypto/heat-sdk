@@ -1,6 +1,6 @@
 {
   "name": "heat-sdk",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "HEAT support libraries for use in Node.js and any (modern) browser",
   "keywords": [
     "heat",
@@ -34,6 +34,7 @@
     "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "prebuild": "rimraf dist",
     "build": "rollup -c && rimraf compiled && typedoc --sourcefile-url-prefix 'https://github.com/Heat-Ledger-Ltd/heat-sdk/blob/master/src/' --out dist/docs --target es6 --theme minimal src",
+    "buildfast": "rimraf dist && rollup -c && rimraf compiled",
     "start": "rollup -c -w",
     "test": "jest --forceExit",
     "test:watch": "jest --watch",
@@ -98,7 +99,7 @@
     "jest": "^21.0.0",
     "lint-staged": "^4.3.0",
     "lodash.camelcase": "^4.3.0",
-    "prettier": "^1.14.2",
+    "prettier": "1.12.1",
     "prompt": "^1.0.0",
     "replace-in-file": "^3.4.2",
     "rimraf": "^2.6.1",

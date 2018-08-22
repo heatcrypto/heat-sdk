@@ -48,8 +48,8 @@ export class Transaction {
 
   constructor(
     private heatsdk: HeatSDK,
-    private builder: Builder,
-    private recipientOrRecipientPublicKey?: string
+    private recipientOrRecipientPublicKey: string,
+    private builder: Builder
   ) {}
 
   public sign(secretPhrase: string): Promise<Transaction> {

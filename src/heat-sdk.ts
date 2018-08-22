@@ -114,44 +114,44 @@ export class HeatSDK {
   public payment(recipientOrRecipientPublicKey: string, amount: string) {
     return new Transaction(
       this,
+      recipientOrRecipientPublicKey,
       new Builder()
         .isTestnet(this.config.isTestnet)
         .attachment(attachment.ORDINARY_PAYMENT)
-        .amountHQT(utils.convertToQNT(amount)),
-      recipientOrRecipientPublicKey
+        .amountHQT(utils.convertToQNT(amount))
     )
   }
 
   public arbitraryMessage(recipientOrRecipientPublicKey: string, message: string) {
     return new Transaction(
       this,
+      recipientOrRecipientPublicKey,
       new Builder()
         .isTestnet(this.config.isTestnet)
         .attachment(attachment.ARBITRARY_MESSAGE)
-        .amountHQT("0"),
-      recipientOrRecipientPublicKey
+        .amountHQT("0")
     ).publicMessage(message)
   }
 
   public privateMessage(recipientPublicKey: string, message: string) {
     return new Transaction(
       this,
+      recipientPublicKey,
       new Builder()
         .isTestnet(this.config.isTestnet)
         .attachment(attachment.ARBITRARY_MESSAGE)
-        .amountHQT("0"),
-      recipientPublicKey
+        .amountHQT("0")
     ).privateMessage(message)
   }
 
   public privateMessageToSelf(message: string) {
     return new Transaction(
       this,
+      null, // if null and provide private message then to send encrypted message to self
       new Builder()
         .isTestnet(this.config.isTestnet)
         .attachment(attachment.ARBITRARY_MESSAGE)
-        .amountHQT("0"),
-      null // if null and provide private message then to send encrypted message to self
+        .amountHQT("0")
     ).privateMessageToSelf(message)
   }
 
@@ -170,7 +170,7 @@ export class HeatSDK {
       )
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ASSET_ISSUANCE_FEE)
-    return new Transaction(this, builder)
+    return new Transaction(this, "0", builder)
   }
 
   public assetTransfer(
@@ -184,7 +184,7 @@ export class HeatSDK {
       .attachment(new AssetTransfer().init(assetId, quantity))
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ASSET_TRANSFER_FEE)
-    return new Transaction(this, builder, recipientOrRecipientPublicKey)
+    return new Transaction(this, recipientOrRecipientPublicKey, builder)
   }
 
   public placeAskOrder(
@@ -201,7 +201,7 @@ export class HeatSDK {
       )
       .amountHQT("0")
       .feeHQT("1000000")
-    return new Transaction(this, builder)
+    return new Transaction(this, "0", builder)
   }
 
   public placeBidOrder(
@@ -218,7 +218,7 @@ export class HeatSDK {
       )
       .amountHQT("0")
       .feeHQT("1000000")
-    return new Transaction(this, builder)
+    return new Transaction(this, "0", builder)
   }
 
   public cancelAskOrder(orderId: string) {
@@ -227,7 +227,7 @@ export class HeatSDK {
       .attachment(new ColoredCoinsAskOrderCancellation().init(orderId))
       .amountHQT("0")
       .feeHQT("1000000")
-    return new Transaction(this, builder)
+    return new Transaction(this, "0", builder)
   }
 
   public cancelBidOrder(orderId: string) {
@@ -236,6 +236,6 @@ export class HeatSDK {
       .attachment(new ColoredCoinsBidOrderCancellation().init(orderId))
       .amountHQT("0")
       .feeHQT("1000000")
-    return new Transaction(this, builder)
+    return new Transaction(this, "0", builder)
   }
 }
