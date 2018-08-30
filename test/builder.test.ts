@@ -162,6 +162,7 @@ describe("Transaction builder", () => {
       .ecBlockId("5555566666")
       .recipientId("33333")
       .isTestnet(true)
+      .genesisKey([255, 255, 255, 255, 255, 255, 255, 127])
     let txn = new Transaction(heatsdk, "33333", builder)
     let transaction = builder.build("hello")
     txn.sign("hello")

@@ -51,17 +51,20 @@ export interface ConfigArgs {
   isTestnet?: boolean
   baseURL?: string
   websocketURL?: string
+  genesisKey?: Array<number>
 }
 
 export class Configuration {
   isTestnet = false
   baseURL: string
   websocketURL: string
+  genesisKey: Array<number>
   constructor(args?: ConfigArgs) {
     if (args) {
       if (utils.isDefined(args.isTestnet)) this.isTestnet = !!args.isTestnet
       if (utils.isDefined(args.baseURL)) this.baseURL = <string>args.baseURL
       if (utils.isDefined(args.websocketURL)) this.websocketURL = <string>args.websocketURL
+      if (utils.isDefined(args.genesisKey)) this.genesisKey = <Array<number>>args.genesisKey
     }
     if (!utils.isDefined(this.baseURL))
       this.baseURL = this.isTestnet
@@ -71,6 +74,11 @@ export class Configuration {
       this.websocketURL = this.isTestnet
         ? "wss://alpha.heatledger.com:7755/ws/"
         : "wss://heatwallet.com:7755/ws/"
+    if (!utils.isDefined(this.genesisKey)) {
+      if (this.isTestnet) {
+        this.genesisKey = [255, 255, 255, 255, 255, 255, 255, 127]
+      }
+    }
   }
 }
 
@@ -117,6 +125,7 @@ export class HeatSDK {
       recipientOrRecipientPublicKey,
       new Builder()
         .isTestnet(this.config.isTestnet)
+        .genesisKey(this.config.genesisKey)
         .attachment(attachment.ORDINARY_PAYMENT)
         .amountHQT(utils.convertToQNT(amount))
     )
@@ -128,6 +137,7 @@ export class HeatSDK {
       recipientOrRecipientPublicKey,
       new Builder()
         .isTestnet(this.config.isTestnet)
+        .genesisKey(this.config.genesisKey)
         .attachment(attachment.ARBITRARY_MESSAGE)
         .amountHQT("0")
     ).publicMessage(message)
@@ -139,6 +149,7 @@ export class HeatSDK {
       recipientPublicKey,
       new Builder()
         .isTestnet(this.config.isTestnet)
+        .genesisKey(this.config.genesisKey)
         .attachment(attachment.ARBITRARY_MESSAGE)
         .amountHQT("0")
     ).privateMessage(message)
@@ -150,6 +161,7 @@ export class HeatSDK {
       null, // if null and provide private message then to send encrypted message to self
       new Builder()
         .isTestnet(this.config.isTestnet)
+        .genesisKey(this.config.genesisKey)
         .attachment(attachment.ARBITRARY_MESSAGE)
         .amountHQT("0")
     ).privateMessageToSelf(message)
@@ -165,6 +177,7 @@ export class HeatSDK {
   ) {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
+      .genesisKey(this.config.genesisKey)
       .attachment(
         new AssetIssuance().init(descriptionUrl, descriptionHash, quantity, decimals, dillutable)
       )
@@ -181,6 +194,7 @@ export class HeatSDK {
   ) {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
+      .genesisKey(this.config.genesisKey)
       .attachment(new AssetTransfer().init(assetId, quantity))
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ASSET_TRANSFER_FEE)
@@ -196,6 +210,7 @@ export class HeatSDK {
   ) {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
+      .genesisKey(this.config.genesisKey)
       .attachment(
         new ColoredCoinsAskOrderPlacement().init(currencyId, assetId, quantity, price, expiration)
       )
@@ -213,6 +228,7 @@ export class HeatSDK {
   ) {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
+      .genesisKey(this.config.genesisKey)
       .attachment(
         new ColoredCoinsBidOrderPlacement().init(currencyId, assetId, quantity, price, expiration)
       )
@@ -224,6 +240,7 @@ export class HeatSDK {
   public cancelAskOrder(orderId: string) {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
+      .genesisKey(this.config.genesisKey)
       .attachment(new ColoredCoinsAskOrderCancellation().init(orderId))
       .amountHQT("0")
       .feeHQT("1000000")
@@ -233,6 +250,7 @@ export class HeatSDK {
   public cancelBidOrder(orderId: string) {
     let builder = new Builder()
       .isTestnet(this.config.isTestnet)
+      .genesisKey(this.config.genesisKey)
       .attachment(new ColoredCoinsBidOrderCancellation().init(orderId))
       .amountHQT("0")
       .feeHQT("1000000")

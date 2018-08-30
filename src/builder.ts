@@ -51,6 +51,7 @@ export class Builder {
   public _publicNameAnnouncement: appendix.AppendixPublicNameAnnouncement
   public _publicNameAssignment: appendix.AppendixPublicNameAssignment
   public _isTestnet: boolean
+  public _genesisKey: Array<number>
   public _timestamp: number
   public _ecBlockHeight: number
   public _ecBlockId: string
@@ -126,6 +127,10 @@ export class Builder {
     this._isTestnet = isTestnet
     return this
   }
+  public genesisKey(genesisKey: Array<number>) {
+    this._genesisKey = genesisKey
+    return this
+  }
   public timestamp(timestamp: number) {
     this._timestamp = timestamp
     return this
@@ -168,10 +173,12 @@ export class TransactionImpl {
   private ecBlockHeight: number
   private ecBlockId: string
   private isTestnet: boolean
+  private genesisKey: Array<number>
 
   constructor(builder: Builder, secretPhrase: string | null) {
     this.appendages = []
     this.isTestnet = builder._isTestnet
+    this.genesisKey = builder._genesisKey
     this.timestamp = builder._timestamp
     this.type = builder._type
     this.version = builder._version
@@ -191,7 +198,6 @@ export class TransactionImpl {
     this.publicNameAssignment = builder._publicNameAssignment
     this.ecBlockHeight = builder._ecBlockHeight
     this.ecBlockId = builder._ecBlockId
-    this.isTestnet = builder._isTestnet
     this.senderPublicKey
     if (utils.isDefined(builder._senderPublicKey)) this.senderPublicKey = builder._senderPublicKey
     else if (secretPhrase)
@@ -309,9 +315,9 @@ export class TransactionImpl {
       appendage.putBytes(buffer)
     })
 
-    if (this.isTestnet) {
+    if (this.genesisKey) {
       // replay on main net preventer
-      ;[255, 255, 255, 255, 255, 255, 255, 127].forEach(byte => {
+      this.genesisKey.forEach(byte => {
         buffer.writeByte(byte)
       })
     }
