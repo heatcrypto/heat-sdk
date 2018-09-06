@@ -41,11 +41,13 @@ import { Fee } from "./fee"
 import { setRandomSource } from "./random-bytes"
 import { HeatRpc } from "./heat-rpc"
 import * as types from "./types"
+import * as avro from "./avro"
 
 export const attachment = _attachment
 export const Builder = builder.Builder
 export const TransactionImpl = builder.TransactionImpl
 export const Transaction = transaction.Transaction
+export const Type = avro.Type
 
 export interface ConfigArgs {
   isTestnet?: boolean
