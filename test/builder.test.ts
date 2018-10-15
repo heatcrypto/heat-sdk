@@ -841,14 +841,14 @@ describe("Transaction builder", () => {
   it("can parse 'Atomic Multi Transfer' transaction bytes on the server", done => {
     let transfers: AtomicTransfer[] = [
       {
-        quantity: Long.fromNumber(2),
-        assetId: Long.fromNumber(222),
-        recipient: Long.fromNumber(333)
+        quantity: "2",
+        assetId: "222",
+        recipient: "333"
       },
       {
-        quantity: Long.fromNumber(3),
-        assetId: Long.fromNumber(4444222),
-        recipient: Long.fromNumber(33434553)
+        quantity: "3",
+        assetId: "456",
+        recipient: "737464"
       }
     ]
 

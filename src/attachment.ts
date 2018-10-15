@@ -259,9 +259,9 @@ export class AssetTransfer extends AssetBase implements Attachment {
 }
 
 export type AtomicTransfer = {
-  recipient: Long
-  assetId: Long
-  quantity: Long
+  recipient: string
+  assetId: string
+  quantity: string
 }
 
 export class AtomicMultiTransfer extends appendix.AbstractAppendix implements Attachment {
@@ -295,21 +295,21 @@ export class AtomicMultiTransfer extends appendix.AbstractAppendix implements At
   putMyBytes(buffer: ByteBuffer): void {
     buffer.writeByte(this._transfers.length)
     this._transfers.forEach(function(transfer) {
-      buffer.writeInt64(transfer.recipient)
-      buffer.writeInt64(transfer.assetId)
-      buffer.writeInt64(transfer.quantity)
+      buffer.writeInt64(Long.fromString(transfer.recipient, true))
+      buffer.writeInt64(Long.fromString(transfer.assetId, true))
+      buffer.writeInt64(Long.fromString(transfer.quantity))
     })
   }
 
   public parse(buffer: ByteBuffer) {
     let count = buffer.readByte()
     this._transfers = []
+    let v: AtomicTransfer = {
+      recipient: buffer.readInt64().toUnsigned().toString(),
+      assetId: buffer.readInt64().toUnsigned().toString(),
+      quantity: buffer.readInt64().toString()
+    }
     for (let i = 0; i < count; i++) {
-      let v: AtomicTransfer = {
-        recipient: buffer.readInt64(),
-        assetId: buffer.readInt64(),
-        quantity: buffer.readInt64()
-      }
       this._transfers.push(v)
     }
     return this
@@ -319,9 +319,9 @@ export class AtomicMultiTransfer extends appendix.AbstractAppendix implements At
     let ts = []
     this._transfers.forEach(function(transfer) {
       ts.push({
-        recipient: transfer.recipient.toUnsigned().toString(),
-        assetId: transfer.assetId.toUnsigned().toString(),
-        quantity: transfer.quantity.toString()
+        recipient: transfer.recipient,
+        assetId: transfer.assetId,
+        quantity: transfer.quantity
       })
     })
     json["transfers"] = ts
@@ -332,9 +332,9 @@ export class AtomicMultiTransfer extends appendix.AbstractAppendix implements At
     let ts = json["transfers"]
     for (let i in ts) {
       this._transfers.push({
-        recipient: Long.fromString(ts[i].recipient, true),
-        assetId: Long.fromString(ts[i].assetId, true),
-        quantity: Long.fromString(ts[i].quantity)
+        recipient: ts[i].recipient,
+        assetId: ts[i].assetId,
+        quantity: ts[i].quantity
       })
     }
     return this
