@@ -36,6 +36,8 @@ import {
   AssetIssuance,
   AssetIssueMore,
   AssetTransfer,
+  AtomicMultiTransfer,
+  AtomicTransfer,
   ColoredCoinsAskOrderCancellation,
   ColoredCoinsAskOrderPlacement,
   ColoredCoinsBidOrderCancellation,
@@ -48,8 +50,16 @@ import {
 import { byteArrayToHexString, hexStringToByteArray, stringToHexString } from "../src/converters"
 import * as crypto from "../src/crypto"
 import { Configuration, HeatSDK } from "../src/heat-sdk"
+//import Long = require("long");
+import * as Long from "long"
 
-const heatsdk = new HeatSDK(new Configuration({ isTestnet: true }))
+const heatsdk = new HeatSDK(
+  new Configuration({
+    isTestnet: true,
+    baseURL: "http://localhost:7733/api/v1",
+    websocketURL: "ws://localhost:7755/ws/"
+  })
+)
 
 function handleApiResponse(response) {
   //console.log(response)
@@ -74,6 +84,28 @@ function testServerParsing(txn: Transaction): Promise<any> {
 
     return heatsdk.api
       .post("/tx/parse", { transactionBytes: bytes })
+      .then(response => {
+        handleApiResponse(response)
+        return response
+      })
+      .catch(response => {
+        handleCatchApiResponse(response)
+        return response
+      })
+  })
+}
+
+function checkapplicability(txn: Transaction): Promise<any> {
+  return txn.sign("user1").then(t => {
+    let transaction = t.getTransaction()
+    let bytes = transaction.getBytesAsHex()
+    let t2 = TransactionImpl.parse(bytes)
+    //console.log(transaction.getJSONObject())
+    expect(t2).toBeInstanceOf(TransactionImpl)
+    expect(t2.getJSONObject()).toEqual(transaction.getJSONObject())
+
+    return heatsdk.api
+      .post("/tx/checkapplicability", { transactionBytes: bytes })
       .then(response => {
         handleApiResponse(response)
         return response
@@ -663,10 +695,10 @@ describe("Transaction builder", () => {
 
   it("can parse 'Asset Transfer' transaction bytes on the server", done => {
     let builder = new Builder()
-      .attachment(new AssetTransfer().init(testnet.ASSET_1.ID, "100"))
+      .attachment(new AssetTransfer().init("6761866676862162498", "100"))
       .amountHQT("0")
       .feeHQT("50000000000")
-    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
+    checkapplicability(new Transaction(heatsdk, "123", builder)).then(response => {
       expect(response).toEqual(
         expect.objectContaining({
           fee: "50000000000",
@@ -798,6 +830,30 @@ describe("Transaction builder", () => {
   it("can parse 'Account Control Effective Balance Leasing' transaction bytes on the server", done => {
     let builder = new Builder()
       .attachment(new AccountControlEffectiveBalanceLeasing().init(2))
+      .amountHQT("0")
+      .feeHQT("1000000")
+    testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
+      expect(response.errorDescription).toMatch("Invalid effective balance leasing")
+      done()
+    })
+  })
+
+  it("can parse 'Atomic Multi Transfer' transaction bytes on the server", done => {
+    let transfers: AtomicTransfer[] = [
+      {
+        quantity: Long.fromNumber(2),
+        assetId: Long.fromNumber(222),
+        recipient: Long.fromNumber(333)
+      },
+      {
+        quantity: Long.fromNumber(3),
+        assetId: Long.fromNumber(4444222),
+        recipient: Long.fromNumber(33434553)
+      }
+    ]
+
+    let builder = new Builder()
+      .attachment(new AtomicMultiTransfer().init(transfers))
       .amountHQT("0")
       .feeHQT("1000000")
     testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {

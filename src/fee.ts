@@ -27,6 +27,7 @@ export class Fee {
   public static ASSET_ISSUANCE_FEE = (HeatConstants.ONE_HEAT * 500).toString()
   public static ASSET_ISSUE_MORE_FEE = Fee.DEFAULT
   public static ASSET_TRANSFER_FEE = Fee.DEFAULT
+  public static ATOMIC_MULTI_TRANSFER_FEE = Fee.DEFAULT
   public static ORDER_PLACEMENT_FEE = Fee.DEFAULT
   public static ORDER_CANCELLATION_FEE = Fee.DEFAULT
   public static WHITELIST_ACCOUNT_FEE = Fee.DEFAULT

@@ -126,6 +126,22 @@ describe("Transaction API", () => {
     handleResult(promise, done)
   })
 
+  // it("Atomic Multi Asset Transfer", done => {
+  //   let promise = heatsdk
+  //     .atomicMultiTransfer(testnet.ASSET_2.ISSUER.ID, testnet.ASSET_1.ID, "4")
+  //     .publicMessage("heat-sdk test")
+  //     .sign(testnet.ASSET_1.ISSUER.SECRET_PHRASE)
+  //     .then(transaction => transaction.broadcast())
+  //   handleResult(promise, done)
+  //   //transfer back
+  //   promise = heatsdk
+  //     .assetTransfer(testnet.ASSET_1.ISSUER.ID, testnet.ASSET_1.ID, "4")
+  //     .publicMessage("heat-sdk test")
+  //     .sign(testnet.ASSET_2.ISSUER.SECRET_PHRASE)
+  //     .then(transaction => transaction.broadcast())
+  //   handleResult(promise, done)
+  // })
+
   it("place Ask Order", done => {
     let promise = heatsdk
       .placeAskOrder(testnet.ASSET_1.ID, testnet.ASSET_2.ID, "400000", "2000000", 3600)

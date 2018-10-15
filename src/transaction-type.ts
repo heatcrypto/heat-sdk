@@ -40,6 +40,7 @@ export abstract class TransactionType {
   public static SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_ADDITION = 7
   public static SUBTYPE_COLORED_COINS_WHITELIST_ACCOUNT_REMOVAL = 8
   public static SUBTYPE_COLORED_COINS_WHITELIST_MARKET = 9
+  public static SUBTYPE_COLORED_COINS_ATOMIC_MULTI_TRANSFER = 10
   public static SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0
 
   abstract getType(): number
@@ -64,6 +65,8 @@ export abstract class TransactionType {
         return COLORED_COINS_ASSET_ISSUE_MORE_TRANSACTION_TYPE
       else if (subtype == this.SUBTYPE_COLORED_COINS_ASSET_TRANSFER)
         return COLORED_COINS_ASSET_TRANSFER_TRANSACTION_TYPE
+      else if (subtype == this.SUBTYPE_COLORED_COINS_ATOMIC_MULTI_TRANSFER)
+        return COLORED_COINS_ATOMIC_MULTI_TRANSFER_TRANSACTION_TYPE
       else if (subtype == this.SUBTYPE_COLORED_COINS_ASK_ORDER_PLACEMENT)
         return COLORED_COINS_ASK_ORDER_PLACEMENT_TRANSACTION_TYPE
       else if (subtype == this.SUBTYPE_COLORED_COINS_BID_ORDER_PLACEMENT)
@@ -175,6 +178,21 @@ export class AssetTransfer extends ColoredCoins {
   }
   parseAttachmentJSON(json: { [key: string]: any }) {
     return new attachment.AssetTransfer().parseJSON(json)
+  }
+  canHaveRecipient() {
+    return true
+  }
+}
+
+export class AtomicMultiTransfer extends ColoredCoins {
+  getSubtype() {
+    return TransactionType.SUBTYPE_COLORED_COINS_ATOMIC_MULTI_TRANSFER
+  }
+  parseAttachment(buffer: ByteBuffer) {
+    return new attachment.AtomicMultiTransfer().parse(buffer)
+  }
+  parseAttachmentJSON(json: { [key: string]: any }) {
+    return new attachment.AtomicMultiTransfer().parseJSON(json)
   }
   canHaveRecipient() {
     return true
@@ -309,6 +327,7 @@ export const ARBITRARY_MESSAGE_TRANSACTION_TYPE = new ArbitraryMessage()
 export const COLORED_COINS_ASSET_ISSUANCE_TRANSACTION_TYPE = new AssetIssuance()
 export const COLORED_COINS_ASSET_ISSUE_MORE_TRANSACTION_TYPE = new AssetIssueMore()
 export const COLORED_COINS_ASSET_TRANSFER_TRANSACTION_TYPE = new AssetTransfer()
+export const COLORED_COINS_ATOMIC_MULTI_TRANSFER_TRANSACTION_TYPE = new AtomicMultiTransfer()
 export const COLORED_COINS_ASK_ORDER_PLACEMENT_TRANSACTION_TYPE = new AskOrderPlacement()
 export const COLORED_COINS_BID_ORDER_PLACEMENT_TRANSACTION_TYPE = new BidOrderPlacement()
 export const ASK_ORDER_CANCELLATION_TRANSACTION_TYPE = new AskOrderCancellation()

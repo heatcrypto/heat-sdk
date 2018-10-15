@@ -258,6 +258,89 @@ export class AssetTransfer extends AssetBase implements Attachment {
   }
 }
 
+export type AtomicTransfer = {
+  recipient: Long
+  assetId: Long
+  quantity: Long
+}
+
+export class AtomicMultiTransfer extends appendix.AbstractAppendix implements Attachment {
+  private _transfers: AtomicTransfer[]
+
+  init(transfers: AtomicTransfer[]) {
+    this._transfers = transfers
+    return this
+  }
+
+  get transfers(): AtomicTransfer[] {
+    return this._transfers
+  }
+
+  getFee() {
+    return Fee.ATOMIC_MULTI_TRANSFER_FEE
+  }
+
+  getAppendixName() {
+    return "AtomicMultiTransfer"
+  }
+
+  getTransactionType() {
+    return transactionType.COLORED_COINS_ATOMIC_MULTI_TRANSFER_TRANSACTION_TYPE
+  }
+
+  getMySize(): number {
+    return 1 + this._transfers.length * (8 + 8 + 8)
+  }
+
+  putMyBytes(buffer: ByteBuffer): void {
+    buffer.writeByte(this._transfers.length)
+    this._transfers.forEach(function(transfer) {
+      buffer.writeInt64(transfer.recipient)
+      buffer.writeInt64(transfer.assetId)
+      buffer.writeInt64(transfer.quantity)
+    })
+  }
+
+  public parse(buffer: ByteBuffer) {
+    let count = buffer.readByte()
+    this._transfers = []
+    for (let i = 0; i < count; i++) {
+      let v: AtomicTransfer = {
+        recipient: buffer.readInt64(),
+        assetId: buffer.readInt64(),
+        quantity: buffer.readInt64()
+      }
+      this._transfers.push(v)
+    }
+    return this
+  }
+
+  putMyJSON(json: { [key: string]: any }): void {
+    let ts = []
+    this._transfers.forEach(function(transfer) {
+      ts.push({
+        recipient: transfer.recipient.toUnsigned().toString(),
+        assetId: transfer.assetId.toUnsigned().toString(),
+        quantity: transfer.quantity.toString()
+      })
+    })
+    json["transfers"] = ts
+  }
+
+  parseJSON(json: { [key: string]: any }) {
+    this._transfers = []
+    let ts = json["transfers"]
+    for (let i in ts) {
+      this._transfers.push({
+        recipient: Long.fromString(ts[i].recipient, true),
+        assetId: Long.fromString(ts[i].assetId, true),
+        quantity: Long.fromString(ts[i].quantity)
+      })
+    }
+    return this
+  }
+}
+
 // ------------------- Colored coins. Orders ----------------------------------------------------------------------------
 
 export abstract class ColoredCoinsOrderPlacement extends appendix.AbstractAppendix {

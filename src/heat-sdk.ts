@@ -35,13 +35,15 @@ import {
   ColoredCoinsAskOrderPlacement,
   ColoredCoinsBidOrderPlacement,
   ColoredCoinsAskOrderCancellation,
-  ColoredCoinsBidOrderCancellation
+  ColoredCoinsBidOrderCancellation,
+  AtomicMultiTransfer
 } from "./attachment"
 import { Fee } from "./fee"
 import { setRandomSource } from "./random-bytes"
 import { HeatRpc } from "./heat-rpc"
 import * as types from "./types"
 import * as avro from "./avro"
+import { AtomicTransfer } from "./attachment"
 
 export const attachment = _attachment
 export const Builder = builder.Builder
@@ -200,6 +202,20 @@ export class HeatSDK {
       .attachment(new AssetTransfer().init(assetId, quantity))
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ASSET_TRANSFER_FEE)
+    return new Transaction(this, recipientOrRecipientPublicKey, builder)
+  }
+
+  public atomicMultiTransfer(
+    recipientOrRecipientPublicKey: string,
+    transfers: AtomicTransfer[],
+    feeHQT?: string
+  ) {
+    let builder = new Builder()
+      .isTestnet(this.config.isTestnet)
+      .genesisKey(this.config.genesisKey)
+      .attachment(new AtomicMultiTransfer().init(transfers))
+      .amountHQT("0")
+      .feeHQT(feeHQT ? feeHQT : Fee.ATOMIC_MULTI_TRANSFER_FEE)
     return new Transaction(this, recipientOrRecipientPublicKey, builder)
   }
 
