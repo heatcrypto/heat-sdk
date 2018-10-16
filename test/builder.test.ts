@@ -838,6 +838,31 @@ describe("Transaction builder", () => {
     })
   })
 
+  it("can parse 'Atomic Multi Transfer' transaction bytes", () => {
+    let transfers: AtomicTransfer[] = [
+      {
+        quantity: "2",
+        assetId: "222",
+        recipient: "333"
+      },
+      {
+        quantity: "3",
+        assetId: "456",
+        recipient: "737464"
+      }
+    ]
+    return heatsdk
+      .atomicMultiTransfer("12345", transfers)
+      .sign("secret phrase")
+      .then(t => {
+        let transaction = t.getTransaction()
+        let bytes = transaction.getBytesAsHex()
+        let parsedTxn = TransactionImpl.parse(bytes)
+        expect(parsedTxn).toBeInstanceOf(TransactionImpl)
+        return expect(parsedTxn.getJSONObject()).toEqual(transaction.getJSONObject())
+      })
+  })
+
   it("can parse 'Atomic Multi Transfer' transaction bytes on the server", done => {
     let transfers: AtomicTransfer[] = [
       {
@@ -857,7 +882,7 @@ describe("Transaction builder", () => {
       .amountHQT("0")
       .feeHQT("1000000")
     testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
-      expect(response.errorDescription).toMatch("Invalid effective balance leasing")
+      expect(response.errorDescription).toMatch("todo")
       done()
     })
   })

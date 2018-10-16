@@ -265,15 +265,15 @@ export type AtomicTransfer = {
 }
 
 export class AtomicMultiTransfer extends appendix.AbstractAppendix implements Attachment {
-  private _transfers: AtomicTransfer[]
+  private transfers: AtomicTransfer[]
 
   init(transfers: AtomicTransfer[]) {
-    this._transfers = transfers
+    this.transfers = transfers
     return this
   }
 
-  get transfers(): AtomicTransfer[] {
-    return this._transfers
+  get getTransfers(): AtomicTransfer[] {
+    return this.transfers
   }
 
   getFee() {
@@ -289,12 +289,12 @@ export class AtomicMultiTransfer extends appendix.AbstractAppendix implements At
   }
 
   getMySize(): number {
-    return 1 + this._transfers.length * (8 + 8 + 8)
+    return 1 + this.transfers.length * (8 + 8 + 8)
   }
 
   putMyBytes(buffer: ByteBuffer): void {
-    buffer.writeByte(this._transfers.length)
-    this._transfers.forEach(function(transfer) {
+    buffer.writeByte(this.transfers.length)
+    this.transfers.forEach(function(transfer) {
       buffer.writeInt64(Long.fromString(transfer.recipient, true))
       buffer.writeInt64(Long.fromString(transfer.assetId, true))
       buffer.writeInt64(Long.fromString(transfer.quantity))
@@ -302,22 +302,29 @@ export class AtomicMultiTransfer extends appendix.AbstractAppendix implements At
   }
 
   public parse(buffer: ByteBuffer) {
+    super.parse(buffer)
     let count = buffer.readByte()
-    this._transfers = []
-    let v: AtomicTransfer = {
-      recipient: buffer.readInt64().toUnsigned().toString(),
-      assetId: buffer.readInt64().toUnsigned().toString(),
-      quantity: buffer.readInt64().toString()
-    }
+    this.transfers = []
     for (let i = 0; i < count; i++) {
-      this._transfers.push(v)
+      let v: AtomicTransfer = {
+        recipient: buffer
+          .readInt64()
+          .toUnsigned()
+          .toString(),
+        assetId: buffer
+          .readInt64()
+          .toUnsigned()
+          .toString(),
+        quantity: buffer.readInt64().toString()
+      }
+      this.transfers.push(v)
     }
     return this
   }
 
   putMyJSON(json: { [key: string]: any }): void {
     let ts = []
-    this._transfers.forEach(function(transfer) {
+    this.transfers.forEach(function(transfer) {
       ts.push({
         recipient: transfer.recipient,
         assetId: transfer.assetId,
@@ -328,10 +335,10 @@ export class AtomicMultiTransfer extends appendix.AbstractAppendix implements At
   }
 
   parseJSON(json: { [key: string]: any }) {
-    this._transfers = []
+    this.transfers = []
     let ts = json["transfers"]
     for (let i in ts) {
-      this._transfers.push({
+      this.transfers.push({
         recipient: ts[i].recipient,
         assetId: ts[i].assetId,
         quantity: ts[i].quantity
