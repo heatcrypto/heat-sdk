@@ -882,7 +882,7 @@ describe("Transaction builder", () => {
       .amountHQT("0")
       .feeHQT("1000000")
     testServerParsing(new Transaction(heatsdk, "123", builder)).then(response => {
-      expect(response.errorDescription).toMatch("todo")
+      expect(response.errorDescription).toMatch("Atomic multi transfer not enabled until height")
       done()
     })
   })
