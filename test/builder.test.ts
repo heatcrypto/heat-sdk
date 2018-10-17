@@ -55,9 +55,9 @@ import * as Long from "long"
 
 const heatsdk = new HeatSDK(
   new Configuration({
-    isTestnet: true,
-    baseURL: "http://localhost:7733/api/v1",
-    websocketURL: "ws://localhost:7755/ws/"
+    // isTestnet: true,
+    // baseURL: "http://localhost:7733/api/v1",
+    // websocketURL: "ws://localhost:7755/ws/"
   })
 )
 
@@ -105,7 +105,7 @@ function checkapplicability(txn: Transaction): Promise<any> {
     expect(t2.getJSONObject()).toEqual(transaction.getJSONObject())
 
     return heatsdk.api
-      .post("/tx/checkapplicability", { transactionBytes: bytes })
+      .post("/tx/check", { transactionBytes: bytes })
       .then(response => {
         handleApiResponse(response)
         return response
@@ -695,7 +695,7 @@ describe("Transaction builder", () => {
 
   it("can parse 'Asset Transfer' transaction bytes on the server", done => {
     let builder = new Builder()
-      .attachment(new AssetTransfer().init("6761866676862162498", "100"))
+      .attachment(new AssetTransfer().init(testnet.ASSET_1.ID, "100"))
       .amountHQT("0")
       .feeHQT("50000000000")
     checkapplicability(new Transaction(heatsdk, "123", builder)).then(response => {
