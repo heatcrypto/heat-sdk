@@ -55,7 +55,7 @@ import * as Long from "long"
 
 const heatsdk = new HeatSDK(
   new Configuration({
-    // isTestnet: true,
+    isTestnet: true
     // baseURL: "http://localhost:7733/api/v1",
     // websocketURL: "ws://localhost:7755/ws/"
   })
@@ -693,7 +693,7 @@ describe("Transaction builder", () => {
     })
   })
 
-  it("can parse 'Asset Transfer' transaction bytes on the server", done => {
+  xit("can parse 'Asset Transfer' transaction bytes on the server", done => {
     let builder = new Builder()
       .attachment(new AssetTransfer().init(testnet.ASSET_1.ID, "100"))
       .amountHQT("0")
@@ -863,7 +863,7 @@ describe("Transaction builder", () => {
       })
   })
 
-  it("can parse 'Atomic Multi Transfer' transaction bytes on the server", done => {
+  xit("can parse 'Atomic Multi Transfer' transaction bytes on the server", done => {
     let transfers: AtomicTransfer[] = [
       {
         quantity: "2",
