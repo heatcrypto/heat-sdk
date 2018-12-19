@@ -78,6 +78,10 @@ var TAP = new Tap(new buffer.SlowBuffer(1024));
 // Currently active logical type, used for name redirection.
 var LOGICAL_TYPE = null;
 
+// Underlying types of logical types currently being instantiated. This is used
+// to be able to reference names (i.e. for branches) during instantiation.
+var UNDERLYING_TYPES = [];
+
 /**
  * "Abstract" base Avro type.
  *
@@ -91,8 +95,14 @@ var LOGICAL_TYPE = null;
  *  See individual subclasses for details.
  */
 function Type(schema, opts) {
-  var type = LOGICAL_TYPE || this;
-  LOGICAL_TYPE = null;
+  var type;
+  if (LOGICAL_TYPE) {
+    type = LOGICAL_TYPE;
+    UNDERLYING_TYPES.push([LOGICAL_TYPE, this]);
+    LOGICAL_TYPE = null;
+  } else {
+    type = this;
+  }
 
   // Lazily instantiated hash string. It will be generated the first time the
   // type's default fingerprint is computed (for example when using `equals`).
@@ -471,6 +481,9 @@ Object.defineProperty(Type.prototype, 'branchName', {
       return this.name;
     }
     var type = Type.isType(this, 'logical') ? this.underlyingType : this;
+    if (Type.isType(type, 'abstract')) {
+      return type._concreteTypeName;
+    }
     return Type.isType(type, 'union') ? undefined : type.typeName;
   }
 });
@@ -505,8 +518,10 @@ Type.prototype.createResolver = function (type, opts) {
     throw new Error(f('not a type: %j', type));
   }
 
-  if (!Type.isType(this, 'logical') && Type.isType(type, 'logical')) {
+  if (!Type.isType(this, 'union', 'logical') && Type.isType(type, 'logical')) {
     // Trying to read a logical type as a built-in: unwrap the logical type.
+    // Note that we exclude unions to support resolving into unions containing
+    // logical types.
     return this.createResolver(type.underlyingType, opts);
   }
 
@@ -586,7 +601,7 @@ Type.prototype.fingerprint = function (algorithm) {
       var schemaStr = JSON.stringify(this.schema());
       this._hash.str = utils.getHash(schemaStr).toString('binary');
     }
-    return new Buffer(this._hash.str, 'binary');
+    return utils.bufferFrom(this._hash.str, 'binary');
   } else {
     return utils.getHash(JSON.stringify(this.schema()), algorithm);
   }
@@ -652,7 +667,7 @@ Type.prototype.schema = function (opts) {
 Type.prototype.toBuffer = function (val) {
   TAP.pos = 0;
   this._write(TAP, val);
-  var buf = new Buffer(TAP.pos);
+  var buf = utils.newBuffer(TAP.pos);
   if (TAP.isValid()) {
     TAP.buf.copy(buf, 0, 0, TAP.pos);
   } else {
@@ -934,6 +949,7 @@ LongType.prototype._update = function (resolver, type) {
     case 'int':
       resolver._read = type._read;
       break;
+    case 'abstract:long':
     case 'long':
       resolver._read = this._read; // In case `type` is an `AbstractLongType`.
   }
@@ -999,6 +1015,7 @@ FloatType.prototype._update = function (resolver, type) {
     case 'int':
       resolver._read = type._read;
       break;
+    case 'abstract:long':
     case 'long':
       // No need to worry about precision loss here since we're always rounding
       // to float anyway.
@@ -1044,6 +1061,7 @@ DoubleType.prototype._update = function (resolver, type) {
     case 'int':
       resolver._read = type._read;
       break;
+    case 'abstract:long':
     case 'long':
       // Similar to inside `FloatType`, no need to worry about precision loss
       // here since we're always rounding to double anyway.
@@ -1143,19 +1161,19 @@ BytesType.prototype._copy = function (obj, opts) {
       if (typeof obj != 'string') {
         throw new Error(f('cannot coerce to buffer: %j', obj));
       }
-      buf = new Buffer(obj, 'binary');
+      buf = utils.bufferFrom(obj, 'binary');
       this._check(buf, undefined, throwInvalidError);
       return buf;
     case 1: // Coerce buffer JSON representation to buffers.
       if (!isJsonBuffer(obj)) {
         throw new Error(f('cannot coerce to buffer: %j', obj));
       }
-      buf = new Buffer(obj.data);
+      buf = utils.bufferFrom(obj.data);
       this._check(buf, undefined, throwInvalidError);
       return buf;
     default: // Copy buffer.
       this._check(obj, undefined, throwInvalidError);
-      return new Buffer(obj);
+      return utils.bufferFrom(obj);
   }
 };
 
@@ -1241,14 +1259,14 @@ UnionType.prototype.getTypes = function () { return this.types; };
 function UnwrappedUnionType(schema, opts) {
   UnionType.call(this, schema, opts);
 
-  this._logicalBranches = null;
+  this._dynamicBranches = null;
   this._bucketIndices = {};
   this.types.forEach(function (type, index) {
-    if (Type.isType(type, 'logical')) {
-      if (!this._logicalBranches) {
-        this._logicalBranches = [];
+    if (Type.isType(type, 'abstract', 'logical')) {
+      if (!this._dynamicBranches) {
+        this._dynamicBranches = [];
       }
-      this._logicalBranches.push({index: index, type: type});
+      this._dynamicBranches.push({index: index, type: type});
     } else {
       var bucket = getTypeBucket(type);
       if (this._bucketIndices[bucket] !== undefined) {
@@ -1264,15 +1282,15 @@ util.inherits(UnwrappedUnionType, UnionType);
 
 UnwrappedUnionType.prototype._getIndex = function (val) {
   var index = this._bucketIndices[getValueBucket(val)];
-  if (this._logicalBranches) {
-    // Slower path, we must run the value through all logical types.
-    index = this._getLogicalIndex(val, index);
+  if (this._dynamicBranches) {
+    // Slower path, we must run the value through all branches.
+    index = this._getBranchIndex(val, index);
   }
   return index;
 };
 
-UnwrappedUnionType.prototype._getLogicalIndex = function (any, index) {
-  var logicalBranches = this._logicalBranches;
+UnwrappedUnionType.prototype._getBranchIndex = function (any, index) {
+  var logicalBranches = this._dynamicBranches;
   var i, l, branch;
   for (i = 0, l = logicalBranches.length; i < l; i++) {
     branch = logicalBranches[i];
@@ -1953,14 +1971,14 @@ ArrayType.prototype._check = function (val, flags, hook, path) {
 ArrayType.prototype._read = function (tap) {
   var items = this.itemsType;
   var val = [];
-  var i, n;
+  var n;
   while ((n = tap.readLong())) {
     if (n < 0) {
       n = -n;
       tap.skipLong(); // Skip size.
     }
-    for (i = 0; i < n; i++) {
-      val[i] = items._read(tap);
+    while (n--) {
+      val.push(items._read(tap));
     }
   }
   return val;
@@ -2356,14 +2374,14 @@ RecordType.prototype._update = function (resolver, type, opts) {
       name = matches[0];
       fieldResolver = {
         resolver: field.type.createResolver(wFieldsMap[name].type, opts),
-        name: field.name, // Reader field name.
+        name: '_' + field.name, // Reader field name.
       };
       if (!resolvers[name]) {
         resolvers[name] = [fieldResolver];
       } else {
         resolvers[name].push(fieldResolver);
       }
-      innerArgs.push(field.name);
+      innerArgs.push(fieldResolver.name);
     }
   }
 
@@ -2450,7 +2468,8 @@ RecordType.prototype._copy = function (val, opts) {
     value = val[field.name];
     if (value === undefined && field.hasOwnProperty('defaultValue')) {
       value = field.defaultValue();
-    } else if ((opts && !opts.skip) || value !== undefined) {
+    }
+    if ((opts && !opts.skip) || value !== undefined) {
       value = field.type._copy(value, opts);
     }
     if (hook) {
@@ -2540,7 +2559,18 @@ function LogicalType(schema, opts) {
   this._logicalTypeName = schema.logicalType;
   Type.call(this);
   LOGICAL_TYPE = this;
-  this.underlyingType = Type.forSchema(schema, opts);
+  try {
+    this._underlyingType = Type.forSchema(schema, opts);
+  } finally {
+    LOGICAL_TYPE = null;
+    // Remove the underlying type now that we're done instantiating. Note that
+    // in some (rare) cases, it might not have been inserted; for example, if
+    // this constructor was manually called with an already instantiated type.
+    var l = UNDERLYING_TYPES.length;
+    if (l && UNDERLYING_TYPES[l - 1][0] === this) {
+      UNDERLYING_TYPES.pop();
+    }
+  }
   // We create a separate branch constructor for logical types to keep them
   // monomorphic.
   if (Type.isType(this.underlyingType, 'union')) {
@@ -2556,6 +2586,25 @@ util.inherits(LogicalType, Type);
 Object.defineProperty(LogicalType.prototype, 'typeName', {
   enumerable: true,
   get: function () { return 'logical:' + this._logicalTypeName; }
+});
+
+Object.defineProperty(LogicalType.prototype, 'underlyingType', {
+  enumerable: true,
+  get: function () {
+    if (this._underlyingType) {
+      return this._underlyingType;
+    }
+    // If the field wasn't present, it means the logical type isn't complete
+    // yet: we're waiting on its underlying type to be fully instantiated. In
+    // this case, it will be present in the `UNDERLYING_TYPES` array.
+    var i, l, arr;
+    for (i = 0, l = UNDERLYING_TYPES.length; i < l; i++) {
+      arr = UNDERLYING_TYPES[i];
+      if (arr[0] === this) {
+        return arr[1];
+      }
+    }
+  }
 });
 
 LogicalType.prototype.getUnderlyingType = function () {
@@ -2628,6 +2677,10 @@ LogicalType.prototype._deref = function (schema, opts) {
   return schema;
 };
 
+LogicalType.prototype._skip = function (tap) {
+  this.underlyingType._skip(tap);
+};
+
 // Unlike the other methods below, `_export` has a reasonable default which we
 // can provide (not exporting anything).
 LogicalType.prototype._export = function (/* schema */) {};
@@ -2649,6 +2702,7 @@ LogicalType.prototype._resolve = utils.abstractFunction;
  * through through the standard long would cause a loss of precision.
  */
 function AbstractLongType(noUnpack) {
+  this._concreteTypeName = 'long';
   PrimitiveType.call(this, true);
   // Note that this type "inherits" `LongType` (i.e. gain its prototype
   // methods) but only "subclasses" `PrimitiveType` to avoid being prematurely
@@ -2656,6 +2710,8 @@ function AbstractLongType(noUnpack) {
   this._noUnpack = !!noUnpack;
 }
 util.inherits(AbstractLongType, LongType);
+
+AbstractLongType.prototype.typeName = 'abstract:long';
 
 AbstractLongType.prototype._check = function (val, flags, hook) {
   var b = this._isValid(val);
@@ -2703,6 +2759,8 @@ AbstractLongType.prototype._copy = function (val, opts) {
       return this._fromJSON(this._toJSON(val));
   }
 };
+
+AbstractLongType.prototype._deref = function () { return 'long'; }
 
 AbstractLongType.prototype._update = function (resolver, type) {
   var self = this;
