@@ -56,6 +56,11 @@ export class Builder {
   public _ecBlockHeight: number
   public _ecBlockId: string
 
+  constructor(isTestnet: boolean, genesisKey: Array<number>) {
+    this._isTestnet = isTestnet
+    this._genesisKey = genesisKey
+  }
+
   public deadline(deadline: number) {
     this._deadline = deadline
     return this
@@ -408,7 +413,11 @@ export class TransactionImpl {
     return crypto.verifyBytes(signatureHex, bytesHex, publicKeyHex)
   }
 
-  public static parseJSON(json: { [key: string]: any }, isTestnet?: boolean) {
+  public static parseJSON(
+    json: { [key: string]: any },
+    isTestnet: boolean,
+    genesisKey: Array<number>
+  ) {
     let type = json.type
     let subtype = json.subtype
     let version = json.version
@@ -432,7 +441,7 @@ export class TransactionImpl {
     if (!transactionType) throw new Error("Transaction type not implemented or undefined")
 
     let attachment = json.attachment
-    let builder = new Builder()
+    let builder = new Builder(isTestnet, genesisKey)
       .timestamp(timestamp)
       .version(version)
       .senderPublicKey(senderPublicKey)
@@ -444,7 +453,6 @@ export class TransactionImpl {
       .signature(signature)
       .ecBlockHeight(ecBlockHeight)
       .ecBlockId(ecBlockId.toUnsigned().toString())
-      .isTestnet(!!isTestnet)
     if (transactionType.canHaveRecipient()) builder.recipientId(recipientId.toUnsigned().toString())
 
     if (utils.isDefined(attachment["version.Message"]))
@@ -479,7 +487,7 @@ export class TransactionImpl {
     return new TransactionImpl(builder, null)
   }
 
-  public static parse(transactionBytesHex: string, isTestnet?: boolean) {
+  public static parse(transactionBytesHex: string, isTestnet: boolean, genesisKey: Array<number>) {
     let buffer = ByteBuffer.wrap(transactionBytesHex, "hex", true)
 
     let type = buffer.readByte() // 1
@@ -503,7 +511,7 @@ export class TransactionImpl {
 
     let transactionType = TransactionType.findTransactionType(type, subtype)
     if (!transactionType) throw new Error("Transaction type not implemented or undefined")
-    let builder = new Builder()
+    let builder = new Builder(isTestnet, genesisKey)
       .version(version)
       .senderPublicKey(senderPublicKey)
       .amountHQT(amountHQT.toUnsigned().toString())

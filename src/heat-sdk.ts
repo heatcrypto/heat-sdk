@@ -24,26 +24,26 @@ import * as converters from "./converters"
 import * as crypto from "./crypto"
 import * as utils from "./utils"
 import * as _attachment from "./attachment"
+import {
+  AssetIssuance,
+  AssetTransfer,
+  AtomicMultiTransfer,
+  AtomicTransfer,
+  ColoredCoinsAskOrderCancellation,
+  ColoredCoinsAskOrderPlacement,
+  ColoredCoinsBidOrderCancellation,
+  ColoredCoinsBidOrderPlacement
+} from "./attachment"
 import * as builder from "./builder"
 import * as transaction from "./transaction"
 import { HeatApi } from "./heat-api"
 import { HeatSubscriber } from "./heat-subscriber"
 import { SecretGenerator } from "./secret-generator"
-import {
-  AssetIssuance,
-  AssetTransfer,
-  ColoredCoinsAskOrderPlacement,
-  ColoredCoinsBidOrderPlacement,
-  ColoredCoinsAskOrderCancellation,
-  ColoredCoinsBidOrderCancellation,
-  AtomicMultiTransfer
-} from "./attachment"
 import { Fee } from "./fee"
 import { setRandomSource } from "./random-bytes"
 import { HeatRpc } from "./heat-rpc"
 import * as types from "./types"
 import * as avro from "./avro"
-import { AtomicTransfer } from "./attachment"
 
 export const attachment = _attachment
 export const Builder = builder.Builder
@@ -107,11 +107,11 @@ export class HeatSDK {
   }
 
   public parseTransactionBytes(transactionBytesHex: string) {
-    return TransactionImpl.parse(transactionBytesHex, this.config.isTestnet)
+    return TransactionImpl.parse(transactionBytesHex, this.config.isTestnet, this.config.genesisKey)
   }
 
   public parseTransactionJSON(json: { [key: string]: any }) {
-    return TransactionImpl.parseJSON(json, this.config.isTestnet)
+    return TransactionImpl.parseJSON(json, this.config.isTestnet, this.config.genesisKey)
   }
 
   public passphraseEncrypt(plainText: string, passphrase: string) {
@@ -123,13 +123,18 @@ export class HeatSDK {
     return crypto.passphraseDecrypt(encrypted, passphrase)
   }
 
+  /**
+   * Create new configured builder
+   */
+  public builder() {
+    return new Builder(this.config.isTestnet, this.config.genesisKey)
+  }
+
   public payment(recipientOrRecipientPublicKey: string, amount: string) {
     return new Transaction(
       this,
       recipientOrRecipientPublicKey,
-      new Builder()
-        .isTestnet(this.config.isTestnet)
-        .genesisKey(this.config.genesisKey)
+      this.builder()
         .attachment(attachment.ORDINARY_PAYMENT)
         .amountHQT(utils.convertToQNT(amount))
     )
@@ -139,9 +144,7 @@ export class HeatSDK {
     return new Transaction(
       this,
       recipientOrRecipientPublicKey,
-      new Builder()
-        .isTestnet(this.config.isTestnet)
-        .genesisKey(this.config.genesisKey)
+      this.builder()
         .attachment(attachment.ARBITRARY_MESSAGE)
         .amountHQT("0")
     ).publicMessage(message)
@@ -151,9 +154,7 @@ export class HeatSDK {
     return new Transaction(
       this,
       recipientPublicKey,
-      new Builder()
-        .isTestnet(this.config.isTestnet)
-        .genesisKey(this.config.genesisKey)
+      this.builder()
         .attachment(attachment.ARBITRARY_MESSAGE)
         .amountHQT("0")
     ).privateMessage(message)
@@ -163,9 +164,7 @@ export class HeatSDK {
     return new Transaction(
       this,
       null, // if null and provide private message then to send encrypted message to self
-      new Builder()
-        .isTestnet(this.config.isTestnet)
-        .genesisKey(this.config.genesisKey)
+      this.builder()
         .attachment(attachment.ARBITRARY_MESSAGE)
         .amountHQT("0")
     ).privateMessageToSelf(message)
@@ -179,9 +178,7 @@ export class HeatSDK {
     dillutable: boolean,
     feeHQT?: string
   ) {
-    let builder = new Builder()
-      .isTestnet(this.config.isTestnet)
-      .genesisKey(this.config.genesisKey)
+    let builder = this.builder()
       .attachment(
         new AssetIssuance().init(descriptionUrl, descriptionHash, quantity, decimals, dillutable)
       )
@@ -196,9 +193,7 @@ export class HeatSDK {
     quantity: string,
     feeHQT?: string
   ) {
-    let builder = new Builder()
-      .isTestnet(this.config.isTestnet)
-      .genesisKey(this.config.genesisKey)
+    let builder = this.builder()
       .attachment(new AssetTransfer().init(assetId, quantity))
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ASSET_TRANSFER_FEE)
@@ -210,9 +205,7 @@ export class HeatSDK {
     transfers: AtomicTransfer[],
     feeHQT?: string
   ) {
-    let builder = new Builder()
-      .isTestnet(this.config.isTestnet)
-      .genesisKey(this.config.genesisKey)
+    let builder = this.builder()
       .attachment(new AtomicMultiTransfer().init(transfers))
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ATOMIC_MULTI_TRANSFER_FEE)
@@ -226,9 +219,7 @@ export class HeatSDK {
     price: string,
     expiration: number
   ) {
-    let builder = new Builder()
-      .isTestnet(this.config.isTestnet)
-      .genesisKey(this.config.genesisKey)
+    let builder = this.builder()
       .attachment(
         new ColoredCoinsAskOrderPlacement().init(currencyId, assetId, quantity, price, expiration)
       )
@@ -244,9 +235,7 @@ export class HeatSDK {
     price: string,
     expiration: number
   ) {
-    let builder = new Builder()
-      .isTestnet(this.config.isTestnet)
-      .genesisKey(this.config.genesisKey)
+    let builder = this.builder()
       .attachment(
         new ColoredCoinsBidOrderPlacement().init(currencyId, assetId, quantity, price, expiration)
       )
@@ -256,9 +245,7 @@ export class HeatSDK {
   }
 
   public cancelAskOrder(orderId: string) {
-    let builder = new Builder()
-      .isTestnet(this.config.isTestnet)
-      .genesisKey(this.config.genesisKey)
+    let builder = this.builder()
       .attachment(new ColoredCoinsAskOrderCancellation().init(orderId))
       .amountHQT("0")
       .feeHQT("1000000")
@@ -266,9 +253,7 @@ export class HeatSDK {
   }
 
   public cancelBidOrder(orderId: string) {
-    let builder = new Builder()
-      .isTestnet(this.config.isTestnet)
-      .genesisKey(this.config.genesisKey)
+    let builder = this.builder()
       .attachment(new ColoredCoinsBidOrderCancellation().init(orderId))
       .amountHQT("0")
       .feeHQT("1000000")
