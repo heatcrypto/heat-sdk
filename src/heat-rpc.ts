@@ -74,4 +74,13 @@ export class HeatRpc {
       { transaction: t.getRaw() }
     )
   }
+
+  /**
+   * Sometimes may be need do not keep opened websocket a long time.
+   * For example the app could broadcast one transaction and work further with no need heat sdk at all.
+   * Note, any new sending will open the websocket again.
+   */
+  public async closeSocket() {
+    await this.socket.close()
+  }
 }

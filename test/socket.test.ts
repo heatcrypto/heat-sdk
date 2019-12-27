@@ -21,15 +21,10 @@
  * SOFTWARE.
  * */
 import "./jasmine"
-import { HeatSDK, Configuration } from "../src/heat-sdk"
-import {
-  BroadcastRequest,
-  BroadcastRequestType,
-  BroadcastResponse,
-  BroadcastResponseType,
-  Transaction
-} from "../src/types"
+import { Configuration, HeatSDK } from "../src/heat-sdk"
+import { BroadcastRequestType, Transaction } from "../src/types"
 import { Type } from "../src/avro"
+
 const Long = require("long")
 
 describe("avro", () => {
@@ -105,18 +100,15 @@ describe("heat-rpc", () => {
   //     .then(() => {})
   // })
 
-  it("can create a payment", () => {
-    return heatsdk
+  it("can create a payment", async () => {
+    let t = await heatsdk
       .payment("1111", "10")
       .publicMessage("Hello world")
-      .sign("user1")
-      .then(t => {
-        let transaction = t.getTransaction()
-        return heatsdk.rpc.broadcast2(transaction).then(response => {
-          //console.log(response)
-          expect(response).toBeDefined()
-        })
-      })
+      .sign("generator")
+
+    let transaction = t.getTransaction()
+    let response = await heatsdk.rpc.broadcast2(transaction)
+    expect(response).toBeDefined()
   })
 
   it("can create multi payments", done => {
@@ -144,6 +136,19 @@ describe("heat-rpc", () => {
       .catch(() => {
         done()
       })
+  })
+
+  it("can close socket", async () => {
+    let response = await heatsdk.rpc.broadcast2(
+      (await heatsdk
+        .payment("1111", "10")
+        .publicMessage("Hello world")
+        .sign("generator")).getTransaction()
+    )
+    expect(response).toBeDefined()
+
+    //now we have the opened websocket, try to close it
+    await heatsdk.rpc.closeSocket()
   })
 })
 

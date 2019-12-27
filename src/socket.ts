@@ -34,7 +34,7 @@ export interface SocketResponse {
 }
 
 export class Socket {
-  private connectedSocketPromise: Promise<any> = null
+  private connectedSocketPromise: Promise<WebSocket> = null
   private callIdIncr = 0
   private callbacks: { [key: number]: any } = {}
 
@@ -142,5 +142,10 @@ export class Socket {
       websocket.onmessage = onmessage
     })
     return this.connectedSocketPromise
+  }
+
+  async close() {
+    let ws = await this.getConnectedSocket()
+    ws.close(1000)
   }
 }
