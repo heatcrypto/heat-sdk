@@ -71,6 +71,18 @@ sdk.payment("mike@heatwallet.com","99.95")
    .broadcast()
 ```
 
+To use on testnet or use different endpoints pass a Configuration object to the HeatSDK constructor.
+The sample below connects to heat testnet to a local running server.
+
+```javascript
+const config = new heatsdk.Configuration({
+  isTestnet: true, 
+  // baseURL: "http://localhost:7733/api/v1", 
+  // websocketURL: "ws://localhost:7755/ws/"
+})
+const sdk = new heatsdk.HeatSDK(config)
+```
+
 #### Browser
 
 heat-sdk comes as an UMD module which means you could either `require` or `import {heatsdk} from 'heat-sdk'` or simply load as `<script src="">` and access it through `window.heatsdk`
