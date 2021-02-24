@@ -30,20 +30,31 @@ export const testnet = {
   ACCOUNT_3: { ID: "14298121729768488135", SECRET_PHRASE: "test secret phrase 3" },
   ACCOUNT_21: { ID: "17160836487693957086", SECRET_PHRASE: "stresstest21" },
   ACCOUNT_22: { ID: "8072356497785662904", SECRET_PHRASE: "stresstest22" },
+  ACCOUNT_4: { ID: "8673171666848322417", SECRET_PHRASE: "heat sdk test secret phrase 4" },
   ASSET_1: undefined,
   ASSET_2: undefined,
   ASSET_3: undefined,
   OBJECTS_BY_ID: {}
 }
-
 // Asset ENE Energy q=1_000_000 decimals=6 dillutable=false
 testnet.ASSET_1 = { ID: "9827585868724319515", ISSUER: testnet.ACCOUNT_1 }
-
 // Asset POW Power q=100_500 decimals=0 dillutable=true
 testnet.ASSET_2 = { ID: "3722848536705943191", ISSUER: testnet.ACCOUNT_2 }
+
+export const testnet2 = {
+  ACCOUNT_1: { ID: "8673171666848322417", SECRET_PHRASE: "heat sdk test secret phrase 4" },
+  ASSET_1: undefined,
+  OBJECTS_BY_ID: {}
+}
+// Asset Aaa
+testnet2.ASSET_1 = { ID: "12649412840321222914", ISSUER: testnet2.ACCOUNT_1 }
 
 // map ID -> object_with_this_id
 for (let key in testnet) {
   let item = testnet[key]
   if (item && item.ID) testnet.OBJECTS_BY_ID[item.ID] = item
+}
+for (let key in testnet2) {
+  let item = testnet2[key]
+  if (item && item.ID) testnet2.OBJECTS_BY_ID[item.ID] = item
 }

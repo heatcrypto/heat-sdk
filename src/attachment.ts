@@ -348,6 +348,65 @@ export class AtomicMultiTransfer extends appendix.AbstractAppendix implements At
   }
 }
 
+export class AssetExpiration extends appendix.AbstractAppendix implements Attachment {
+  private assetId: Long
+  private expiration: number
+
+  init(assetId: string, expiration: number) {
+    this.assetId = Long.fromString(assetId)
+    this.expiration = expiration
+    return this
+  }
+
+  getFee() {
+    return Fee.DEFAULT
+  }
+
+  getAppendixName() {
+    return "AssetExpiration"
+  }
+
+  getTransactionType() {
+    return transactionType.COLORED_COINS_ASSET_EXPIRATION_TRANSACTION_TYPE
+  }
+
+  getMySize(): number {
+    return 8 + 4
+  }
+
+  public parse(buffer: ByteBuffer) {
+    super.parse(buffer)
+    this.assetId = buffer.readInt64()
+    this.expiration = buffer.readInt()
+    return this
+  }
+
+  putMyBytes(buffer: ByteBuffer): void {
+    buffer.writeInt64(this.assetId)
+    buffer.writeInt(this.expiration)
+  }
+
+  putMyJSON(json: { [key: string]: any }): void {
+    json["asset"] = this.assetId.toUnsigned().toString()
+    json["expiration"] = this.expiration.toString()
+  }
+
+  parseJSON(json: { [key: string]: any }) {
+    super.parseJSON(json)
+    this.assetId = Long.fromString(json["asset"], true)
+    this.expiration = parseInt(json["expiration"])
+    return this
+  }
+
+  getAssetId(): Long {
+    return this.assetId
+  }
+
+  getExpiration(): number {
+    return this.expiration
+  }
+}
+
 // ------------------- Colored coins. Orders ----------------------------------------------------------------------------
 
 export abstract class ColoredCoinsOrderPlacement extends appendix.AbstractAppendix {

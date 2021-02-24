@@ -25,6 +25,7 @@ import * as crypto from "./crypto"
 import * as utils from "./utils"
 import * as _attachment from "./attachment"
 import {
+  AssetExpiration,
   AssetIssuance,
   AssetTransfer,
   AtomicMultiTransfer,
@@ -210,6 +211,15 @@ export class HeatSDK {
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ATOMIC_MULTI_TRANSFER_FEE)
     return new Transaction(this, recipientOrRecipientPublicKey, builder)
+  }
+
+  public assetExpiration(assetId: string, expiration: number, feeHQT?: string) {
+    let attachment = new AssetExpiration().init(assetId, expiration)
+    let builder = this.builder()
+      .attachment(attachment)
+      .amountHQT("0")
+      .feeHQT(feeHQT || attachment.getFee())
+    return new Transaction(this, "0", builder)
   }
 
   public placeAskOrder(
