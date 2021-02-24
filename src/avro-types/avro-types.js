@@ -586,7 +586,7 @@ Type.prototype.fingerprint = function (algorithm) {
       var schemaStr = JSON.stringify(this.schema());
       this._hash.str = utils.getHash(schemaStr).toString('binary');
     }
-    return new Buffer(this._hash.str, 'binary');
+    return Buffer.from(this._hash.str, 'binary');
   } else {
     return utils.getHash(JSON.stringify(this.schema()), algorithm);
   }
@@ -652,7 +652,7 @@ Type.prototype.schema = function (opts) {
 Type.prototype.toBuffer = function (val) {
   TAP.pos = 0;
   this._write(TAP, val);
-  var buf = new Buffer(TAP.pos);
+  var buf = Buffer.alloc(TAP.pos);
   if (TAP.isValid()) {
     TAP.buf.copy(buf, 0, 0, TAP.pos);
   } else {
@@ -1143,19 +1143,19 @@ BytesType.prototype._copy = function (obj, opts) {
       if (typeof obj != 'string') {
         throw new Error(f('cannot coerce to buffer: %j', obj));
       }
-      buf = new Buffer(obj, 'binary');
+      buf = Buffer.from(obj, 'binary');
       this._check(buf, undefined, throwInvalidError);
       return buf;
     case 1: // Coerce buffer JSON representation to buffers.
       if (!isJsonBuffer(obj)) {
         throw new Error(f('cannot coerce to buffer: %j', obj));
       }
-      buf = new Buffer(obj.data);
+      buf = Buffer.from(obj.data);
       this._check(buf, undefined, throwInvalidError);
       return buf;
     default: // Copy buffer.
       this._check(obj, undefined, throwInvalidError);
-      return new Buffer(obj);
+      return Buffer.from(obj);
   }
 };
 

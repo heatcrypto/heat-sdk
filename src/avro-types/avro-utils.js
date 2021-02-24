@@ -264,16 +264,16 @@ function addDeprecatedGetters(obj, props) {
 function BufferPool(len) {
   this._len = len | 0;
   this._pos = 0;
-  this._slab = new Buffer(this._len);
+  this._slab = Buffer.alloc(this._len);
 }
 
 BufferPool.prototype.alloc = function (len) {
   var maxLen = this._len;
   if (len > maxLen) {
-    return new Buffer(len);
+    return Buffer.alloc(len);
   }
   if (this._pos + len > maxLen) {
-    this._slab = new Buffer(maxLen);
+    this._slab = Buffer.alloc(maxLen);
     this._pos = 0;
   }
   return this._slab.slice(this._pos, this._pos += len);
@@ -346,7 +346,7 @@ Lcg.prototype.nextBuffer = function (len) {
   for (i = 0; i < len; i++) {
     arr.push(this.nextInt(256));
   }
-  return new Buffer(arr);
+  return Buffer.from(arr);
 };
 
 Lcg.prototype.choice = function (arr) {
@@ -766,7 +766,7 @@ Tap.prototype.matchBytes = Tap.prototype.matchString = function (tap) {
 // worry about Avro's zigzag encoding, we directly expose longs as unpacked.
 
 Tap.prototype.unpackLongBytes = function () {
-  var res = new Buffer(8);
+  var res = Buffer.alloc(8);
   var n = 0;
   var i = 0; // Byte index in target buffer.
   var j = 6; // Bit offset in current target buffer byte.

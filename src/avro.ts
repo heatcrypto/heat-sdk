@@ -39,7 +39,7 @@ const longType = avro.types.LongType.__with({
   },
   toBuffer: (n: any) => {
     //const buf: any = Buffer.alloc(8)
-    const buf: any = new Buffer(8)
+    const buf: any = Buffer.alloc(8)
     buf.writeInt32LE(n.getLowBits(), 0)
     buf.writeInt32LE(n.getHighBits(), 4)
     return buf

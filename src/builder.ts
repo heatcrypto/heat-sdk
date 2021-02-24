@@ -346,11 +346,11 @@ export class TransactionImpl {
     raw["version"] = this.version
     raw["timestamp"] = this.timestamp
     raw["deadline"] = this.deadline
-    raw["senderPublicKey"] = this.senderPublicKey ? new Buffer(this.senderPublicKey) : new Buffer(0)
+    raw["senderPublicKey"] = this.senderPublicKey ? Buffer.from(this.senderPublicKey) : Buffer.alloc(0)
     raw["recipientId"] = Long.fromString(this.recipientId, true)
     raw["amountHQT"] = Long.fromString(this.amountHQT)
     raw["feeHQT"] = Long.fromString(this.feeHQT)
-    raw["signature"] = this.signature ? new Buffer(this.signature) : new Buffer(0)
+    raw["signature"] = this.signature ? Buffer.from(this.signature) : Buffer.alloc(0)
     raw["flags"] = this.getFlags()
     raw["ecBlockHeight"] = this.ecBlockHeight
     raw["ecBlockId"] = Long.fromString(this.ecBlockId, true)
@@ -360,9 +360,9 @@ export class TransactionImpl {
         ByteBuffer.LITTLE_ENDIAN
       )
       attachment.putBytes(attachmentBytes)
-      raw["attachmentBytes"] = new Buffer(attachmentBytes.buffer)
+      raw["attachmentBytes"] = Buffer.from(attachmentBytes.buffer)
     } else {
-      raw["attachmentBytes"] = new Buffer(0)
+      raw["attachmentBytes"] = Buffer.alloc(0)
     }
     let totalSize = 0
     for (let i = 1; i < this.appendages.length; i++) {
@@ -371,9 +371,9 @@ export class TransactionImpl {
     if (totalSize > 0) {
       let appendixBytes = ByteBuffer.allocate(totalSize).order(ByteBuffer.LITTLE_ENDIAN)
       for (let i = 1; i < this.appendages.length; i++) this.appendages[i].putBytes(appendixBytes)
-      raw["appendixBytes"] = new Buffer(appendixBytes.buffer)
+      raw["appendixBytes"] = Buffer.from(appendixBytes.buffer)
     } else {
-      raw["appendixBytes"] = new Buffer(0)
+      raw["appendixBytes"] = Buffer.alloc(0)
     }
     return raw
   }
