@@ -75,6 +75,13 @@ export class HeatRpc {
     )
   }
 
+  public broadcast3(transactions: TransactionImpl[]): Promise<BroadcastResponse> {
+    return this.send(
+      { method: 1, request: BroadcastRequestType, response: BroadcastResponseType },
+      { transactions: transactions.map(v => v.getRaw()) }
+    )
+  }
+
   /**
    * Sometimes may be need do not keep opened websocket a long time.
    * For example the app could broadcast one transaction and work further with no need heat sdk at all.

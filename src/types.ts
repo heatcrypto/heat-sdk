@@ -72,7 +72,8 @@ export const TransactionType = Type.forSchema({
 })
 
 export interface BroadcastRequest {
-  transaction: Transaction
+  transaction?: Transaction
+  transactions?: Transaction[]
 }
 //may broadcast one or multiple transactions by filled appropriate field
 export const BroadcastRequestType = Type.forSchema({
@@ -92,7 +93,8 @@ export const BroadcastRequestType = Type.forSchema({
 })
 
 export interface BroadcastResponse {
-  transaction: Long
+  transaction?: Long
+  transactionIds?: Long[]
 }
 //response can have one or multiple transaction ids by filled appropriate field
 export const BroadcastResponseType = Type.forSchema({
