@@ -41,8 +41,8 @@ function handleResult(promise: Promise<any>, done: Function) {
       done()
     })
     .catch(reason => {
+      console.error(reason)
       expect(reason).toBeUndefined()
-      console.log(reason)
       done()
     })
 }
@@ -93,8 +93,16 @@ describe("Transaction API", () => {
   })
 
   it("Asset Issuance", done => {
+    //issue standard asset
     let promise = heatsdk
-      .assetIssuance("https://heatsdktest/assetN01", null, "1000", 0, true)
+      .assetIssuance(0, "https://heatsdktest/assetN02", null, "1000", 0, true)
+      .publicMessage("heat-sdk test")
+      .sign(testnet.ACCOUNT_2.SECRET_PHRASE)
+      .then(transaction => transaction.broadcast())
+    handleResult(promise, done)
+    //issue private asset with expiration
+    promise = heatsdk
+      .assetIssuance(1, "https://heatsdktest/assetN03", null, "1000", 0, true, 444444440)
       .publicMessage("heat-sdk test")
       .sign(testnet.ACCOUNT_2.SECRET_PHRASE)
       .then(transaction => transaction.broadcast())

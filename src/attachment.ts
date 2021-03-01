@@ -27,6 +27,7 @@ import * as utils from "./utils"
 import { Fee } from "./fee"
 import Long from "long"
 import * as ByteBuffer from "bytebuffer"
+import {AssetType} from "./types";
 
 export interface Attachment extends appendix.Appendix {
   getTransactionType(): transactionType.TransactionType
@@ -90,15 +91,22 @@ export class AssetIssuance extends appendix.AbstractAppendix implements Attachme
   private quantity: Long
   private decimals: number
   private dillutable: boolean
+  private expiration: number
+  private type: number
 
   init(
+    type: AssetType,
     descriptionUrl: string,
     descriptionHash: number[],
     quantity: string,
     decimals: number,
-    dillutable: boolean
+    dillutable: boolean,
+    expiration?: number
   ) {
+    this.version = 3
+    this.type = type
     this.descriptionUrl = descriptionUrl
+    this.expiration = expiration || 0;
     this.descriptionHash = descriptionHash == null ? new Array(32).fill(0) : descriptionHash
     this.quantity = Long.fromString(quantity)
     this.decimals = decimals
@@ -107,7 +115,7 @@ export class AssetIssuance extends appendix.AbstractAppendix implements Attachme
   }
 
   getMySize(): number {
-    return 1 + converters.stringToByteArray(this.descriptionUrl).length + 32 + 8 + 1 + 1
+    return 1 + converters.stringToByteArray(this.descriptionUrl).length + 32 + 8 + 1 + 1 + 1 + 4
   }
 
   public parse(buffer: ByteBuffer) {
@@ -117,6 +125,8 @@ export class AssetIssuance extends appendix.AbstractAppendix implements Attachme
     this.quantity = buffer.readInt64()
     this.decimals = buffer.readByte()
     this.dillutable = buffer.readByte() == 1
+    this.expiration = buffer.readInt()
+    this.type = buffer.readByte()
     return this
   }
 
@@ -130,6 +140,8 @@ export class AssetIssuance extends appendix.AbstractAppendix implements Attachme
     buffer.writeInt64(this.quantity)
     buffer.writeByte(this.decimals)
     buffer.writeByte(this.dillutable ? 1 : 0)
+    buffer.writeInt(this.expiration || 0)
+    buffer.writeByte(this.type || 0)
   }
 
   public parseJSON(json: { [key: string]: any }) {
@@ -139,6 +151,8 @@ export class AssetIssuance extends appendix.AbstractAppendix implements Attachme
     this.quantity = Long.fromString(json["quantity"])
     this.decimals = json["decimals"]
     this.dillutable = json["dillutable"]
+    this.expiration = json["expiration"] || 0
+    this.type = json["type"] || 0
     return this
   }
 
@@ -148,6 +162,8 @@ export class AssetIssuance extends appendix.AbstractAppendix implements Attachme
     json["quantity"] = this.quantity.toString()
     json["decimals"] = this.decimals
     json["dillutable"] = this.dillutable
+    json["expiration"] = this.expiration
+    json["type"] = this.type
   }
 
   getFee() {
@@ -180,6 +196,14 @@ export class AssetIssuance extends appendix.AbstractAppendix implements Attachme
 
   getDillutable(): boolean {
     return this.dillutable
+  }
+
+  getExpiration(): number {
+    return this.expiration
+  }
+
+  getType(): number {
+    return this.type
   }
 }
 

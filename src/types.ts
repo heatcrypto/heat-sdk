@@ -71,6 +71,11 @@ export const TransactionType = Type.forSchema({
   ]
 })
 
+/**
+ * 0: standard asset, 1: private asset
+ */
+export type AssetType = 0 | 1
+
 export interface BroadcastRequest {
   transaction?: Transaction
   transactions?: Transaction[]

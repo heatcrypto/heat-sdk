@@ -45,6 +45,7 @@ import { setRandomSource } from "./random-bytes"
 import { HeatRpc } from "./heat-rpc"
 import * as types from "./types"
 import * as avro from "./avro"
+import {AssetType} from "./types";
 
 export const attachment = _attachment
 export const Builder = builder.Builder
@@ -172,16 +173,18 @@ export class HeatSDK {
   }
 
   public assetIssuance(
+    type: AssetType,
     descriptionUrl: string,
     descriptionHash: number[],
     quantity: string,
     decimals: number,
     dillutable: boolean,
+    expiration?: number,
     feeHQT?: string
   ) {
     let builder = this.builder()
       .attachment(
-        new AssetIssuance().init(descriptionUrl, descriptionHash, quantity, decimals, dillutable)
+        new AssetIssuance().init(type, descriptionUrl, descriptionHash, quantity, decimals, dillutable, expiration)
       )
       .amountHQT("0")
       .feeHQT(feeHQT ? feeHQT : Fee.ASSET_ISSUANCE_FEE)
