@@ -43,11 +43,14 @@ testnet.ASSET_2 = { ID: "3722848536705943191", ISSUER: testnet.ACCOUNT_2 }
 
 export const testnet2 = {
   ACCOUNT_1: { ID: "8673171666848322417", SECRET_PHRASE: "heat sdk test secret phrase 4" },
+  ACCOUNT_2: { ID: "5056413637982060108", SECRET_PHRASE: "heat sdk test secret phrase" },
   ASSET_1: undefined,
+  ASSET_PRIVATE_1: undefined,
   OBJECTS_BY_ID: {}
 }
 // Asset Aaa
 testnet2.ASSET_1 = { ID: "12649412840321222914", ISSUER: testnet2.ACCOUNT_1 }
+testnet2.ASSET_PRIVATE_1 = { ID: "4007039122591603244", ISSUER: testnet2.ACCOUNT_2 }
 
 // map ID -> object_with_this_id
 for (let key in testnet) {

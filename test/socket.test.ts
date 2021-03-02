@@ -21,9 +21,9 @@
  * SOFTWARE.
  * */
 import "./jasmine"
-import { Configuration, HeatSDK } from "../src/heat-sdk"
-import { BroadcastRequestType, Transaction } from "../src/types"
-import { Type } from "../src/avro"
+import {Configuration, HeatSDK} from "../src/heat-sdk"
+import {BroadcastRequestType, Transaction} from "../src/types"
+import {Type} from "../src/avro"
 
 const Long = require("long")
 
@@ -111,31 +111,33 @@ describe("heat-rpc", () => {
     expect(response).toBeDefined()
   })
 
-  it("can create multi payments", done => {
-    var start = Date.now()
-    var count = 10
-    //console.log("Generate " + count + " transactions " + (Date.now() - start))
-    createTransactions(heatsdk, count)
-      .then(transactions => {
-        //console.log("Done generating " + count + " transactions " + (Date.now() - start))
-        var promises = []
-        transactions.forEach(t => {
-          let p = heatsdk.rpc.broadcast2(t)
-          p.then(resp => {
-            //console.log(t.amountHQT, resp,  (Date.now() - start), new Date())
-          })
-          promises.push(p)
-        })
-        //console.log("Done broadcasting " + count + " transactions" + (Date.now() - start))
-        return Promise.all(promises)
-      })
-      .then(() => {
-        //console.log("Received back all callbacks" + (Date.now() - start))
-        done()
-      })
-      .catch(() => {
-        done()
-      })
+  it("can send payments", async done => {
+    let start = Date.now()
+    let count = 3
+    try {
+      let transactions = await createTransactions(heatsdk, count)
+      for (const t of transactions) {
+        //let resp = await heatsdk.rpc.broadcast2(t)
+        let resp = await heatsdk.rpc.broadcast({transaction: t.getRaw()})
+        //let resp = await heatsdk.rpc.broadcast({transactions: [t.getRaw()]})
+        //console.log(t.amountHQT, resp,  (Date.now() - start), new Date())
+      }
+    } catch (e) {
+      done(e)
+    }
+    done()
+  })
+
+  it("can send one time multi payments", async done => {
+    let count = 3
+    try {
+      let transactions = await createTransactions(heatsdk, count)
+      let resp = await heatsdk.rpc.broadcast({transactions: transactions.map(t => t.getRaw())})
+      //let resp = await heatsdk.rpc.broadcast3(transactions)
+    } catch (e) {
+      done(e)
+    }
+    done()
   })
 
   it("can close socket", async () => {
@@ -160,12 +162,12 @@ function pad(num, size) {
 function createTransactions(heatsdk, count) {
   var promises = []
   var transactions = []
-  for (let i = 1; i < count; i++) {
+  for (let i = 1; i < count + 1; i++) {
     promises.push(
       heatsdk
         .payment("4729421738299387565", "1." + pad(i, 5))
         //.publicMessage("Hello world")
-        .sign("user2")
+        .sign("user3")
         .then(t => {
           transactions.push(t.getTransaction())
         })
