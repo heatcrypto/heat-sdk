@@ -1,6 +1,6 @@
 {
   "name": "heat-sdk",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "HEAT support libraries for use in Node.js and any (modern) browser",
   "keywords": [
     "heat",
@@ -47,7 +47,8 @@
     "precommit": "lint-staged",
     "prepush": "npm run test && npm run build",
     "commitmsg": "validate-commit-msg",
-    "rollup": "rollup -c"
+    "rollup": "rollup -c",
+    "tsc": "tsc ./src/heat-sdk.ts"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [

@@ -323,7 +323,7 @@ export class AtomicMultiTransfer extends appendix.AbstractAppendix implements At
   }
 
   putMyJSON(json: { [key: string]: any }): void {
-    let ts = []
+    let ts = <Array<any>>[]
     this.transfers.forEach(function(transfer) {
       ts.push({
         recipient: transfer.recipient,
